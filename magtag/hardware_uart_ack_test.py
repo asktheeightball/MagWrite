@@ -1,7 +1,6 @@
 """One-shot full-duplex UART acknowledgement and display feasibility test."""
 
 import json
-import hashlib
 import os
 import storage
 import supervisor
@@ -11,6 +10,7 @@ import config
 from magwrite.ack_scheduler import AckDisplayScheduler
 from magwrite.display_adapter import validate_physical_test_activation
 from magwrite.serial_log import StructuredSerialLogger
+from magwrite.sha256 import sha256_file
 from magwrite.status_queue import StatusQueue
 from magwrite.uart_protocol import DISPLAY_ERROR, FrameParser
 from magwrite.uc8151_adapter import UC8151DisplayAdapter
@@ -33,16 +33,6 @@ def exists(path):
     except OSError:
         return False
 
-
-def sha256_file(path):
-    digest = hashlib.sha256()
-    with open(path, "rb") as handle:
-        while True:
-            chunk = handle.read(256)
-            if not chunk:
-                break
-            digest.update(chunk)
-    return "".join("%02X" % value for value in digest.digest())
 
 
 logger = StructuredSerialLogger()
