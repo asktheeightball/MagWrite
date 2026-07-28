@@ -4,7 +4,7 @@
 
 ### Adafruit MagTag
 
-Role: editor, storage, e-paper display, and physical controls.
+Role: e-paper display terminal and physical controls. The Fruit Jam is expected to become the authoritative editor and storage device in the expanded prototype.
 
 Required prototype revision:
 
@@ -19,9 +19,21 @@ Relevant characteristics:
 - onboard LiPo charging and battery connector;
 - internal flash and PSRAM subject to actual firmware availability.
 
+### Adafruit Fruit Jam
+
+Role: authoritative editor, document storage, autosave/recovery, viewport generation, and optional USB-keyboard fallback.
+
+Relevant characteristics:
+
+- RP2350B main processor;
+- USB host support;
+- microSD storage;
+- Wi-Fi through the onboard ESP32-C6 coprocessor;
+- exposed GPIO suitable for a hardware UART connection to the MagTag.
+
 ### Wemos LOLIN32 Lite
 
-Role: Bluetooth keyboard receiver and local wireless bridge.
+Role: Bluetooth keyboard receiver.
 
 Known characteristics:
 
@@ -29,6 +41,114 @@ Known characteristics:
 - USB-C connector through CH340C USB-to-UART converter;
 - USB-C is for power, flashing, and serial logs, not USB host;
 - no assumption of native USB keyboard support.
+
+## Intended system architecture
+
+```text
+Bluetooth keyboard
+        |
+        v
+LOLIN32 Lite
+Bluetooth HID host
+        |
+        | wired UART
+        v
+Fruit Jam
+editor, microSD, autosave, recovery
+        |
+        | wired UART
+        v
+MagTag
+partial-refresh e-paper display and buttons
+```
+
+Only the keyboard is wireless. The internal device links should be wired for reliability and lower power consumption.
+
+## Fruit Jam to MagTag UART connection
+
+### Development recommendation
+
+Use a 3.3 V UART connection with a shared ground:
+
+```text
+Fruit Jam TX  ---> MagTag RX
+Fruit Jam RX  <--- MagTag TX
+Fruit Jam GND <--> MagTag GND
+```
+
+During bench development, power the Fruit Jam and MagTag separately over USB. Connect only TX, RX, and ground. Do not connect their 3.3 V, 5 V, or battery rails together.
+
+### Lowest-solder prototype
+
+Begin with a one-way display link:
+
+```text
+Fruit Jam TX  ---> MagTag RX
+Fruit Jam GND <--> MagTag GND
+```
+
+This is sufficient to prove that the Fruit Jam can send a viewport or framebuffer and the MagTag can render it. Add the return UART line later for:
+
+- display-ready and display-complete acknowledgements;
+- refresh timing and error reports;
+- MagTag button events;
+- status and diagnostics.
+
+### Plug-in cable approach
+
+Prefer pre-crimped plug-in cables rather than soldering directly to either board:
+
+- JST-PH 2 mm 3-pin/STEMMA-style cables for compatible three-pin connectors;
+- female-to-female Dupont jumpers for exposed header pins;
+- insulated unused power conductors.
+
+Typical three-wire cable colours are:
+
+```text
+black = ground
+red   = power
+white = signal
+```
+
+Do not rely on colour alone. Confirm cable pin order and board pinout before powering the boards.
+
+For the one-way prototype, use one signal conductor and one ground conductor. Leave the red power conductor disconnected and insulated.
+
+### Provisional pin plan
+
+The earlier bench proposal is:
+
+```text
+Fruit Jam A0 / selected UART TX  ---> MagTag D10 / selected UART RX
+Fruit Jam GND                    <--> MagTag GND
+```
+
+For the later bidirectional link:
+
+```text
+Fruit Jam selected UART RX <--- MagTag A1 / selected UART TX
+```
+
+These aliases and GPIO assignments are provisional until verified against the exact CircuitPython builds and current board pin maps. Before wiring, run `dir(board)` on both devices and confirm that the chosen pins:
+
+- exist under the expected aliases;
+- are not reserved by the display, microSD, Wi-Fi coprocessor, audio, DVI, boot, or another required peripheral;
+- support the selected UART peripheral;
+- use 3.3 V logic.
+
+Do not hard-code an unverified `board.GPIO37` or similar alias.
+
+### UART protocol direction
+
+The Fruit Jam should send complete viewport snapshots or 1-bit framebuffers rather than one display command per typed character.
+
+The MagTag framebuffer is approximately 4,736 bytes:
+
+```text
+296 × 128 ÷ 8 = 4,736 bytes
+```
+
+The protocol must use sequence numbers, length framing, integrity checking, and display backpressure. While the MagTag is refreshing, the Fruit Jam should retain only the newest pending viewport rather than queue every intermediate frame.
 
 ## Keyboard
 
@@ -44,7 +164,7 @@ The bridge firmware should support both BLE and Classic HID where practical on t
 
 For bench development, power each board independently over USB.
 
-Do not parallel two charger circuits onto one shared LiPo during early testing.
+Do not parallel charger circuits onto one shared LiPo during early testing.
 
 The finished one-battery design should use:
 
@@ -57,17 +177,19 @@ The finished one-battery design should use:
 
 ## Hardware validation checklist
 
-- [ ] Photograph both boards and record silkscreen markings.
-- [ ] Confirm MagTag display controller/revision.
+- [ ] Confirm the exact Fruit Jam and MagTag UART pin aliases on-device.
+- [ ] Verify the one-way Fruit Jam-to-MagTag UART link using signal and ground only.
+- [ ] Verify the later bidirectional UART link and MagTag button events.
+- [ ] Confirm UART logic levels are 3.3 V.
+- [ ] Confirm no power conductors are connected during separately powered bench testing.
 - [ ] Confirm keyboard Bluetooth mode.
 - [ ] Confirm LOLIN32 flash size and available GPIO.
-- [ ] Measure MagTag partial-refresh duration.
-- [ ] Measure full-refresh duration.
+- [x] Confirm MagTag display controller/revision.
+- [x] Measure the first controlled MagTag partial-refresh duration.
+- [x] Measure the first controlled full-refresh duration.
 - [ ] Measure active and idle current for each board.
-- [ ] Verify simultaneous Bluetooth and Wi-Fi stability on LOLIN32.
-- [ ] Verify MagTag Wi-Fi remains responsive during non-blocking display refresh.
 - [ ] Determine safe battery capacity and charging topology.
 
 ## Display-driver dependency
 
-The initial no-flash refresh research is based on `bciuca/magtag-partial-refresh-driver`, which is GPL-3.0-or-later. Before copying or deriving source, preserve licence notices and decide whether MagWrite will adopt a GPL-compatible project licence.
+The no-flash refresh implementation derives from `bciuca/magtag-partial-refresh-driver`, which is GPL-3.0-or-later. Preserve all applicable licence notices, modification records, GPL text, and corresponding-source obligations.
