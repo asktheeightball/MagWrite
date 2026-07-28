@@ -2,6 +2,16 @@
 
 ## Prototype hardware
 
+### Fruit Jam UART feasibility controller
+
+The one-way feasibility harness uses an Adafruit Fruit Jam as an authoritative
+deterministic viewport generator. The physical board identity and actual
+CircuitPython A0/TX alias must be captured from that connected board before
+activation. Bench wiring is Fruit Jam selected TX to MagTag selected D10/RX
+plus common ground. Each board is USB-powered separately; all inter-board power
+conductors remain disconnected and insulated. This exact separately powered
+one-way link passed its controlled physical test on 2026-07-28.
+
 ### Adafruit MagTag
 
 Role: e-paper display terminal and physical controls. The Fruit Jam is expected to become the authoritative editor and storage device in the expanded prototype.
@@ -114,22 +124,24 @@ Do not rely on colour alone. Confirm cable pin order and board pinout before pow
 
 For the one-way prototype, use one signal conductor and one ground conductor. Leave the red power conductor disconnected and insulated.
 
-### Provisional pin plan
+### Verified one-way pin plan
 
-The earlier bench proposal is:
+The controlled one-way test verified:
 
 ```text
 Fruit Jam A0 / selected UART TX  ---> MagTag D10 / selected UART RX
 Fruit Jam GND                    <--> MagTag GND
 ```
 
-For the later bidirectional link:
+For the later bidirectional link, the return path remains provisional:
 
 ```text
 Fruit Jam selected UART RX <--- MagTag A1 / selected UART TX
 ```
 
-These aliases and GPIO assignments are provisional until verified against the exact CircuitPython builds and current board pin maps. Before wiring, run `dir(board)` on both devices and confirm that the chosen pins:
+The one-way aliases above were verified with `dir(board)` and UART
+initialization on the exact CircuitPython builds. Before adding the return path,
+confirm that its chosen pins:
 
 - exist under the expected aliases;
 - are not reserved by the display, microSD, Wi-Fi coprocessor, audio, DVI, boot, or another required peripheral;
@@ -177,16 +189,17 @@ The finished one-battery design should use:
 
 ## Hardware validation checklist
 
-- [ ] Confirm the exact Fruit Jam and MagTag UART pin aliases on-device.
-- [ ] Verify the one-way Fruit Jam-to-MagTag UART link using signal and ground only.
+- [x] Photograph MagTag and record display-flex markings.
+- [x] Confirm the exact one-way Fruit Jam and MagTag UART pin aliases on-device.
+- [x] Verify the one-way Fruit Jam-to-MagTag UART link using signal and ground only.
 - [ ] Verify the later bidirectional UART link and MagTag button events.
 - [ ] Confirm UART logic levels are 3.3 V.
-- [ ] Confirm no power conductors are connected during separately powered bench testing.
+- [x] Confirm no power conductors were connected during the separately powered one-way bench test.
 - [ ] Confirm keyboard Bluetooth mode.
 - [ ] Confirm LOLIN32 flash size and available GPIO.
-- [x] Confirm MagTag display controller/revision.
-- [x] Measure the first controlled MagTag partial-refresh duration.
-- [x] Measure the first controlled full-refresh duration.
+- [x] Confirm MagTag display controller/revision as original UC8151D/T5 family.
+- [x] Measure initial 20-run MagTag partial-refresh duration.
+- [x] Measure initial full-refresh duration.
 - [ ] Measure active and idle current for each board.
 - [ ] Determine safe battery capacity and charging topology.
 

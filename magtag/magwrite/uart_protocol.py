@@ -1,0 +1,129 @@
+"""Bounded, host-safe MagWrite one-way UART framing."""
+
+MAGIC = b"MW"
+VERSION = 1
+BYTE_ORDER = "big"
+HEADER_SIZE = 14
+CRC_SIZE = 4
+MAX_PAYLOAD_SIZE = 192
+MAX_FRAME_SIZE = HEADER_SIZE + MAX_PAYLOAD_SIZE + CRC_SIZE
+MAX_RECEIVE_BUFFER = 512
+
+HELLO = 1
+VIEWPORT = 2
+END_OF_SCENARIO = 3
+END_OF_TEST = 4
+MESSAGE_TYPES = (HELLO, VIEWPORT, END_OF_SCENARIO, END_OF_TEST)
+MESSAGE_NAMES = {
+    HELLO: "HELLO",
+    VIEWPORT: "VIEWPORT",
+    END_OF_SCENARIO: "END_OF_SCENARIO",
+    END_OF_TEST: "END_OF_TEST",
+}
+
+
+def _u32(value):
+    return int(value).to_bytes(4, BYTE_ORDER)
+
+
+def crc32(data):
+    value = 0xFFFFFFFF
+    for byte in data:
+        value ^= byte
+        for _ in range(8):
+            value = (value >> 1) ^ (0xEDB88320 if value & 1 else 0)
+    return value ^ 0xFFFFFFFF
+
+
+def encode_frame(message_type, sequence, revision, payload=b""):
+    if message_type not in MESSAGE_TYPES:
+        raise ValueError("unknown message type")
+    if len(payload) > MAX_PAYLOAD_SIZE:
+        raise ValueError("payload exceeds maximum")
+    if not (0 <= sequence <= 0xFFFFFFFF and 0 <= revision <= 0xFFFFFFFF):
+        raise ValueError("sequence/revision out of range")
+    header = (
+        MAGIC
+        + bytes((VERSION, message_type))
+        + _u32(sequence)
+        + _u32(revision)
+        + len(payload).to_bytes(2, BYTE_ORDER)
+    )
+    body = header + payload
+    return body + _u32(crc32(body))
+
+
+class Frame:
+    def __init__(self, message_type, sequence, revision, payload):
+        self.message_type = message_type
+        self.sequence = sequence
+        self.revision = revision
+        self.payload = payload
+
+
+class FrameParser:
+    """Incremental parser which drops noise and never grows beyond its cap."""
+
+    def __init__(self):
+        self.buffer = bytearray()
+        self.rejected = 0
+        self.crc_failures = 0
+        self.oversized = 0
+        self.version_failures = 0
+        self.type_failures = 0
+        self.buffer_overflows = 0
+
+    def feed(self, data):
+        if len(data) > MAX_RECEIVE_BUFFER:
+            data = data[-MAX_RECEIVE_BUFFER:]
+            self.buffer_overflows += 1
+        self.buffer.extend(data)
+        if len(self.buffer) > MAX_RECEIVE_BUFFER:
+            self.buffer = self.buffer[-MAX_RECEIVE_BUFFER:]
+            self.buffer_overflows += 1
+
+    def _reject_prefix(self, reason):
+        self.rejected += 1
+        setattr(self, reason, getattr(self, reason) + 1)
+        self.buffer = self.buffer[1:]
+
+    def pop(self):
+        while True:
+            at = self.buffer.find(MAGIC)
+            if at < 0:
+                if self.buffer[-1:] == MAGIC[:1]:
+                    self.buffer = bytearray(MAGIC[:1])
+                else:
+                    self.buffer = bytearray()
+                return None
+            if at:
+                self.buffer = self.buffer[at:]
+            if len(self.buffer) < HEADER_SIZE:
+                return None
+            version = self.buffer[2]
+            message_type = self.buffer[3]
+            payload_size = int.from_bytes(self.buffer[12:14], BYTE_ORDER)
+            if payload_size > MAX_PAYLOAD_SIZE:
+                self._reject_prefix("oversized")
+                continue
+            total = HEADER_SIZE + payload_size + CRC_SIZE
+            if len(self.buffer) < total:
+                return None
+            if version != VERSION:
+                self._reject_prefix("version_failures")
+                continue
+            if message_type not in MESSAGE_TYPES:
+                self._reject_prefix("type_failures")
+                continue
+            candidate = bytes(self.buffer[:total])
+            expected = int.from_bytes(candidate[-4:], BYTE_ORDER)
+            if crc32(candidate[:-4]) != expected:
+                self._reject_prefix("crc_failures")
+                continue
+            self.buffer = self.buffer[total:]
+            return Frame(
+                message_type,
+                int.from_bytes(candidate[4:8], BYTE_ORDER),
+                int.from_bytes(candidate[8:12], BYTE_ORDER),
+                candidate[14:-4],
+            )

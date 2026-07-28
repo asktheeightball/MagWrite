@@ -1,5 +1,66 @@
 # MagWrite Keyboard Transport Protocol
 
+## Wired viewport feasibility protocol (implemented, physical status PASS)
+
+This separate version-1 protocol proves a one-way Fruit Jam-to-MagTag display
+boundary. It carries complete semantic viewports, not key events, and does not
+replace the later acknowledged keyboard protocol described below.
+
+All integers are unsigned, big-endian:
+
+```text
+Offset  Size  Field
+0       2     Magic 0x4D57 ("MW")
+2       1     Version (1)
+3       1     Type (1 HELLO, 2 VIEWPORT, 3 END_OF_SCENARIO, 4 END_OF_TEST)
+4       4     Sequence
+8       4     Document/view revision
+12      2     Payload length (0..192)
+14      N     Payload
+14+N    4     IEEE CRC-32 of bytes 0 through 13+N
+```
+
+CRC-32 uses polynomial `0xEDB88320`, initial value `0xFFFFFFFF`, reflected
+input/output processing, and final XOR `0xFFFFFFFF`. The `123456789` check
+vector is `0xCBF43926`. Maximum frame size is 210 bytes. The incremental
+parser accumulator is capped at 512 bytes, safely holding a maximum 210-byte
+frame remainder plus one 256-byte hardware read. It searches for the `MW` prefix after
+noise or rejection and explicitly counts invalid version, type, length, CRC,
+and buffer-overflow events.
+
+### VIEWPORT payload
+
+Only ASCII is supported by this feasibility run.
+
+```text
+Size  Field
+1     scenario id (1..255)
+1     cursor row
+1     cursor column
+1     title length (0..20)
+N     title
+1     status length (0..20)
+N     status
+1     visible line count (1..3)
+repeat line count:
+  1   line length (0..28)
+  N   line
+```
+
+The cursor column may equal the selected line length (the insertion cell after
+the final character). Oversized or malformed payloads are rejected; they are
+never silently truncated. The Fruit Jam pre-windows long text and the MagTag
+does not edit, scroll, persist, or reinterpret it.
+
+`HELLO` is bounded ASCII application/test metadata.
+`END_OF_SCENARIO` is the one-byte scenario id followed by the eight-hex-digit
+CRC-32 of that scenario's final VIEWPORT payload.
+`END_OF_TEST` is ASCII `final_revision;viewport_count;final_viewport_crc32`.
+
+The deterministic run contains 17 frames: one HELLO, eleven VIEWPORTs, four
+END_OF_SCENARIO frames, and one END_OF_TEST. Sequence numbers are 1..17 and
+VIEWPORT revisions are 1..11.
+
 ## Status
 
 Draft protocol for the LOLIN32 Lite keyboard bridge and MagTag application. Field sizes may change during implementation, but versioning and reliability requirements are mandatory.

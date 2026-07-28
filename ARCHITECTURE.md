@@ -19,6 +19,17 @@ Original Adafruit MagTag
         +-- four-button input
 ```
 
+## One-way wired viewport feasibility boundary
+
+Before keyboard integration, `fruitjam/` provides a deliberately narrower
+host-tested boundary. The Fruit Jam owns deterministic complete semantic
+viewports, sequences, and revisions. A 3.3 V receive-only UART carries bounded
+binary frames to the MagTag. The MagTag validates and coalesces them, drains all
+currently available transport work before rendering, and never edits or
+persists their text. This harness has no return channel, acknowledgement,
+keyboard, Wi-Fi, or storage role. The physical one-way boundary passed on
+2026-07-28; it does not imply bidirectional or acknowledged transport.
+
 ## Responsibility boundaries
 
 ### Keyboard bridge

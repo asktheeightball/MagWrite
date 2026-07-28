@@ -20,5 +20,16 @@ Logic that does not require CircuitPython or ESP32 hardware should be testable u
 - truncated final recovery record;
 - autosave and checkpoint thresholds;
 - simulated display-busy typing at 40, 60, and 80 WPM.
+- bounded UART framing, CRC-32, chunking, resynchronization, and malformed input;
+- semantic viewport bounds, deterministic scenarios, newest-frame coalescing,
+  drain-before-render ordering, final revision catch-up, and hash reconciliation.
 
 Hardware acceptance tests must remain separate and must not be marked passed by host simulation.
+
+Run the current feasibility suite from the repository root:
+
+```powershell
+python -m unittest discover -s host-tests -p "test_*.py" -v
+```
+
+The current suite contains 83 tests and has no third-party host dependencies.

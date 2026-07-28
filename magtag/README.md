@@ -2,18 +2,30 @@
 
 CircuitPython application for the original Adafruit MagTag.
 
-## Planned modules
+## Implemented feasibility modules
 
 ```text
-code.py             cooperative application loop
-config.py           local settings and hardware constants
-editor.py           host-testable text buffer and commands
-input_events.py     normalized key-event definitions
-transport.py        TCP protocol client and replay handling
-renderer.py         monospaced viewport rendering
-refresh.py          partial/full refresh scheduler
-document_store.py   checkpoints, journal, and recovery
-buttons.py          four-button input adapter
+code.py                  fail-closed physical entrypoint
+config.py                bounded settings and hardware confirmation
+hardware_gate.py         original-panel/controller gate
+hardware_identity.py     recorded compatibility decision
+magwrite/editor.py       host-testable bounded line editor
+magwrite/events.py       bounded queue and deterministic producer
+magwrite/renderer.py     fixed 1-bit text/cursor snapshot
+magwrite/refresh.py      cooperative revision/refresh scheduler
+magwrite/serial_log.py   constant-space JSON-lines serial logger
+magwrite/display_adapter.py host-safe display contract and activation gates
+magwrite/uc8151_adapter.py  gated UC8151 adapter with lazy hardware imports
+magwrite/physical_test.py   bounded one-full-plus-20-partial runner
+uc8151.py                verbatim GPL upstream driver
+hardware_refresh_test.py dedicated physical-test entry point
+hardware_test_boot.py    gated writable-filesystem setup for one-time guard
+hardware_uart_viewport_test.py guarded one-way UART physical receiver
+magwrite/uart_protocol.py bounded binary parser and CRC-32
+magwrite/uart_receiver.py sequence validation and newest-viewport coalescer
+magwrite/transport_scheduler.py drain-first single-refresh scheduler
+magwrite/viewport_message.py bounded semantic viewport model
+magwrite/viewport_renderer.py display-only complete-snapshot renderer
 ```
 
 ## First implementation task
@@ -29,4 +41,7 @@ Build a typing feasibility harness before the full editor:
 7. Refresh the latest revision after the panel becomes idle.
 8. Log timing, stale revisions, and update counts.
 
-No Wi-Fi or Bluetooth work is required until the local harness passes.
+The host harness and adapter gates pass independently of display hardware.
+Physical execution requires the explicit gates and the applicable procedure in
+`../docs/`. The one-way Fruit Jam UART viewport gate passed on 2026-07-28.
+No Wi-Fi or Bluetooth code is included.

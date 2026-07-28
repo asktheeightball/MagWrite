@@ -53,6 +53,7 @@ See [PRODUCT.md](PRODUCT.md), [ROADMAP.md](ROADMAP.md), and [ARCHITECTURE.md](AR
 
 ```text
 magtag/             CircuitPython editor and e-paper frontend
+fruitjam/           CircuitPython one-way UART viewport feasibility sender
 keyboard-bridge/    ESP-IDF Bluetooth HID bridge for LOLIN32 Lite
 host-tests/         Host-runnable protocol and editor tests
 docs/               Build, wiring, testing, and research notes
@@ -60,8 +61,15 @@ docs/               Build, wiring, testing, and research notes
 
 ## Status
 
-Project bootstrap. Hardware behavior remains unverified until tested on the actual MagTag and keyboard.
+The MagTag partial-refresh, local single-line typing, and bounded one-way Fruit
+Jam UART viewport gates have passed on physical hardware. Bidirectional status,
+acknowledgements, and all keyboard integration remain out of scope.
 
 ## Related research
 
 The partial-refresh approach is based on the experimental GPL-3.0-or-later project `bciuca/magtag-partial-refresh-driver`. Any incorporated or derived code must preserve its applicable licence obligations.
+
+## Licence
+
+MagWrite is distributed under the GNU General Public License v3.0 or later.
+See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

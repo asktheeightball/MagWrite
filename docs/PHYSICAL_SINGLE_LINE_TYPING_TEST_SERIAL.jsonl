@@ -1,0 +1,27 @@
+{"event":"status","test":"single_line_typing","status":"NOT RUN"}
+{"event":"status","test":"single_line_typing","status":"INCONCLUSIVE","scenario":"initial","events_processed":0,"detail":"serial reconnect closed early; physical display retained prior traceback and initial typing full seed was not verified"}
+{"controller":"UC8151D","test_mode":"SINGLE_LINE_TYPING","upstream_commit":"61bb0fb4b76e95f8c288fb5e0f9ab11e3e413437","event":"typing_test_boot","decision":"COMPATIBLE","activation":true}
+{"queue_overflows":0,"displayed_revision":-1,"stale_frames_skipped":0,"partial_refreshes":0,"timeouts":0,"timing":{"max_ms":null,"stddev_ms":null,"min_ms":null,"mean_ms":null},"document_revision":0,"scenarios":{},"queue_max_depth":0,"events_processed":0,"render_revision":0,"event":"typing_test_summary","events_generated":0,"result":"FAIL","stop_reason":"'str' object has no attribute 'ljust'","events_rejected":0,"full_refreshes":0,"inflight_revision":null,"catch_up_refreshes":0}
+{"controller":"UC8151D","test_mode":"SINGLE_LINE_TYPING","upstream_commit":"61bb0fb4b76e95f8c288fb5e0f9ab11e3e413437","event":"typing_test_boot","decision":"COMPATIBLE","activation":true}
+{"document_revision":0,"scenario":"initial","revision":0,"event":"refresh_started","mode":"full","queue_depth":0}
+{"stale_on_completion":false,"scenario":"initial","revision":0,"event":"refresh_completed","duration_ms":3329,"latest_render_revision":0}
+{"scenario":"initial","event":"checkpoint_wait"}
+{"scenario":"initial","event":"checkpoint_response","approved":true,"observation":"good; font is a bit small"}
+{"wpm":40,"event":"scenario_started","event_count":43,"scenario":"ordinary"}
+{"document_revision":43,"scenario":"ordinary","final_text":"THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG","event":"scenario_complete","render_revision":43,"displayed_revision":43}
+{"scenario":"ordinary","event":"checkpoint_wait"}
+{"scenario":"ordinary","event":"checkpoint_response","approved":true}
+{"wpm":80,"event":"scenario_started","event_count":53,"scenario":"fast_typing"}
+{"document_revision":96,"scenario":"fast_typing","final_text":"MAGWRITE CAPTURES EVERY KEY WHILE THE DISPLAY IS BUSY","event":"scenario_complete","render_revision":96,"displayed_revision":96}
+{"scenario":"fast_typing","event":"checkpoint_wait"}
+{"scenario":"fast_typing","event":"checkpoint_response","approved":true}
+{"wpm":80,"event":"scenario_started","event_count":52,"scenario":"correction"}
+{"document_revision":127,"scenario":"correction","final_text":"TODAY I WROTE A JOURNAL ENTRY","event":"scenario_complete","render_revision":148,"displayed_revision":148}
+{"scenario":"correction","event":"checkpoint_wait"}
+{"scenario":"correction","event":"checkpoint_response","approved":true}
+{"wpm":80,"event":"scenario_started","event_count":53,"scenario":"viewport"}
+{"document_revision":166,"scenario":"viewport","final_text":"PACK MY BOX WITH FIVE DOZEN LIQUOR JUGS","event":"scenario_complete","render_revision":201,"displayed_revision":201}
+{"scenario":"viewport","event":"checkpoint_wait"}
+{"scenario":"viewport","event":"checkpoint_response","approved":true,"observation":"cursor visible on J cell; UGS intentionally hidden beyond right edge"}
+{"queue_overflows":0,"displayed_revision":201,"stale_frames_skipped":165,"partial_refreshes":36,"timeouts":0,"timing":{"max_ms":5758,"stddev_ms":1533.7,"min_ms":714,"mean_ms":1711.6},"document_revision":166,"scenarios":{"correction":"TODAY I WROTE A JOURNAL ENTRY","ordinary":"THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG","viewport":"PACK MY BOX WITH FIVE DOZEN LIQUOR JUGS","fast_typing":"MAGWRITE CAPTURES EVERY KEY WHILE THE DISPLAY IS BUSY"},"queue_max_depth":18,"events_processed":201,"render_revision":201,"event":"typing_test_summary","events_generated":201,"result":"PASS","stop_reason":null,"events_rejected":0,"full_refreshes":1,"inflight_revision":null,"catch_up_refreshes":32}
+{"detail":"Cannot remount '/' when visible via USB.","event":"filesystem_remount_warning"}
