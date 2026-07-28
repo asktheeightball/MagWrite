@@ -192,3 +192,27 @@ serial captures connected before reset, independent persistent guards, and
 restoration of disabled configuration. Its controlled attempt 3 status is
 **PASS**; evidence and retained compatibility failures are in the dedicated
 report.
+
+## Bidirectional UART acknowledgement gate
+
+The next bounded gate is documented in
+`docs/FRUITJAM_MAGTAG_UART_ACK_TEST.md`; its status is **NOT RUN**. It retains
+the proven Fruit Jam A0 → MagTag D10 signal and common ground, and adds only
+MagTag A1 → Fruit Jam A1. Both boards remain separately USB-powered with no
+inter-board power conductor.
+
+Before arming, back up both volumes, inventory every old guard, verify both
+connector positions and UART constructors, boot disabled, and connect two USB
+serial captures. Start the MagTag receiver/status transmitter first, then the
+Fruit Jam controller. The single guarded attempt is limited to 50 viewports,
+100 frames in either direction, one initial full refresh, and 30 partial
+refreshes. It sends no malformed physical traffic and performs no automatic
+retry.
+
+Stop immediately on any protocol integrity error, impossible revision,
+timeout, overflow, unexpected full flash, erasure/ghosting/border/pixel
+concern, reset, exception, unstable power, heating, wiring fault, USB loss, or
+inability to preserve evidence. On stop, restore disabled configuration,
+preserve both new `.started` guards and captures, record the exact
+sent/accepted/refreshing/completed/displayed state, and do not retry without
+explicit authorization.

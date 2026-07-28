@@ -53,7 +53,7 @@ See [PRODUCT.md](PRODUCT.md), [ROADMAP.md](ROADMAP.md), and [ARCHITECTURE.md](AR
 
 ```text
 magtag/             CircuitPython editor and e-paper frontend
-fruitjam/           CircuitPython one-way UART viewport feasibility sender
+fruitjam/           CircuitPython deterministic UART viewport/status controller
 keyboard-bridge/    ESP-IDF Bluetooth HID bridge for LOLIN32 Lite
 host-tests/         Host-runnable protocol and editor tests
 docs/               Build, wiring, testing, and research notes
@@ -62,8 +62,9 @@ docs/               Build, wiring, testing, and research notes
 ## Status
 
 The MagTag partial-refresh, local single-line typing, and bounded one-way Fruit
-Jam UART viewport gates have passed on physical hardware. Bidirectional status,
-acknowledgements, and all keyboard integration remain out of scope.
+Jam UART viewport gates have passed on physical hardware. The bidirectional
+status/physical-acknowledgement extension is host verified but has not yet run
+on wired hardware. All keyboard integration remains out of scope.
 
 ## Related research
 

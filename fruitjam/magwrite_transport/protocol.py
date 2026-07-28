@@ -12,7 +12,27 @@ HELLO = 1
 VIEWPORT = 2
 END_OF_SCENARIO = 3
 END_OF_TEST = 4
-MESSAGE_TYPES = (HELLO, VIEWPORT, END_OF_SCENARIO, END_OF_TEST)
+STATUS_HELLO = 5
+FRAME_ACCEPTED = 6
+REFRESH_STARTED = 7
+REFRESH_COMPLETED = 8
+DISPLAY_CAUGHT_UP = 9
+FRAME_REJECTED = 10
+DISPLAY_ERROR = 11
+TEST_COMPLETE = 12
+MESSAGE_TYPES = (
+    HELLO, VIEWPORT, END_OF_SCENARIO, END_OF_TEST,
+    STATUS_HELLO, FRAME_ACCEPTED, REFRESH_STARTED, REFRESH_COMPLETED,
+    DISPLAY_CAUGHT_UP, FRAME_REJECTED, DISPLAY_ERROR, TEST_COMPLETE,
+)
+MESSAGE_NAMES = {
+    HELLO: "HELLO", VIEWPORT: "VIEWPORT",
+    END_OF_SCENARIO: "END_OF_SCENARIO", END_OF_TEST: "END_OF_TEST",
+    STATUS_HELLO: "STATUS_HELLO", FRAME_ACCEPTED: "FRAME_ACCEPTED",
+    REFRESH_STARTED: "REFRESH_STARTED", REFRESH_COMPLETED: "REFRESH_COMPLETED",
+    DISPLAY_CAUGHT_UP: "DISPLAY_CAUGHT_UP", FRAME_REJECTED: "FRAME_REJECTED",
+    DISPLAY_ERROR: "DISPLAY_ERROR", TEST_COMPLETE: "TEST_COMPLETE",
+}
 
 
 def crc32(data):
@@ -37,3 +57,90 @@ def encode_frame(message_type, sequence, revision, payload=b""):
     )
     body = header + payload
     return body + crc32(body).to_bytes(4, BYTE_ORDER)
+
+
+class Frame:
+    def __init__(self, message_type, sequence, revision, payload):
+        self.message_type = message_type
+        self.sequence = sequence
+        self.revision = revision
+        self.payload = payload
+
+
+class FrameParser:
+    def __init__(self):
+        self.buffer = bytearray()
+        self.rejected = 0
+        self.crc_failures = 0
+        self.oversized = 0
+        self.version_failures = 0
+        self.type_failures = 0
+        self.buffer_overflows = 0
+        self.bytes_discarded_before_magic = 0
+        self.resynchronization_events = 0
+        self.maximum_discarded_prefix = 0
+
+    def _discard_prefix(self, count):
+        if count <= 0:
+            return
+        self.bytes_discarded_before_magic += count
+        self.resynchronization_events += 1
+        self.maximum_discarded_prefix = max(self.maximum_discarded_prefix, count)
+        self.buffer = self.buffer[count:]
+
+    def feed(self, data):
+        if len(data) > MAX_RECEIVE_BUFFER:
+            data = data[-MAX_RECEIVE_BUFFER:]
+            self.buffer_overflows += 1
+        self.buffer.extend(data)
+        if len(self.buffer) > MAX_RECEIVE_BUFFER:
+            self.buffer = self.buffer[-MAX_RECEIVE_BUFFER:]
+            self.buffer_overflows += 1
+
+    def _reject_prefix(self, reason):
+        self.rejected += 1
+        setattr(self, reason, getattr(self, reason) + 1)
+        self._discard_prefix(1)
+
+    def pop(self):
+        while True:
+            at = self.buffer.find(MAGIC)
+            if at < 0:
+                if self.buffer[-1:] == MAGIC[:1]:
+                    self._discard_prefix(len(self.buffer) - 1)
+                    self.buffer = bytearray(MAGIC[:1])
+                else:
+                    self._discard_prefix(len(self.buffer))
+                    self.buffer = bytearray()
+                return None
+            if at:
+                self._discard_prefix(at)
+            if len(self.buffer) < HEADER_SIZE:
+                return None
+            version = self.buffer[2]
+            message_type = self.buffer[3]
+            payload_size = int.from_bytes(self.buffer[12:14], BYTE_ORDER)
+            if payload_size > MAX_PAYLOAD_SIZE:
+                self._reject_prefix("oversized")
+                continue
+            total = HEADER_SIZE + payload_size + CRC_SIZE
+            if len(self.buffer) < total:
+                return None
+            if version != VERSION:
+                self._reject_prefix("version_failures")
+                continue
+            if message_type not in MESSAGE_TYPES:
+                self._reject_prefix("type_failures")
+                continue
+            candidate = bytes(self.buffer[:total])
+            expected = int.from_bytes(candidate[-4:], BYTE_ORDER)
+            if crc32(candidate[:-4]) != expected:
+                self._reject_prefix("crc_failures")
+                continue
+            self.buffer = self.buffer[total:]
+            return Frame(
+                message_type,
+                int.from_bytes(candidate[4:8], BYTE_ORDER),
+                int.from_bytes(candidate[8:12], BYTE_ORDER),
+                candidate[14:-4],
+            )

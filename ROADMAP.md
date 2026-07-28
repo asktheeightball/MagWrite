@@ -116,6 +116,17 @@ evidence and measurement limitations. Bidirectional traffic, acknowledgements,
 buttons, keyboards, editing, persistence, Wi-Fi, and production power remain
 unimplemented.
 
+**Implemented and host-verified 2026-07-28; physical test NOT RUN:** the
+existing UART frame format now carries bounded MagTag status messages for frame
+acceptance, physical refresh start/completion, displayed-revision catch-up,
+bounded errors, and final revision/hash reconciliation. The Fruit Jam has a
+bounded acknowledgement tracker with distinct fail-closed timeouts and no
+automatic physical retries. Both parsers account for discarded prefixes and
+resynchronization, and the MagTag has a bounded status queue whose overflow is
+fatal. Independent disabled modes and guards are present. No bidirectional
+hardware outcome is claimed; wiring, serial evidence, display behavior, and
+completion guards remain pending.
+
 ## Priority 2 — Bluetooth keyboard bridge
 
 - Start from the ESP-IDF HID host example supported by the installed toolchain.

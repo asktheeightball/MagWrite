@@ -2,7 +2,13 @@
 import time
 import config
 
-if not config.ENABLE_UART_TEST or config.UART_TEST_MODE != "FRUITJAM_UART_VIEWPORT_TX":
+if (
+    getattr(config, "ENABLE_BIDIRECTIONAL_UART_TEST", False)
+    and getattr(config, "BIDIRECTIONAL_UART_TEST_MODE", "DISABLED")
+        == "FRUITJAM_UART_ACK_TX"
+):
+    import hardware_uart_ack_test
+elif not config.ENABLE_UART_TEST or config.UART_TEST_MODE != "FRUITJAM_UART_VIEWPORT_TX":
     print('{"event":"uart_tx_refused","reason":"disabled"}')
     while True:
         time.sleep(3600)

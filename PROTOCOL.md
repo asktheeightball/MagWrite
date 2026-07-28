@@ -12,7 +12,7 @@ All integers are unsigned, big-endian:
 Offset  Size  Field
 0       2     Magic 0x4D57 ("MW")
 2       1     Version (1)
-3       1     Type (1 HELLO, 2 VIEWPORT, 3 END_OF_SCENARIO, 4 END_OF_TEST)
+3       1     Type (see message types below)
 4       4     Sequence
 8       4     Document/view revision
 12      2     Payload length (0..192)
@@ -60,6 +60,48 @@ CRC-32 of that scenario's final VIEWPORT payload.
 The deterministic run contains 17 frames: one HELLO, eleven VIEWPORTs, four
 END_OF_SCENARIO frames, and one END_OF_TEST. Sequence numbers are 1..17 and
 VIEWPORT revisions are 1..11.
+
+### Bidirectional status extension (implemented, host verified; physical NOT RUN)
+
+The return path uses the same version-1 frame and CRC:
+
+```text
+1 HELLO; 2 VIEWPORT; 3 END_OF_SCENARIO; 4 END_OF_TEST
+5 STATUS_HELLO; 6 FRAME_ACCEPTED; 7 REFRESH_STARTED
+8 REFRESH_COMPLETED; 9 DISPLAY_CAUGHT_UP; 10 FRAME_REJECTED
+11 DISPLAY_ERROR; 12 TEST_COMPLETE
+```
+
+The header revision identifies the affected viewport. Status payloads are
+bounded and big-endian:
+
+```text
+STATUS_HELLO       u8 protocol, u8 app, u32 displayed, u8 ready flags,
+                   u8 test-id length, ASCII test-id (maximum 24)
+FRAME_ACCEPTED     u32 received sequence, u32 pending revision, u8 superseded
+REFRESH_STARTED    u32 viewport sequence, u8 mode (0 partial, 1 full),
+                   u32 latest received, u32 previous displayed
+REFRESH_COMPLETED  u32 viewport sequence, u32 duration ms,
+                   u32 latest received, u8 stale
+DISPLAY_CAUGHT_UP  u32 displayed, u32 latest received, u32 viewport CRC32
+FRAME_REJECTED     u32 received sequence, u32 received revision, u8 code,
+                   u32 displayed, bounded ASCII reason (maximum 32)
+DISPLAY_ERROR      u8 code, u32 in-flight, u32 latest, u32 displayed,
+                   bounded ASCII reason (maximum 32)
+TEST_COMPLETE      u32 displayed, u32 viewport CRC32, five u16 counts:
+                   accepted, rendered, superseded, refresh, error
+```
+
+`FRAME_ACCEPTED` never means displayed. `REFRESH_COMPLETED` is emitted only
+after panel busy is idle. `DISPLAY_CAUGHT_UP` requires no in-flight refresh,
+no pending viewport, and displayed revision equal to latest accepted revision.
+Status queues and acknowledgement histories are bounded; overflow is fatal and
+the physical harness never retries automatically.
+
+The acknowledgement run is eight input frames: HELLO, six VIEWPORTs
+(revisions 1..6), and END_OF_TEST. Revisions 2..5 form the supersession burst.
+Ceilings are 50 viewports, 100 frames per direction, one initial full refresh,
+and 30 partial refreshes.
 
 ## Status
 

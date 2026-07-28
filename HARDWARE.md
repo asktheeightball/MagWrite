@@ -133,19 +133,31 @@ Fruit Jam A0 / selected UART TX  ---> MagTag D10 / selected UART RX
 Fruit Jam GND                    <--> MagTag GND
 ```
 
-For the later bidirectional link, the return path remains provisional:
+The return aliases were confirmed on-device by `dir(board)` and successful
+non-transmitting UART construction on the installed CircuitPython builds:
 
 ```text
-Fruit Jam selected UART RX <--- MagTag A1 / selected UART TX
+MagTag board.A1 / UART TX  ---> Fruit Jam board.A1 / UART RX
 ```
 
-The one-way aliases above were verified with `dir(board)` and UART
-initialization on the exact CircuitPython builds. Before adding the return path,
-confirm that its chosen pins:
+On Fruit Jam, A1 is the exposed three-pin analog/GPIO connector adjacent to
+A0. The intended complete bench wiring is:
+
+```text
+Fruit Jam A0 signal ---> MagTag D10 signal
+MagTag A1 signal    ---> Fruit Jam A1 signal
+Fruit Jam GND       <--> MagTag GND
+```
+
+The return wire has not yet been physically installed or tested. Keep both
+boards separately USB-powered and connect no 3.3 V, 5 V, BAT, USB, or red
+power conductor. Before the guarded run, verify connector position rather
+than cable colour and reconfirm that the chosen pins:
 
 - exist under the expected aliases;
 - are not reserved by the display, microSD, Wi-Fi coprocessor, audio, DVI, boot, or another required peripheral;
-- support the selected UART peripheral;
+- initialize together as `UART(tx=A0, rx=A1)` on Fruit Jam and
+  `UART(tx=A1, rx=D10)` on MagTag;
 - use 3.3 V logic.
 
 Do not hard-code an unverified `board.GPIO37` or similar alias.
