@@ -24,7 +24,10 @@ class LandscapeRenderer:
             line = editor.lines[row_index]
             if row_index == editor.row:
                 line = line[:editor.column] + self.cursor + line[editor.column:]
-            visible.append(line[:self.columns].ljust(self.columns))
+            # Deliberately not str.ljust: CircuitPython does not implement it.
+            # Matches the " " * columns padding used for blank rows below.
+            clipped = line[:self.columns]
+            visible.append(clipped + " " * (self.columns - len(clipped)))
         while len(visible) < self.row_count:
             visible.append(" " * self.columns)
         return TextSnapshot(editor.revision, tuple(visible))

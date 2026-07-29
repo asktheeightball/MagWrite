@@ -100,7 +100,12 @@ def normalize_id(value):
     text = str(value).strip().upper()
     if text.startswith("0X"):
         text = text[2:]
-    return text.zfill(4)
+    # Deliberately not str.zfill: CircuitPython does not implement it, and this
+    # module is constructed at import time, so using it made every Fruit Jam
+    # entry point that touches the keyboard adapter fail to import on hardware.
+    if len(text) < 4:
+        text = "0" * (4 - len(text)) + text
+    return text
 
 
 USAGE_EQUALS_AND_PLUS = 0x2E
