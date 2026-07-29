@@ -1,0 +1,3 @@
+{"host_time": "2026-07-29T17:49:27.235755-04:00", "capture_event": "capture_start", "port": "COM11", "label": "fruitjam-resumed", "baud": 115200}
+{"host_time": "2026-07-29T17:49:27.237758-04:00", "capture_event": "connected", "port": "COM11", "label": "fruitjam-resumed"}
+{"host_time": "2026-07-29T17:49:27.443403-04:00", "monotonic": 0.203, "line": "\u001b]0;\ud83d\udc0dDone | 10.2.1\u001b\\"}

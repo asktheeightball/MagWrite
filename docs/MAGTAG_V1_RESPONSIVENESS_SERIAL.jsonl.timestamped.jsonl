@@ -1,0 +1,33 @@
+{"host_time": "2026-07-29T17:05:43.648815-04:00", "capture_event": "capture_start", "port": "COM10", "label": "magtag", "baud": 115200}
+{"host_time": "2026-07-29T17:05:43.665552-04:00", "capture_event": "connected", "port": "COM10", "label": "magtag"}
+{"host_time": "2026-07-29T17:05:43.877127-04:00", "monotonic": 0.218, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | code.py | 9.1.1\u001b\\"}
+{"host_time": "2026-07-29T17:06:16.896158-04:00", "monotonic": 33.234, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | Done | 9.1.1\u001b\\"}
+{"host_time": "2026-07-29T17:06:16.897167-04:00", "monotonic": 33.25, "line": "Code stopped by auto-reload. Reloading soon."}
+{"host_time": "2026-07-29T17:06:18.094530-04:00", "monotonic": 34.437, "line": "soft reboot"}
+{"host_time": "2026-07-29T17:06:18.098520-04:00", "monotonic": 34.437, "line": "\u001b[2K\u001b[0GAuto-reload is on. Simply save files over USB to run them or enter REPL to disable."}
+{"host_time": "2026-07-29T17:06:18.102057-04:00", "monotonic": 34.453, "line": "\u001b[2K\u001b[0Gcode.py output:"}
+{"host_time": "2026-07-29T17:06:18.136668-04:00", "monotonic": 34.484, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | code.py | 9.1.1\u001b\\Traceback (most recent call last):"}
+{"host_time": "2026-07-29T17:06:18.136668-04:00", "monotonic": 34.484, "line": "  File \"code.py\", line 4, in <module>"}
+{"host_time": "2026-07-29T17:06:18.138671-04:00", "monotonic": 34.484, "line": "  File \"config.py\", line 1"}
+{"host_time": "2026-07-29T17:06:18.138671-04:00", "monotonic": 34.484, "line": "SyntaxError: invalid syntax"}
+{"host_time": "2026-07-29T17:06:18.139703-04:00", "monotonic": 34.484, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | 1@config.py SyntaxError | 9.1.1\u001b\\"}
+{"host_time": "2026-07-29T17:06:18.139703-04:00", "monotonic": 34.484, "line": "Code done running."}
+{"host_time": "2026-07-29T17:06:18.146866-04:00", "monotonic": 34.484, "line": "Press any key to enter the REPL. Use CTRL-D to reload."}
+{"host_time": "2026-07-29T17:12:56.618794-04:00", "capture_event": "disconnected", "port": "COM10", "label": "magtag", "detail": "ClearCommError failed (PermissionError(13, 'The device does not recognize the command.', None, 22))"}
+{"host_time": "2026-07-29T17:13:01.144804-04:00", "capture_event": "connected", "port": "COM10", "label": "magtag"}
+{"host_time": "2026-07-29T17:13:01.407749-04:00", "monotonic": 437.75, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | Done | 9.1.1\u001b\\\u001b]0;\ud83d\udc0dWi-Fi: off | Done | 9.1.1\u001b\\"}
+{"host_time": "2026-07-29T17:14:13.690729-04:00", "monotonic": 510.031, "line": "soft reboot"}
+{"host_time": "2026-07-29T17:14:13.695244-04:00", "monotonic": 510.046, "line": "\u001b[2K\u001b[0GAuto-reload is on. Simply save files over USB to run them or enter REPL to disable."}
+{"host_time": "2026-07-29T17:14:13.697251-04:00", "monotonic": 510.046, "line": "\u001b[2K\u001b[0Gcode.py output:"}
+{"host_time": "2026-07-29T17:14:13.749819-04:00", "monotonic": 510.093, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | code.py | 9.1.1\u001b\\{\"event\":\"boot\",\"circuitpython\":\"9.1.1\"}"}
+{"host_time": "2026-07-29T17:14:28.541252-04:00", "monotonic": 524.89, "line": "Traceback (most recent call last):"}
+{"host_time": "2026-07-29T17:14:28.541252-04:00", "monotonic": 524.89, "line": "  File \"code.py\", line 15, in <module>"}
+{"host_time": "2026-07-29T17:14:28.545380-04:00", "monotonic": 524.89, "line": "  File \"hardware_v1_responsiveness_display_test.py\", line 79, in <module>"}
+{"host_time": "2026-07-29T17:14:28.546916-04:00", "monotonic": 524.89, "line": "OSError: [Errno 30] Read-only filesystem"}
+{"host_time": "2026-07-29T17:14:28.547959-04:00", "monotonic": 524.89, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | 79@hardware_v1_responsiveness_displ OSError | 9.1.1\u001b\\"}
+{"host_time": "2026-07-29T17:14:28.547959-04:00", "monotonic": 524.89, "line": "Code done running."}
+{"host_time": "2026-07-29T17:14:28.552052-04:00", "monotonic": 524.89, "line": "Press any key to enter the REPL. Use CTRL-D to reload."}
+{"host_time": "2026-07-29T17:15:15.171358-04:00", "capture_event": "disconnected", "port": "COM10", "label": "magtag", "detail": "ClearCommError failed (PermissionError(13, 'The device does not recognize the command.', None, 22))"}
+{"host_time": "2026-07-29T17:15:19.692956-04:00", "capture_event": "connected", "port": "COM10", "label": "magtag"}
+{"host_time": "2026-07-29T17:15:19.957893-04:00", "monotonic": 576.296, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | code.py | 9.1.1\u001b\\\u001b]0;\ud83d\udc0dWi-Fi: off | code.py | 9.1.1\u001b\\"}
+{"host_time": "2026-07-29T17:15:34.210033-04:00", "monotonic": 590.562, "line": "{\"tx_alias\":\"A1\",\"event\":\"v1_responsiveness_display_ready\",\"rx_alias\":\"D10\",\"baud\":115200}"}

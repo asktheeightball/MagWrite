@@ -1,0 +1,27 @@
+]0;🐍Wi-Fi: off | code.py | 9.1.1\
+]0;🐍Wi-Fi: off | Done | 9.1.1\
+Code stopped by auto-reload. Reloading soon.
+soft reboot
+[2K[0GAuto-reload is on. Simply save files over USB to run them or enter REPL to disable.
+[2K[0Gcode.py output:
+]0;🐍Wi-Fi: off | code.py | 9.1.1\Traceback (most recent call last):
+  File "code.py", line 4, in <module>
+  File "config.py", line 1
+SyntaxError: invalid syntax
+]0;🐍Wi-Fi: off | 1@config.py SyntaxError | 9.1.1\
+Code done running.
+Press any key to enter the REPL. Use CTRL-D to reload.
+]0;🐍Wi-Fi: off | Done | 9.1.1\]0;🐍Wi-Fi: off | Done | 9.1.1\
+soft reboot
+[2K[0GAuto-reload is on. Simply save files over USB to run them or enter REPL to disable.
+[2K[0Gcode.py output:
+]0;🐍Wi-Fi: off | code.py | 9.1.1\{"event":"boot","circuitpython":"9.1.1"}
+Traceback (most recent call last):
+  File "code.py", line 15, in <module>
+  File "hardware_v1_responsiveness_display_test.py", line 79, in <module>
+OSError: [Errno 30] Read-only filesystem
+]0;🐍Wi-Fi: off | 79@hardware_v1_responsiveness_displ OSError | 9.1.1\
+Code done running.
+Press any key to enter the REPL. Use CTRL-D to reload.
+]0;🐍Wi-Fi: off | code.py | 9.1.1\]0;🐍Wi-Fi: off | code.py | 9.1.1\
+{"tx_alias":"A1","event":"v1_responsiveness_display_ready","rx_alias":"D10","baud":115200}

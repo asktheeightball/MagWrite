@@ -1,0 +1,16 @@
+{"host_time": "2026-07-29T17:05:45.644016-04:00", "capture_event": "capture_start", "port": "COM11", "label": "fruitjam", "baud": 115200}
+{"host_time": "2026-07-29T17:05:45.645044-04:00", "capture_event": "connected", "port": "COM11", "label": "fruitjam"}
+{"host_time": "2026-07-29T17:05:45.851520-04:00", "monotonic": 0.219, "line": "\u001b]0;\ud83d\udc0dcode.py | 10.2.1\u001b\\"}
+{"host_time": "2026-07-29T17:16:35.438167-04:00", "capture_event": "disconnected", "port": "COM11", "label": "fruitjam", "detail": "ClearCommError failed (PermissionError(13, 'The device does not recognize the command.', None, 22))"}
+{"host_time": "2026-07-29T17:16:39.502985-04:00", "capture_event": "connected", "port": "COM11", "label": "fruitjam"}
+{"host_time": "2026-07-29T17:16:39.714202-04:00", "monotonic": 654.078, "line": "\u001b]0;\ud83d\udc0dDone | 10.2.1\u001b\\"}
+{"host_time": "2026-07-29T17:16:49.066667-04:00", "monotonic": 663.422, "line": "\u001b]0;\ud83d\udc0dREPL | 10.2.1\u001b\\"}
+{"host_time": "2026-07-29T17:16:49.068211-04:00", "monotonic": 663.422, "line": "Adafruit CircuitPython 10.2.1 on 2026-05-13; Adafruit Fruit Jam with rp2350b"}
+{"host_time": "2026-07-29T17:16:49.278560-04:00", "monotonic": 663.641, "line": ">>> "}
+{"host_time": "2026-07-29T17:16:51.734735-04:00", "monotonic": 666.094, "line": "t"}
+{"host_time": "2026-07-29T17:17:01.603802-04:00", "monotonic": 675.969, "line": "the"}
+{"host_time": "2026-07-29T17:17:03.884092-04:00", "monotonic": 678.25, "line": "the "}
+{"host_time": "2026-07-29T17:18:01.219442-04:00", "monotonic": 735.578, "line": "j"}
+{"host_time": "2026-07-29T17:24:37.744896-04:00", "capture_event": "disconnected", "port": "COM11", "label": "fruitjam", "detail": "ClearCommError failed (PermissionError(13, 'The device does not recognize the command.', None, 22))"}
+{"host_time": "2026-07-29T17:24:41.809229-04:00", "capture_event": "connected", "port": "COM11", "label": "fruitjam"}
+{"host_time": "2026-07-29T17:24:42.012024-04:00", "monotonic": 1136.375, "line": "\u001b]0;\ud83d\udc0dDone | 10.2.1\u001b\\"}
