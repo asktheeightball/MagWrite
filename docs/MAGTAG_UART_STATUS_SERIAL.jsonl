@@ -1,1 +1,20 @@
-{"evidence_status":"NOT RUN","source":"MagTag UART status serial"}
+{"baud": 115200, "event": "uart_ack_rx_ready", "host_time": "2026-07-28T17:51:17", "rx_alias": "D10", "tx_alias": "A1"}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:47", "message_type": 5, "revision": 0, "sequence": 1}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:47", "message_type": 6, "revision": 1, "sequence": 2}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:47", "message_type": 7, "revision": 1, "sequence": 3}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:51", "message_type": 8, "revision": 1, "sequence": 4}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:51", "message_type": 9, "revision": 1, "sequence": 5}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:51", "message_type": 6, "revision": 2, "sequence": 6}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:51", "message_type": 6, "revision": 3, "sequence": 7}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:51", "message_type": 6, "revision": 4, "sequence": 8}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:51", "message_type": 6, "revision": 5, "sequence": 9}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:51", "message_type": 7, "revision": 5, "sequence": 10}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:52", "message_type": 8, "revision": 5, "sequence": 11}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:52", "message_type": 9, "revision": 5, "sequence": 12}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:52", "message_type": 6, "revision": 6, "sequence": 13}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:52", "message_type": 7, "revision": 6, "sequence": 14}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:53", "message_type": 8, "revision": 6, "sequence": 15}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:53", "message_type": 9, "revision": 6, "sequence": 16}
+{"event": "uart_status_sent", "host_time": "2026-07-28T17:51:53", "message_type": 12, "revision": 6, "sequence": 17}
+{"accepted": 6, "bytes_discarded_before_magic": 567, "bytes_received": 1087, "bytes_sent": 517, "crc_failures": 0, "discarded_prefix_bytes": 567, "displayed_revision": 6, "event": "bidirectional_uart_receiver_summary", "full_refreshes": 1, "host_time": "2026-07-28T17:51:53", "latest_received_revision": 6, "latest_revision": 6, "parser_rejections": 0, "partial_refreshes": 2, "refreshes": 3, "rendered": 3, "result": "PASS", "resynchronizations": 5, "status_frames_sent": 17, "status_queue_maximum_depth": 2, "stop_reason": null, "superseded": 3, "timeouts": 0, "viewport_frames_accepted": 6, "viewport_frames_received": 6, "viewport_frames_rendered": 3, "viewport_frames_superseded": 3}
+{"detail": "Cannot remount '/' when visible via USB.", "event": "filesystem_remount_warning", "host_time": "2026-07-28T17:51:53"}

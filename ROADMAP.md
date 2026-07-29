@@ -116,16 +116,32 @@ evidence and measurement limitations. Bidirectional traffic, acknowledgements,
 buttons, keyboards, editing, persistence, Wi-Fi, and production power remain
 unimplemented.
 
-**Implemented and host-verified 2026-07-28; physical test NOT RUN:** the
-existing UART frame format now carries bounded MagTag status messages for frame
-acceptance, physical refresh start/completion, displayed-revision catch-up,
-bounded errors, and final revision/hash reconciliation. The Fruit Jam has a
-bounded acknowledgement tracker with distinct fail-closed timeouts and no
-automatic physical retries. Both parsers account for discarded prefixes and
-resynchronization, and the MagTag has a bounded status queue whose overflow is
-fatal. Independent disabled modes and guards are present. No bidirectional
-hardware outcome is claimed; wiring, serial evidence, display behavior, and
-completion guards remain pending.
+**Physically verified 2026-07-28 (PASS):** the bidirectional acknowledgement
+gate passed on hardware. The existing UART frame format carries bounded MagTag
+status messages for frame acceptance, physical refresh start/completion,
+displayed-revision catch-up, bounded errors, and final revision/hash
+reconciliation. Over the Fruit Jam `board.A0` TX to MagTag `board.D10` RX link
+and the MagTag `board.A1` TX to Fruit Jam `board.A1` RX return link at 115200
+baud, six viewports produced six acceptance acknowledgements, three
+refresh-start, three refresh-completion, and three catch-up acknowledgements,
+with `TEST_COMPLETE` received. Revisions 2–4 were accepted but coalesced away
+and were never falsely reported as displayed. Final transmitted revision 6
+equalled final displayed revision 6, and physical final hash `DC12F5C9`
+reconciled with the deterministic host simulation. Zero rejected frames, CRC
+failures, sequence gaps, duplicates, stale acknowledgements, queue overflows,
+or timeouts occurred. One initial full refresh (3578 ms) and two partial
+refreshes (952 ms, 988 ms) completed with no unexpected flash. Byte accounting
+closed exactly in both directions; 567 pre-magic bytes of reset-time line noise
+were discarded and recovered through five resynchronizations without losing a
+frame. The user approved the final screen; no photograph was taken. Both
+devices were restored disabled and observed failing closed, all four new
+independent guards are present, and all thirteen earlier guards were verified
+byte-identical. Two blocking implementation defects were fixed first: neither
+boot gate armed the new modes (`251aaae`), and the ESP32-S2 `hashlib` lacks
+`sha256`, which crashed the driver integrity check (`5193a24`). See
+`docs/FRUITJAM_MAGTAG_UART_ACK_TEST.md` for the retained inconclusive first
+attempt and measurement limitations. Buttons, keyboards, editing, persistence,
+Wi-Fi, and production power remain unimplemented.
 
 ## Priority 2 — Bluetooth keyboard bridge
 

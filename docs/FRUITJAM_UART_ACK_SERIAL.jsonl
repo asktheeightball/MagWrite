@@ -1,1 +1,26 @@
-{"evidence_status":"NOT RUN","source":"Fruit Jam bidirectional UART acknowledgement serial"}
+{"event": "uart_input_sent", "host_time": "2026-07-28T17:51:47", "message_type": 1, "revision": 0, "sequence": 1}
+{"event": "uart_status_received", "fields": {"app_version": 1, "display_ready": true, "displayed_revision": 0, "protocol_version": 1, "receiver_ready": true, "test_id": "MAGWRITE-UART-ACK"}, "host_time": "2026-07-28T17:51:47", "message_type": 5, "revision": 0, "sequence": 1}
+{"event": "uart_input_sent", "host_time": "2026-07-28T17:51:47", "message_type": 2, "revision": 1, "sequence": 2}
+{"event": "uart_status_received", "fields": {"pending_revision": 1, "received_sequence": 2, "superseded": false}, "host_time": "2026-07-28T17:51:47", "message_type": 6, "revision": 1, "sequence": 2}
+{"event": "uart_status_received", "fields": {"latest_received_revision": 1, "previous_displayed_revision": 0, "refresh_mode": 1, "viewport_sequence": 2}, "host_time": "2026-07-28T17:51:47", "message_type": 7, "revision": 1, "sequence": 3}
+{"event": "uart_status_received", "fields": {"duration_ms": 3578, "latest_received_revision": 1, "stale": false, "viewport_sequence": 2}, "host_time": "2026-07-28T17:51:51", "message_type": 8, "revision": 1, "sequence": 4}
+{"event": "uart_status_received", "fields": {"displayed_revision": 1, "latest_received_revision": 1, "viewport_hash": 3506882175}, "host_time": "2026-07-28T17:51:51", "message_type": 9, "revision": 1, "sequence": 5}
+{"event": "uart_input_sent", "host_time": "2026-07-28T17:51:51", "message_type": 2, "revision": 2, "sequence": 3}
+{"event": "uart_input_sent", "host_time": "2026-07-28T17:51:51", "message_type": 2, "revision": 3, "sequence": 4}
+{"event": "uart_input_sent", "host_time": "2026-07-28T17:51:51", "message_type": 2, "revision": 4, "sequence": 5}
+{"event": "uart_input_sent", "host_time": "2026-07-28T17:51:51", "message_type": 2, "revision": 5, "sequence": 6}
+{"event": "uart_status_received", "fields": {"pending_revision": 2, "received_sequence": 3, "superseded": false}, "host_time": "2026-07-28T17:51:51", "message_type": 6, "revision": 2, "sequence": 6}
+{"event": "uart_status_received", "fields": {"pending_revision": 3, "received_sequence": 4, "superseded": true}, "host_time": "2026-07-28T17:51:51", "message_type": 6, "revision": 3, "sequence": 7}
+{"event": "uart_status_received", "fields": {"pending_revision": 4, "received_sequence": 5, "superseded": true}, "host_time": "2026-07-28T17:51:51", "message_type": 6, "revision": 4, "sequence": 8}
+{"event": "uart_status_received", "fields": {"pending_revision": 5, "received_sequence": 6, "superseded": true}, "host_time": "2026-07-28T17:51:51", "message_type": 6, "revision": 5, "sequence": 9}
+{"event": "uart_status_received", "fields": {"latest_received_revision": 5, "previous_displayed_revision": 1, "refresh_mode": 0, "viewport_sequence": 6}, "host_time": "2026-07-28T17:51:51", "message_type": 7, "revision": 5, "sequence": 10}
+{"event": "uart_status_received", "fields": {"duration_ms": 952, "latest_received_revision": 5, "stale": false, "viewport_sequence": 6}, "host_time": "2026-07-28T17:51:52", "message_type": 8, "revision": 5, "sequence": 11}
+{"event": "uart_status_received", "fields": {"displayed_revision": 5, "latest_received_revision": 5, "viewport_hash": 3714097957}, "host_time": "2026-07-28T17:51:52", "message_type": 9, "revision": 5, "sequence": 12}
+{"event": "uart_input_sent", "host_time": "2026-07-28T17:51:52", "message_type": 2, "revision": 6, "sequence": 7}
+{"event": "uart_status_received", "fields": {"pending_revision": 6, "received_sequence": 7, "superseded": false}, "host_time": "2026-07-28T17:51:52", "message_type": 6, "revision": 6, "sequence": 13}
+{"event": "uart_status_received", "fields": {"latest_received_revision": 6, "previous_displayed_revision": 5, "refresh_mode": 0, "viewport_sequence": 7}, "host_time": "2026-07-28T17:51:52", "message_type": 7, "revision": 6, "sequence": 14}
+{"event": "uart_status_received", "fields": {"duration_ms": 988, "latest_received_revision": 6, "stale": false, "viewport_sequence": 7}, "host_time": "2026-07-28T17:51:53", "message_type": 8, "revision": 6, "sequence": 15}
+{"event": "uart_status_received", "fields": {"displayed_revision": 6, "latest_received_revision": 6, "viewport_hash": 3692230089}, "host_time": "2026-07-28T17:51:53", "message_type": 9, "revision": 6, "sequence": 16}
+{"event": "uart_input_sent", "host_time": "2026-07-28T17:51:53", "message_type": 4, "revision": 6, "sequence": 8}
+{"event": "uart_status_received", "fields": {"accepted_count": 6, "displayed_revision": 6, "error_count": 0, "refresh_count": 3, "rendered_count": 3, "superseded_count": 3, "viewport_hash": 3692230089}, "host_time": "2026-07-28T17:51:53", "message_type": 12, "revision": 6, "sequence": 17}
+{"bytes_received": 517, "bytes_sent": 520, "crc_failures": 0, "discarded_prefix_bytes": 0, "display_caught_up_received": 3, "displayed_revision": 6, "event": "bidirectional_uart_test_summary", "final_displayed_revision": 6, "final_hash": 3692230089, "final_transmitted_revision": 6, "frame_accepted_received": 6, "host_time": "2026-07-28T17:51:53", "input_frames_sent": 8, "refresh_completed_received": 3, "refresh_started_received": 3, "result": "PASS", "resynchronizations": 0, "status_duplicates": 0, "status_frames_rejected": 0, "status_sequence_gaps": 0, "status_stale": 0, "stop_reason": null, "test_complete": true, "timeouts": 0, "viewport_frames_sent": 6}
