@@ -22,6 +22,11 @@ EDITOR_TEST_TIMEOUT_SECONDS = 150
 # Bounds only the idle wait between "ready" and the Fruit Jam's first frame,
 # which is operator-paced and must not be charged to EDITOR_TEST_TIMEOUT_SECONDS.
 EDITOR_ARMING_TIMEOUT_SECONDS = 900
+USB_KEYBOARD_DISPLAY_TEST_MODE = "DISABLED"
+# A live typing run is operator-paced at both ends, so both bounds are larger
+# than the scripted editor run's. The arming wait keeps its own separate bound.
+USB_KEYBOARD_DISPLAY_TIMEOUT_SECONDS = 2700
+USB_KEYBOARD_ARMING_TIMEOUT_SECONDS = 1800
 FULL_REFRESH_INTERVAL = 50
 EVENT_QUEUE_CAPACITY = 128
 MAX_LINES = 64

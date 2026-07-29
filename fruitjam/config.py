@@ -21,3 +21,18 @@ EDITOR_INTEGRATION_TEST_MODE = "DISABLED"
 EDITOR_EVENT_QUEUE_CAPACITY = 64
 EDITOR_ACK_TRACKER_CAPACITY = 96
 EDITOR_TEST_TIMEOUT_SECONDS = 240
+ENABLE_USB_KEYBOARD_TEST = False
+USB_KEYBOARD_TEST_MODE = "DISABLED"
+USB_KEYBOARD_QUEUE_CAPACITY = 64
+USB_KEYBOARD_ACK_TRACKER_CAPACITY = 128
+USB_KEYBOARD_MAX_EVENTS = 500
+# Bounded USB polling: at most four reports per loop, each with a short read
+# timeout, so a silent keyboard never blocks display polling.
+USB_KEYBOARD_POLL_BUDGET = 4
+USB_KEYBOARD_READ_TIMEOUT_MS = 2
+# Paced to the panel, not to the typing rate, matching the physically verified
+# editor scenarios. Fifty partial refreshes is the binding physical ceiling.
+USB_KEYBOARD_MIN_SEND_SECONDS = 2.6
+# A live run is operator-paced, so it is abandoned only after a long silence.
+USB_KEYBOARD_IDLE_TIMEOUT_SECONDS = 600
+USB_KEYBOARD_SESSION_TIMEOUT_SECONDS = 2700

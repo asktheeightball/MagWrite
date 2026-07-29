@@ -20,3 +20,10 @@ elif (
         == "FRUITJAM_EDITOR_INTEGRATION"
 ):
     storage.remount("/", readonly=False)
+elif (
+    config
+    and getattr(config, "ENABLE_USB_KEYBOARD_TEST", False)
+    and getattr(config, "USB_KEYBOARD_TEST_MODE", "DISABLED")
+        == "FRUITJAM_USB_KEYBOARD"
+):
+    storage.remount("/", readonly=False)

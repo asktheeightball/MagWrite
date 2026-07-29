@@ -8,6 +8,15 @@ if (
     config.ENABLE_PHYSICAL_DISPLAY
     and getattr(config, "ENABLE_UART_RECEIVER", False)
     and getattr(config, "ENABLE_UART_STATUS_TX", False)
+    and config.PHYSICAL_TEST_MODE == "MAGTAG_USB_KEYBOARD_DISPLAY"
+    and getattr(config, "USB_KEYBOARD_DISPLAY_TEST_MODE", "DISABLED")
+        == "MAGTAG_USB_KEYBOARD_DISPLAY"
+):
+    import hardware_usb_keyboard_display_test
+elif (
+    config.ENABLE_PHYSICAL_DISPLAY
+    and getattr(config, "ENABLE_UART_RECEIVER", False)
+    and getattr(config, "ENABLE_UART_STATUS_TX", False)
     and config.PHYSICAL_TEST_MODE == "MAGTAG_EDITOR_DISPLAY"
     and getattr(config, "EDITOR_DISPLAY_TEST_MODE", "DISABLED")
         == "MAGTAG_EDITOR_DISPLAY"

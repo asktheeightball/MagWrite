@@ -3,6 +3,12 @@ import time
 import config
 
 if (
+    getattr(config, "ENABLE_USB_KEYBOARD_TEST", False)
+    and getattr(config, "USB_KEYBOARD_TEST_MODE", "DISABLED")
+        == "FRUITJAM_USB_KEYBOARD"
+):
+    import hardware_usb_keyboard_test
+elif (
     getattr(config, "ENABLE_EDITOR_INTEGRATION_TEST", False)
     and getattr(config, "EDITOR_INTEGRATION_TEST_MODE", "DISABLED")
         == "FRUITJAM_EDITOR_INTEGRATION"
