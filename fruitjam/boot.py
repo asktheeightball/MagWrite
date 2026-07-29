@@ -27,10 +27,6 @@ elif (
         == "FRUITJAM_USB_KEYBOARD"
 ):
     storage.remount("/", readonly=False)
-elif (
-    config
-    and getattr(config, "ENABLE_V1_RESPONSIVENESS_TEST", False)
-    and getattr(config, "V1_RESPONSIVENESS_TEST_MODE", "DISABLED")
-        == "FRUITJAM_V1_RESPONSIVENESS"
-):
-    storage.remount("/", readonly=False)
+# The development runtime is deliberately absent from this gate. It writes no
+# guard, so it needs no writable filesystem, and leaving CIRCUITPY under the
+# host's control is what makes it repeatable: saving a file restarts it.

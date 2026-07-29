@@ -27,11 +27,12 @@ USB_KEYBOARD_DISPLAY_TEST_MODE = "DISABLED"
 # than the scripted editor run's. The arming wait keeps its own separate bound.
 USB_KEYBOARD_DISPLAY_TIMEOUT_SECONDS = 2700
 USB_KEYBOARD_ARMING_TIMEOUT_SECONDS = 1800
-# V1 phase 1 responsiveness verification. Its own mode and its own guard family,
-# so the completed USB-keyboard milestone's guards stay byte-identical.
-V1_RESPONSIVENESS_DISPLAY_TEST_MODE = "DISABLED"
-V1_RESPONSIVENESS_DISPLAY_TIMEOUT_SECONDS = 2700
-V1_RESPONSIVENESS_ARMING_TIMEOUT_SECONDS = 1800
+# Repeatable development runtime. Disabled by default like every harness, but it
+# claims no one-shot guard, is absent from the boot remount gate, and may be
+# started and stopped as often as development needs. It has no run clock: a
+# development session is open-ended and is stopped by the operator, not by a
+# certification budget. See magtag/dev_display_runtime.py.
+DEV_DISPLAY_RUNTIME_MODE = "DISABLED"
 FULL_REFRESH_INTERVAL = 50
 EVENT_QUEUE_CAPACITY = 128
 MAX_LINES = 64

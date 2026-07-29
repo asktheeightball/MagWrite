@@ -32,7 +32,7 @@ this list wins.
 
 | V1 | Phase | Section below | State |
 | --- | --- | --- | --- |
-| 1 | Responsiveness and keyboard completeness | V1.1 | Host-verified; physical run pending |
+| 1 | Responsiveness and keyboard completeness | V1.1 | Host-verified; one physical attempt FAILED, certification retired |
 | 2 | microSD persistence and forced-power-loss recovery | Priority 4 | Not started |
 | 3 | MagWrite Shell | V1.3 | Not started |
 | 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | Not started |
@@ -291,30 +291,50 @@ remain explicitly and boundedly reported.
 attempt at its Fn layer switched the keyboard out of USB mode, so no report was
 ever captured. No mapping was invented for them.
 
-### Physical verification — prepared, not yet run
+### Physical verification — one attempt, FAILED, certification retired
 
-The bounded physical plan is `docs/MAGWRITE_V1_RESPONSIVENESS_TEST.md`. It has
-its own activation modes, its own guard family, its own entry points, and its
-own evidence files, so the completed USB-keyboard milestone's four guards and
-evidence stay byte-identical and untouched.
+One authorised attempt was made on 2026-07-29 and **failed without producing a
+single valid frame or a single measurement.** No responsiveness result exists,
+and none is claimed anywhere in this repository. The adaptive pacing policy and
+the TH40 apostrophe mapping remain **host-verified only**. The full record is in
+`docs/MAGWRITE_V1_RESPONSIVENESS_TEST.md`.
 
-| Device | Started | Complete |
+Guards, after the attempt:
+
+| Device | Guard | Outcome |
 | --- | --- | --- |
-| Fruit Jam | `/magwrite_v1_responsiveness.started` | `/magwrite_v1_responsiveness.complete` |
-| MagTag | `/magwrite_v1_responsiveness_display.started` | `/magwrite_v1_responsiveness_display.complete` |
+| Fruit Jam | `/magwrite_v1_responsiveness.started` | never created |
+| MagTag | `/magwrite_v1_responsiveness_display.started` | created and consumed |
 
-The run must measure keypress to frame transmission, to refresh start and to
-refresh completion; pause to catch-up transmission; maximum visible lag during
-sustained typing; and frame count under several short pauses. Home, End and
-Delete are **not** attempted, because the TH40 cannot emit them without leaving
-USB mode; they stay host-verified and physically untested.
+Both paths are burned: never reused, never deleted. Every one of the twenty-four
+guards from earlier milestones was verified present and unchanged afterwards.
 
-The improvement may not be claimed from the operator's visual impression alone.
-Measured timing and visual assessment are recorded separately.
+The attempt failed on the ceremony around the product rather than on the
+product. The known-working path was already physically verified at `e75aa55`;
+what was missing was a way to bring it up repeatably, which the one-shot guard
+design made impossible by construction. So the certification machinery specific
+to this phase — its two activation modes, its two entry points, its boot-gate
+additions, and its evidence plumbing — was **removed**, and replaced by an
+ordinary development runtime: `docs/DEVELOPMENT_RUNTIME.md`.
 
-**Exit:** an authorised physical run on the two boards producing those
-measurements, with every pass criterion in the plan met and every prior guard
-verified byte-identical.
+The adaptive pacing policy, the passive latency recorder, the TH40 layout rule,
+and every host test covering them were kept; they are useful in ordinary
+development and decide nothing on their own. The guarded harnesses for the
+completed milestones are untouched and remain available for the next real
+verification milestone.
+
+**Exit, if this phase is ever resumed:** a fresh plan with fresh guard paths and
+fresh authorisation, producing measured keypress-to-visible timings on hardware.
+It is not scheduled, and nothing later in V1 is blocked on it.
+
+### Development runtime — available
+
+`docs/DEVELOPMENT_RUNTIME.md` describes the repeatable bench setup that replaced
+the retired harness: wired USB keyboard, authoritative Fruit Jam editor,
+bidirectional UART, MagTag display, adaptive pacing, final reconciliation. It
+writes no guard, never remounts the filesystem away from the host, starts and
+stops as often as needed, and stops cleanly on the Application key `0x65`. It
+performs no verification and licenses no claim.
 
 ## Priority 4 — Single-document persistence and recovery — V1.2
 

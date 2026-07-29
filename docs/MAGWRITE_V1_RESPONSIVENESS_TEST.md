@@ -1,11 +1,25 @@
 # MagWrite V1 Phase 1 — Responsiveness and Keyboard Verification
 
-**Status: PREPARED, NOT YET RUN.** No guard has been created, no board has been
-armed, and no physical measurement exists. Everything in this document is a
-plan and a set of pass criteria. Nothing here is a result.
+**Status: RETIRED after one FAIL. No responsiveness result exists.**
 
-Authorisation for the four guard paths in "Guards" below is required before any
-of it happens.
+One authorised attempt was made on 2026-07-29 and failed without producing a
+single valid frame, a single measurement, or any basis for a claim about
+responsiveness. It is recorded verbatim under "Results" below.
+
+The certification machinery this document describes — the two activation modes,
+the two entry points, the two boot-gate additions, and the evidence plumbing —
+was **removed** afterwards, along with this plan as a live plan. What replaced
+it is not another harness but an ordinary repeatable development runtime, which
+is documented in `docs/DEVELOPMENT_RUNTIME.md`. The reasoning is in "Why this
+was retired" below.
+
+The two guard paths this attempt consumed are burned. They are never reused and
+never deleted. A future responsiveness milestone, if there is one, needs a fresh
+plan, fresh guard paths, and fresh authorisation.
+
+Everything between here and "Results" is the plan **as it stood before the
+attempt**, left unedited so the attempt can be read against what it intended to
+do. None of it is a result, and none of it describes the current code.
 
 ## Purpose
 
@@ -278,4 +292,128 @@ re-arm without fresh explicit authorisation naming the exact paths.
 
 ## Results
 
-*(To be appended after an authorised run. Empty until then.)*
+### Attempt 1 — 2026-07-29 — **FAIL**
+
+**No responsiveness measurement was produced, and none is claimed.** Zero valid
+frames reached the MagTag, so every required measurement has a count of zero.
+Nothing in this attempt supports or contradicts any claim about the adaptive
+pacing policy or the TH40 apostrophe mapping. Both remain host-verified only.
+
+Captures, verbatim and unedited:
+
+| File | Board |
+| --- | --- |
+| `FRUITJAM_V1_RESPONSIVENESS_SERIAL.jsonl` | Fruit Jam, during the attempt |
+| `FRUITJAM_V1_RESPONSIVENESS_SERIAL.jsonl.timestamped.jsonl` | as above, host-timestamped |
+| `FRUITJAM_V1_RESPONSIVENESS_SERIAL_RESUMED.jsonl` | Fruit Jam, after the attempt |
+| `MAGTAG_V1_RESPONSIVENESS_SERIAL.jsonl` | MagTag, during the attempt |
+| `MAGTAG_V1_RESPONSIVENESS_SERIAL.jsonl.timestamped.jsonl` | as above, host-timestamped |
+| `MAGTAG_V1_RESPONSIVENESS_SERIAL_RESUMED.jsonl` | MagTag, through its natural timeout |
+
+The capture was not continuous. It was stopped and restarted, so the two
+`_RESUMED` files are separate observations rather than a continuation, and the
+gap between them is not evidence of silence.
+
+#### Guards
+
+| Device | Guard | Outcome |
+| --- | --- | --- |
+| Fruit Jam | `/magwrite_v1_responsiveness.started` | **never created** |
+| Fruit Jam | `/magwrite_v1_responsiveness.complete` | never created |
+| MagTag | `/magwrite_v1_responsiveness_display.started` | **created and consumed**, 8 bytes, contents `claimed` |
+| MagTag | `/magwrite_v1_responsiveness_display.complete` | never created |
+
+The MagTag guard holds only its initial claim. The FAIL summary that should
+have replaced its contents was never written, because by then the filesystem was
+visible to the USB host and the board could not write to it; the board logged
+`filesystem_remount_warning` with detail `Cannot remount '/' when visible via
+USB`. The summary therefore survives only in the serial capture, which is why
+it is reproduced in full below.
+
+Every one of the twenty-four guards from earlier milestones was verified present
+and unchanged in size afterwards, on both boards. None was read, written,
+renamed, or deleted by this attempt.
+
+#### MagTag
+
+Armed, reached `v1_responsiveness_display_ready`, and then waited. Its own
+final summary, verbatim from the capture:
+
+```json
+{"status_queue_maximum_depth":1,"event":"v1_responsiveness_display_test_summary","status_frames_sent":1,"resynchronization_events":12,"crc_failures":0,"latest_received_revision":0,"refresh_durations_ms":[],"partial_refresh_maximum_ms":null,"result":"FAIL","parser_rejections":0,"partial_refresh_minimum_ms":null,"bytes_received":1252,"viewport_frames_received":0,"refreshes":0,"displayed_revision":0,"full_refreshes":0,"stop_reason":"editor display arming timeout","discarded_prefix_bytes":1252,"partial_refresh_mean_ms":null,"timeouts":1,"viewport_frames_superseded":0,"maximum_discarded_prefix":120,"bytes_sent":0,"viewport_frames_rendered":0,"partial_refreshes":0}
+```
+
+1252 bytes arrived on the RX line and all 1252 were discarded as prefix: not one
+byte ever formed a valid frame. Zero viewports were received, zero refreshes
+were performed, and the panel was never driven. The run ended on its arming
+timeout, which is the bound that exists precisely so an unattended board gives
+up rather than waiting forever. It ended naturally and was not interrupted.
+
+#### Fruit Jam
+
+No harness record of any kind was captured. There is no
+`v1_responsiveness_ready` line, no summary, and no traceback in either capture.
+What the console shows instead is the board running `code.py`, then a reset,
+then the console title `Done`, then `REPL`, the CircuitPython 10.2.1 banner, and
+a `>>>` prompt, followed by loose characters — `t`, `the`, `the `, `j` —
+arriving over several minutes. The capture tool never writes to the port, so
+those characters were echoed by the CircuitPython REPL from some other input.
+
+What that establishes is narrow and worth stating narrowly: **the Fruit Jam was
+not running the harness while the MagTag was armed and waiting for it.** Why it
+was not is not established by this evidence. No traceback was captured, and the
+absence of the `.started` guard is consistent with more than one cause. Guessing
+between them here would be inventing a finding, so it is left open.
+
+#### Against the pass criteria
+
+Not one was met, and most were not reachable:
+
+- `TEST_COMPLETE` was never sent or received;
+- the final revision and hash were never transmitted, so nothing was reconciled;
+- all six required measurements have a count of zero;
+- the apostrophe and double quote were never exercised on hardware;
+- `keyboard_layout` and `remapped_usages` were never reported;
+- no operator visual assessment was taken, because there was nothing to assess.
+
+The prior fixed-2.6 s comparison the plan asked for cannot be made, and no part
+of it is asserted anywhere in this repository.
+
+## Why this was retired
+
+The attempt failed on the setup around the product, not on the product. The
+known-working path — wired USB keyboard, authoritative Fruit Jam editor,
+bidirectional UART, MagTag display, multiline typing, final reconciliation — had
+already been physically verified at commit `e75aa55`. What went wrong here was
+the ceremony: two one-shot guard families, two activation modes per board, two
+boot gates, and a rule that a second start is refused. Every one of those is
+right for producing evidence once and actively hostile to the loop of starting
+the thing, watching it, and starting it again — which is what was actually
+needed, and which had been made impossible by construction.
+
+The response was not a better harness. Continuing to expand certification
+machinery to reach a working bench setup had already consumed one guard family
+and produced nothing. Instead the machinery specific to this phase was removed
+and replaced with an ordinary development runtime that starts and stops freely,
+writes no guard, and leaves the filesystem with the host:
+`docs/DEVELOPMENT_RUNTIME.md`.
+
+What was kept, because it is useful outside certification and decides nothing on
+its own:
+
+- the adaptive display pacing policy, `fruitjam/magwrite_transport/pacing.py`;
+- the passive latency recorder, `fruitjam/magwrite_transport/latency.py`;
+- the TH40 keyboard layout rule and every keyboard improvement from `fbed96f`;
+- every host test covering them.
+
+What was removed, because it existed only to certify this phase:
+
+- `fruitjam/hardware_v1_responsiveness_test.py`;
+- `magtag/hardware_v1_responsiveness_display_test.py`;
+- `host-tests/test_v1_responsiveness_gate.py`;
+- the `FRUITJAM_V1_RESPONSIVENESS` and `MAGTAG_V1_RESPONSIVENESS_DISPLAY`
+  activation modes and every config key behind them;
+- the dispatcher branches and boot-remount branches added for them on both
+  boards.
+
+The captures above were not touched, and neither were the guards on the boards.

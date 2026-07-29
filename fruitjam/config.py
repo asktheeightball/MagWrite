@@ -41,15 +41,18 @@ USB_KEYBOARD_SUSTAINED_MIN_SEND_SECONDS = 2.6
 # "AUTO" identifies the keyboard from its USB descriptor and applies a recorded
 # device layout if one matches; anything unrecognised gets standard HID.
 USB_KEYBOARD_LAYOUT = "AUTO"
-# V1 phase 1 responsiveness verification. An independent activation pair and an
-# independent guard family: the completed USB-keyboard milestone's guards are
-# never read, written, or required to be absent by this phase.
-ENABLE_V1_RESPONSIVENESS_TEST = False
-V1_RESPONSIVENESS_TEST_MODE = "DISABLED"
-# The run is scenario-driven and operator-paced, so it reuses the live session's
-# bounds rather than inventing new ones.
-V1_RESPONSIVENESS_IDLE_TIMEOUT_SECONDS = 600
-V1_RESPONSIVENESS_SESSION_TIMEOUT_SECONDS = 2700
+# Repeatable development runtime. Disabled by default like every harness, but
+# unlike them it claims no one-shot guard, never remounts the filesystem, and may
+# be started and stopped as often as development needs. See fruitjam/dev_runtime.py.
+ENABLE_DEV_RUNTIME = False
+DEV_RUNTIME_MODE = "DISABLED"
+# Generous rather than absent: a development session is open-ended, but a board
+# left typing into a UART nobody is watching should still give up eventually.
+DEV_RUNTIME_IDLE_TIMEOUT_SECONDS = 1800
+DEV_RUNTIME_SESSION_TIMEOUT_SECONDS = 7200
+# The keyboard event budget is a bound on the adapter, not a certification
+# ceiling, so a development session gets a much larger one than a bounded run.
+DEV_RUNTIME_MAX_EVENTS = 100000
 # A live run is operator-paced, so it is abandoned only after a long silence.
 USB_KEYBOARD_IDLE_TIMEOUT_SECONDS = 600
 USB_KEYBOARD_SESSION_TIMEOUT_SECONDS = 2700

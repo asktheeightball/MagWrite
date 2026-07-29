@@ -8,11 +8,17 @@ if (
     config.ENABLE_PHYSICAL_DISPLAY
     and getattr(config, "ENABLE_UART_RECEIVER", False)
     and getattr(config, "ENABLE_UART_STATUS_TX", False)
-    and config.PHYSICAL_TEST_MODE == "MAGTAG_V1_RESPONSIVENESS_DISPLAY"
-    and getattr(config, "V1_RESPONSIVENESS_DISPLAY_TEST_MODE", "DISABLED")
-        == "MAGTAG_V1_RESPONSIVENESS_DISPLAY"
+    and config.PHYSICAL_TEST_MODE == "MAGTAG_DEV_DISPLAY"
+    and getattr(config, "DEV_DISPLAY_RUNTIME_MODE", "DISABLED")
+        == "MAGTAG_DEV_DISPLAY"
 ):
-    import hardware_v1_responsiveness_display_test
+    # The repeatable development runtime, not a guarded harness. It returns when
+    # the operator stops it, so this branch is terminal on its own rather than
+    # relying on the imported module never returning.
+    import dev_display_runtime  # noqa: F401 - imported for its side effects
+    print('{"event":"dev_display_exited","restartable":true}')
+    while True:
+        time.sleep(3600)
 elif (
     config.ENABLE_PHYSICAL_DISPLAY
     and getattr(config, "ENABLE_UART_RECEIVER", False)

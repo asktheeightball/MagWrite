@@ -94,6 +94,8 @@ class LiveTypingSession:
         idle_timeout_seconds=IDLE_TIMEOUT_SECONDS,
         session_timeout_seconds=SESSION_TIMEOUT_SECONDS,
         viewport=None, tracker=None, editor=None, pacer=None, latency=None,
+        max_viewport_frames=MAX_VIEWPORT_FRAMES,
+        max_protocol_frames=MAX_PROTOCOL_FRAMES,
     ):
         self.monotonic = monotonic
         self.log = log
@@ -107,6 +109,13 @@ class LiveTypingSession:
         )
         self.adapter = adapter if adapter is not None else adapter_factory(self.queue)
         self.send_window = send_window
+        # The authorised physical ceilings, as parameters rather than constants,
+        # so a repeatable development session is not stopped by a budget that
+        # exists to bound a one-shot certification run. The defaults are the
+        # module constants, so every guarded harness keeps the exact behaviour it
+        # was verified with; a host test asserts that.
+        self.max_viewport_frames = max_viewport_frames
+        self.max_protocol_frames = max_protocol_frames
         self.pacer = pacer or DisplayPacer()
         # Passive measurement only. It observes and never decides.
         self.latency = latency if latency is not None else LatencyRecorder()
@@ -151,7 +160,7 @@ class LiveTypingSession:
 
     def _emit(self, message_type, revision, payload):
         self.frame_sequence += 1
-        if self.frame_sequence > MAX_PROTOCOL_FRAMES:
+        if self.frame_sequence > self.max_protocol_frames:
             raise LiveSessionError("input frame limit exceeded")
         frame = encode_frame(message_type, self.frame_sequence, revision, payload)
         self.outbound.append(frame)
@@ -295,7 +304,7 @@ class LiveTypingSession:
             return False
         if not force and reason not in SENDING_REASONS:
             return False
-        if self.viewport_frames_sent >= MAX_VIEWPORT_FRAMES:
+        if self.viewport_frames_sent >= self.max_viewport_frames:
             raise LiveSessionError("viewport frame limit exceeded")
         self._emit(VIEWPORT, revision, payload)
         digest = crc32(payload)

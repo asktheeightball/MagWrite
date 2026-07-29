@@ -9,9 +9,9 @@ UART_VIEWPORT_RX_MODE = "MAGTAG_UART_VIEWPORT_RX"
 UART_ACK_RX_MODE = "MAGTAG_UART_ACK_RX"
 EDITOR_DISPLAY_MODE = "MAGTAG_EDITOR_DISPLAY"
 USB_KEYBOARD_DISPLAY_MODE = "MAGTAG_USB_KEYBOARD_DISPLAY"
-# V1 phase 1. A mode of its own, not a reuse of the USB keyboard mode, so the
-# completed milestone's activation and guards stay entirely separate.
-V1_RESPONSIVENESS_DISPLAY_MODE = "MAGTAG_V1_RESPONSIVENESS_DISPLAY"
+# Guarded one-shot harness modes. Each claims a ``.started`` guard, so each needs
+# a filesystem the board itself can write; ``hardware_test_boot.py`` remounts for
+# exactly this tuple and a host test asserts the two agree.
 APPROVED_TEST_MODES = (
     PHYSICAL_TEST_MODE,
     REFRESH_50_MODE,
@@ -21,8 +21,16 @@ APPROVED_TEST_MODES = (
     UART_ACK_RX_MODE,
     EDITOR_DISPLAY_MODE,
     USB_KEYBOARD_DISPLAY_MODE,
-    V1_RESPONSIVENESS_DISPLAY_MODE,
 )
+
+# The repeatable development runtime. Kept out of APPROVED_TEST_MODES on purpose:
+# it writes no guard, so it must *not* appear in the boot remount gate, and the
+# filesystem stays under the host's control. See magtag/dev_display_runtime.py.
+DEV_DISPLAY_MODE = "MAGTAG_DEV_DISPLAY"
+DEV_MODES = (DEV_DISPLAY_MODE,)
+
+# Every mode the display may be activated for, guarded or not.
+ACTIVATION_MODES = APPROVED_TEST_MODES + DEV_MODES
 
 
 class DisplayAdapter:
@@ -49,6 +57,6 @@ def validate_physical_test_activation(config, selected_mode):
         raise RuntimeError("physical display refused: controller is not UC8151D")
     if not getattr(config, "ENABLE_PHYSICAL_DISPLAY", False):
         raise RuntimeError("physical display refused: activation is disabled")
-    if selected_mode not in APPROVED_TEST_MODES:
+    if selected_mode not in ACTIVATION_MODES:
         raise RuntimeError("physical display refused: explicit test mode not selected")
     return True

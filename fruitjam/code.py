@@ -3,11 +3,17 @@ import time
 import config
 
 if (
-    getattr(config, "ENABLE_V1_RESPONSIVENESS_TEST", False)
-    and getattr(config, "V1_RESPONSIVENESS_TEST_MODE", "DISABLED")
-        == "FRUITJAM_V1_RESPONSIVENESS"
+    getattr(config, "ENABLE_DEV_RUNTIME", False)
+    and getattr(config, "DEV_RUNTIME_MODE", "DISABLED") == "FRUITJAM_DEV_RUNTIME"
 ):
-    import hardware_v1_responsiveness_test
+    # The repeatable development runtime, not a guarded harness. It returns when
+    # the operator stops it, so this branch has to be terminal on its own: the
+    # one-shot harnesses below never return, and falling through into the UART TX
+    # harness would try to claim a guard that was consumed long ago.
+    import dev_runtime  # noqa: F401 - imported for its side effects
+    print('{"event":"dev_runtime_exited","restartable":true}')
+    while True:
+        time.sleep(3600)
 elif (
     getattr(config, "ENABLE_USB_KEYBOARD_TEST", False)
     and getattr(config, "USB_KEYBOARD_TEST_MODE", "DISABLED")

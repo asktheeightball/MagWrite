@@ -19,9 +19,12 @@ if (
         "MAGTAG_UART_ACK_RX",
         "MAGTAG_EDITOR_DISPLAY",
         "MAGTAG_USB_KEYBOARD_DISPLAY",
-        "MAGTAG_V1_RESPONSIVENESS_DISPLAY",
     )
 ):
     # Required only so the one-time guard can be persisted by CircuitPython.
     # While armed, CIRCUITPY may be read-only to the USB host.
+    #
+    # MAGTAG_DEV_DISPLAY is deliberately not in this tuple. The development
+    # runtime writes no guard, so it needs no writable filesystem, and leaving
+    # CIRCUITPY under the host's control is what makes it repeatable.
     storage.remount("/", readonly=False)
