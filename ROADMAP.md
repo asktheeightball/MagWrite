@@ -129,13 +129,38 @@ Exact mappings remain configurable and should be validated against the real work
 
 **Exit:** every physical button event reaches the Fruit Jam exactly once, produces the intended Fruit Jam-owned action, and does not interfere with display acknowledgements.
 
-## Priority 3 — Direct USB HID keyboard on Fruit Jam — IMPLEMENTED, PHYSICALLY UNVERIFIED
+## Priority 3 — Direct USB HID keyboard on Fruit Jam — PHYSICALLY VERIFIED
 
-Implemented at commit `ab52961`. Host suite raised from 253 to 456 tests, all
-passing. **Two guarded physical attempts on 2026-07-29 both failed, neither on a
-software defect.** Evidence: `docs/FRUITJAM_USB_KEYBOARD_TEST.md`.
+Implemented at commit `ab52961`. **Physically verified on 2026-07-29 at commit
+`e75aa55`, on the third guarded attempt, with a wired EPOMAKER TH40
+(`36B0:304E`).** Host suite raised from 253 to 472 tests, all passing.
+Evidence: `docs/FRUITJAM_USB_KEYBOARD_TEST.md`.
 
-Verified on real hardware:
+Complete on real hardware:
+
+- direct wired USB HID keyboard input on the Fruit Jam;
+- normalized live key events — 374 reports to 168 events, 0 rejected;
+- live multiline typing into the authoritative editor;
+- real input accepted during display refresh, with 119 stale viewports
+  coalesced and no keypress lost or duplicated;
+- first interactive writing prototype: 49 viewport frames sent, 49 rendered,
+  final transmitted revision 168 = final displayed revision 168, final hash
+  `D462BA98`, `DISPLAY_CAUGHT_UP` and `TEST_COMPLETE` received, 0 CRC failures,
+  0 timeouts, 0 queue overflows, operator visually approved.
+
+Still open within this priority, all for keyboard-layout reasons rather than
+software ones, and none blocking: apostrophe (the TH40 emits `0x2E` for it),
+Home, End, Delete, Caps Lock toggling during a run, and key repeat. A
+compatibility decision at commit `83ac72f` accepts Keyboard Application
+(`0x65`) as a second finish control alongside Escape, because this keyboard
+cannot deliver `0x29` from a standalone key.
+
+Attempts 1 and 2 remain `FAIL` and are retained. Both used `36B0:3002`, which
+the probe established is this same keyboard's own 2.4 GHz dongle; it enumerated
+and claimed correctly and forwarded no key data. Neither failure was a software
+defect.
+
+Verified on real hardware during the earlier attempts:
 
 - CircuitPython 10.2.1 USB host API surface and the absence of
   `adafruit_usb_host_descriptors`, so descriptors are parsed in-repo with no new
@@ -152,19 +177,18 @@ Verified on real hardware:
 - fail-closed refusal, guard preservation, and a complete FAIL summary on the
   idle-timeout stop condition.
 
-**Not verified, because zero keystrokes were ever captured:** normalized real-key
-events, Shift, Caps Lock, punctuation, repeat, live multiline typing, input
-during refresh, viewport coalescing from real input, final revision/hash
-reconciliation, and lowercase glyph legibility.
+The blocking issue recorded here previously — the wireless keyboard delivering
+no HID data through its receiver — was resolved by fitting a wired keyboard, as
+that entry predicted. The receiver is not supported and remains out of scope.
 
-Blocking issue: the wireless keyboard stopped delivering any HID data to its
-receiver while that receiver was in the Fruit Jam host port, despite the same
-keyboard and receiver having delivered real usages to that same port earlier the
-same day, and typing correctly on a PC afterwards. Three independent checks
-confirmed no data reached either the adapter or CircuitPython's own console.
-Candidate causes — marginal host-port supply to the receiver's radio, or a lost
-pairing session — remain open and untested. A different keyboard, preferably a
-wired one, is the cheapest next diagnostic.
+Next in this area, recommended and not yet started: **MagTag button events over
+the existing UART return link**, with the Fruit Jam interpreting button actions.
+Storage and battery work stay out of scope for it.
+
+Also observed by the operator during the verified run and worth a later look:
+the display updates in bursts rather than per keystroke, because viewport sends
+are paced to the panel at 2.6 s. That pacing is deliberate and matched to the
+~1.05 s partial refresh, but a more responsive scheme is a legitimate follow-up.
 
 ### Original requirements
 

@@ -1,15 +1,22 @@
 # Fruit Jam Live USB HID Keyboard Test
 
-**Status: FAIL after two guarded attempts on 2026-07-29. Neither attempt was
-blocked by a software defect. The run is blocked on a hardware finding: the
-wireless keyboard stopped delivering any HID data to its receiver while that
-receiver was in the Fruit Jam host port, even though the same keyboard and
-receiver had delivered real usages to that same port earlier the same day and
-typed correctly on a PC afterwards.**
+**Status: PASS on the third guarded attempt, 2026-07-29, with a wired EPOMAKER
+TH40 keyboard. A real wired USB HID keyboard typed live into the authoritative
+Fruit Jam editor, and the MagTag display trailed and caught up: 374 reports,
+168 normalized events, 49 viewport frames all rendered, final transmitted
+revision 168 equal to final displayed revision 168, final hash D462BA98,
+`DISPLAY_CAUGHT_UP` and `TEST_COMPLETE` both received, no CRC failure, no
+timeout, no queue overflow, and the operator visually approved the final
+screen.**
 
-Zero keystrokes were captured, so **no PASS criterion below has been tested**.
-Everything in the "USB host discovery gate" section *was* observed on real
-hardware and remains valid evidence.
+Attempts 1 and 2 remain `FAIL` and their evidence is unchanged. Neither was
+blocked by a software defect. Both used the `36B0:3002` receiver, which the
+probe later established is *this same keyboard's own 2.4 GHz dongle*: it
+enumerated and claimed correctly and forwarded no key data, because the
+keyboard was not paired to it or not in 2.4 GHz mode.
+
+Several PASS criteria were **not** exercised, for keyboard-layout reasons
+rather than software ones. See "Not exercised" under the attempt 3 result.
 
 This is one bounded integrated smoke test of the first *interactive* MagWrite
 writing prototype: a real USB HID keyboard typing into the authoritative Fruit
@@ -507,6 +514,140 @@ where safely possible, do not delete guards, do not retry automatically, and
 mark FAIL or INCONCLUSIVE.
 
 ## Results
+
+### Attempt 3 — 2026-07-29, run commit `e75aa55` — **PASS**
+
+Authorised by the operator, who explicitly named `/magwrite_usb_keyboard.started`
+and `/magwrite_usb_keyboard_display.started` for deletion, for one guarded
+wired-keyboard attempt. Both were archived byte for byte to
+`FRUITJAM_USB_KEYBOARD_GUARD_ARCHIVE.jsonl` before deletion. No other guard was
+deleted, modified, renamed, recreated, or overwritten; the surviving 6 Fruit Jam
+and 15 MagTag guards were hash-verified identical before and after.
+
+Keyboard: **EPOMAKER TH40**, `36B0:304E`, interface 0, class triple `03/01/01`,
+endpoint `0x81`, 8-byte reports, interval 1. Wired directly into the Fruit Jam
+USB host port, no hub.
+
+Captures appended to `FRUITJAM_USB_KEYBOARD_SERIAL.jsonl` (877 records) and
+`MAGTAG_USB_KEYBOARD_DISPLAY_SERIAL.jsonl` (127 records), after a labelled
+separator record. The retained attempt-2 records above that separator are
+unchanged and were verified so programmatically.
+
+#### Result
+
+| Field | Fruit Jam | MagTag |
+| --- | --- | --- |
+| Result | `PASS` | `PASS` |
+| Stop reason | none | none |
+| Reports received | 374 | — |
+| Duplicate reports suppressed | 5 | — |
+| Rollover reports | 0 | — |
+| Normalized events | 168 | — |
+| Events rejected | 0 | — |
+| Repeat events | 0 | — |
+| Unsupported usages | 3 | — |
+| Maximum queue depth | 1 | — |
+| Queue overflows | 0 | — |
+| Viewport frames sent / accepted | 49 / 49 | received 49, rendered 49 |
+| Viewports superseded locally | 119 | superseded on panel 0 |
+| Refreshes | started 49, completed 49 | 49 = 1 full + 48 partial |
+| Final transmitted revision | 168 | latest received 168 |
+| Final displayed revision | 168 | displayed 168 |
+| Final hash | `D462BA98` | — |
+| `DISPLAY_CAUGHT_UP` | received 48 | — |
+| `TEST_COMPLETE` | `true` | — |
+| CRC failures | 0 | 0 |
+| Status sequence gaps | 0 | — |
+| Parser rejections | — | 0 |
+| Timeouts | 0 | 0 |
+| Discarded prefix bytes | 0 | 984 (max prefix 120) |
+| Resynchronizations | 0 | 9 |
+| Status frames | — | 197 sent, queue depth max 2 |
+| USB device | `READY`, 1 connect, 0 errors, 0 disconnects | — |
+
+Full refresh 3500 ms. Partial refreshes 873–1122 ms, mean ≈ 1050 ms.
+
+Final document, 135 characters over 4 lines, cursor at row 2 column 15:
+
+```
+magwritea usb test . wow this is neat. font is crappyTEST Hello, MagWrite Its working.
+,.-!
+Today ?I dont write Journal
+MagWrite Works.
+```
+
+#### Operator visual confirmation
+
+The operator confirmed the displayed text matched the final document and that
+**no unexpected full-screen flash occurred**; the single full refresh was the
+expected initial one. Ghosting, incomplete erase, border corruption and pixel
+defects were **not separately assessed** by the operator and are therefore not
+claimed. No photograph was taken.
+
+#### What this attempt proves
+
+- a real wired USB HID keyboard delivering live non-zero reports into the
+  shipped adapter, 374 reports across the run;
+- correct normalization of letters, Shift, comma, period, hyphen, exclamation,
+  Enter, Backspace, and the arrow keys, with 0 rejected events;
+- duplicate report suppression against real hardware (5 suppressed);
+- three unsupported usages ignored with bounded diagnostics and no crash;
+- input accepted continuously while the panel was busy, with 119 stale
+  viewports coalesced locally and **no keypress lost and none duplicated**;
+- the MagTag never reported a revision it had not displayed, and reported no
+  superseded frame of its own;
+- final transmitted revision, final displayed revision and final hash all
+  reconciling at 168 / 168 / `D462BA98`;
+- the Fruit Jam remaining authoritative and the MagTag display-only throughout;
+- both `.complete` guards written, and every prior guard unchanged.
+
+#### Not exercised
+
+These are keyboard-layout limitations of the TH40, not adapter faults. In each
+case the adapter behaved correctly with what it was given.
+
+- **Apostrophe.** The TH40's apostrophe key emits usage `0x2E` (`=`/`+`), not
+  `0x34`. `0x2E` has no glyph in the proven table, so it was correctly counted
+  as unsupported and ignored. `It's` and `don't` therefore appear as `Its` and
+  `dont` in the final document.
+- **Home, End, Delete.** Not reachable on this board; see the probe section.
+- **Caps Lock.** Confirmed live by the probe as `0x39` → `CAPS_LOCK`, but not
+  toggled during the guarded run: `caps_lock_toggles` is 0.
+- **Key repeat.** No key was held long enough; `repeat_events` is 0.
+
+#### Evidence gaps in this attempt, stated plainly
+
+These are shortcomings of the capture tooling, not of the run, and none of them
+affect the reconciled totals above, which come from the two boards' own final
+summaries.
+
+1. **Neither board's boot, ready, or handshake records were captured.** A
+   CircuitPython board re-enumerates its USB CDC on reset, which invalidated the
+   open capture handle. The capture tool was made reconnecting only afterwards.
+2. **The first portion of the typing was not captured.** The capture asserted
+   DTR low to avoid resetting the board; CircuitPython treats DTR as "a terminal
+   is attached" and discards console output when it is low, so both boards ran
+   correctly while writing to a console nobody was reading. Roughly the first 59
+   characters of the document were typed during that window and are
+   unattributable — they appear in the final document but no per-key record
+   exists for them.
+3. **Scenario 1 is therefore not evidenced.** The operator typed it, but during
+   the DTR-low window. It is not claimed as verified.
+4. Scenarios 3, 4 and 6 were **compressed into a single burst** rather than run
+   separately, because the run reached 34 of the authorised 50 partial refreshes
+   before they began. Scenario 5 was satisfied incidentally and abundantly by
+   the 119 coalesced viewports.
+5. The run finished at **48 partial refreshes against the ceiling of 50**.
+
+#### MagTag receive-path resynchronization
+
+The MagTag reported 9 resynchronization events and 984 discarded prefix bytes,
+maximum single prefix 120, while the Fruit Jam reported 0 discarded prefix bytes
+of its own. Parser rejections and CRC failures were both 0 and all 49 viewport
+frames were received and rendered, so the framing layer recovered cleanly every
+time. The most likely source is the Fruit Jam's own boot output arriving on the
+UART line while the MagTag was already armed and listening. This is recorded as
+an observation, not a failure, and is worth confirming in a later phase.
 
 ### Unguarded wired-keyboard probe — 2026-07-29, commit `4e431a3` — **PASS**
 

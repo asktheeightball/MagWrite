@@ -397,7 +397,10 @@ class EvidenceTest(unittest.TestCase):
                 self.assertIn("created no guard", section)
                 continue
             captured = "".join(read(*parts) for parts in self.CAPTURES)
-            self.assertIn("test_complete\": true", captured.replace("'", '"'))
+            # Whitespace-insensitive: the boards emit compact JSON, so the
+            # claim must rest on the recorded fact, not on how it was spaced.
+            normalized = captured.replace("'", '"').replace(" ", "")
+            self.assertIn('"test_complete":true', normalized)
 
     def test_a_probe_pass_is_never_mistaken_for_an_attempt(self):
         """The probe exemption must not become a way to smuggle in an attempt."""
