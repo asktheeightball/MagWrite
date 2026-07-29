@@ -264,6 +264,37 @@ class ActivationDefaultTest(unittest.TestCase):
             magtag.index("driver hash mismatch"), magtag.index("busio.UART")
         )
 
+    def test_each_dispatcher_routes_this_phase_to_its_own_entry_point(self):
+        """A harness nothing dispatches to is a harness that never runs."""
+        fruitjam = read("fruitjam", "code.py")
+        self.assertIn("ENABLE_V1_RESPONSIVENESS_TEST", fruitjam)
+        self.assertIn('== "%s"' % FRUITJAM_MODE, fruitjam)
+        self.assertIn("import hardware_v1_responsiveness_test", fruitjam)
+        magtag = read("magtag", "code.py")
+        self.assertIn("V1_RESPONSIVENESS_DISPLAY_TEST_MODE", magtag)
+        self.assertIn('== "%s"' % MAGTAG_MODE, magtag)
+        self.assertIn("import hardware_v1_responsiveness_display_test", magtag)
+
+    def test_each_dispatcher_still_routes_the_completed_milestone(self):
+        """Adding a branch must not shadow the proven one."""
+        self.assertIn(
+            "import hardware_usb_keyboard_test", read("fruitjam", "code.py")
+        )
+        self.assertIn(
+            "import hardware_usb_keyboard_display_test",
+            read("magtag", "code.py"),
+        )
+
+    def test_each_dispatcher_requires_every_flag_before_importing(self):
+        magtag = read("magtag", "code.py")
+        branch = magtag[:magtag.index("import hardware_v1_responsiveness_display_test")]
+        for flag in (
+            "ENABLE_PHYSICAL_DISPLAY", "ENABLE_UART_RECEIVER",
+            "ENABLE_UART_STATUS_TX", "PHYSICAL_TEST_MODE",
+            "V1_RESPONSIVENESS_DISPLAY_TEST_MODE",
+        ):
+            self.assertIn(flag, branch, flag)
+
     def test_the_boot_remount_gate_arms_this_phases_mode(self):
         """A prior physical blocker was exactly this: a boot gate that never
         armed the new mode, so the MagTag could not persist its guard."""

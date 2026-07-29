@@ -3,6 +3,12 @@ import time
 import config
 
 if (
+    getattr(config, "ENABLE_V1_RESPONSIVENESS_TEST", False)
+    and getattr(config, "V1_RESPONSIVENESS_TEST_MODE", "DISABLED")
+        == "FRUITJAM_V1_RESPONSIVENESS"
+):
+    import hardware_v1_responsiveness_test
+elif (
     getattr(config, "ENABLE_USB_KEYBOARD_TEST", False)
     and getattr(config, "USB_KEYBOARD_TEST_MODE", "DISABLED")
         == "FRUITJAM_USB_KEYBOARD"
