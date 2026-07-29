@@ -19,7 +19,7 @@ from keyboard_simulator import (
 )
 from magwrite_transport.editor import BoundedEventQueue, CHAR, ENTER
 from magwrite_transport.hid_keymap import (
-    USAGE_CAPS_LOCK, USAGE_ERROR_ROLLOVER, USAGE_ESCAPE,
+    USAGE_APPLICATION, USAGE_CAPS_LOCK, USAGE_ERROR_ROLLOVER, USAGE_ESCAPE,
 )
 from magwrite_transport.keyboard_repeat import (
     REPEAT_DELAY_MS, REPEAT_INTERVAL_MS, KeyRepeat,
@@ -156,6 +156,23 @@ class AdapterEventTest(unittest.TestCase):
         adapter.poll(0.0)
         self.assertTrue(adapter.finish_requested)
         self.assertEqual(drain(queue), [])
+
+    def test_the_application_key_requests_finish_the_same_way(self):
+        """The physical keyboard can only finish a run with 0x65."""
+        adapter, queue, _ = build(press_release(USAGE_APPLICATION))
+        adapter.poll(0.0)
+        self.assertTrue(adapter.finish_requested)
+        self.assertEqual(drain(queue), [])
+        self.assertEqual(adapter.unsupported_usages, 0)
+
+    def test_typing_then_the_application_key_keeps_the_typed_events(self):
+        adapter, queue, _ = build(
+            type_characters("Hi") + press_release(USAGE_APPLICATION)
+        )
+        for _ in range(8):
+            adapter.poll(0.0)
+        self.assertTrue(adapter.finish_requested)
+        self.assertEqual([e.value for e in drain(queue)], ["H", "i"])
 
     def test_polling_is_bounded_by_the_report_budget(self):
         adapter, queue, _ = build(type_characters("abcdef"), poll_budget=2)

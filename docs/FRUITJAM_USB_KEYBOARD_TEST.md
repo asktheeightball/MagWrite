@@ -218,15 +218,25 @@ Shift (either)  Caps Lock
 .  ,  '  -  :  ;  !  ?  "  (  )  /  <  >
 ```
 
-`Escape` is the deliberate **finish key**: it ends the live run and produces no
-editor event.
+`Escape` (`0x29`) is the deliberate **finish key**: it ends the live run and
+produces no editor event.
+
+**Application/Menu (`0x65`) is a second, equally deliberate finish key.** The
+keyboard used for the physical phase is a 40% board that cannot deliver `0x29`
+from a standalone key: its Escape lives on an Fn layer, and on that board the
+Fn combination *also switches the keyboard out of USB mode*, so pressing
+"Escape" silences the device instead of ending the run. This was established by
+the unguarded probe before any guarded attempt, and is recorded under Results.
+`0x65` has no glyph and no editor action, so accepting it costs nothing: it
+previously counted only as an unsupported key. Both usages are exercised by
+host tests that prove one action per press, no duplicate finish from a held or
+repeated report, and correct release behaviour.
 
 Every character the keymap can emit is present in the proven 3x5 glyph table; a
 host test asserts that directly. Deliberately unsupported, ignored with a
 bounded `usb_keyboard_unsupported_usage` diagnostic and never crashing:
-function keys, Tab, Insert, Page Up/Down, Application/Menu, keypad digits, and
-the shifted forms with no glyph (`@ # $ % ^ & * _ + = [ ] { } \ | ~` and
-backtick).
+function keys, Tab, Insert, Page Up/Down, keypad digits, and the shifted forms
+with no glyph (`@ # $ % ^ & * _ + = [ ] { } \ | ~` and backtick).
 
 ### Glyph additions
 
@@ -643,6 +653,50 @@ whether they are unmapped or simply were not pressed. They are recorded as
 **not exercised**, and Scenario 4 is run with the four arrow keys and Backspace,
 all of which are confirmed. This is a property of the keyboard, not of the
 adapter, and no software conclusion is drawn from it.
+
+#### The keyboard silently leaves USB mode on some Fn combinations
+
+Three probe runs returned **zero reports of any kind** — no key usages and no
+modifier bytes — across 22,228, 29,632, and 29,632 endpoint polls, while the
+keyboard continued to enumerate normally as `36B0:304E` and the interface was
+claimed successfully every time. Every one of those runs was one in which the
+operator pressed unfamiliar Fn combinations while hunting for Home, End, Delete
+or Escape. Every run restricted to ordinary keys produced hundreds of reports.
+
+The TH40 is a multi-mode keyboard (USB, 2.4 GHz, Bluetooth) whose mode is
+changed by an Fn combination. The observed behaviour is the keyboard leaving
+USB mode and transmitting on its radio instead: still powered, still enumerated,
+still claimable, and completely mute on the wire. Restoring USB mode restored
+reports immediately (294 non-zero reports in the next run).
+
+This also retrospectively explains attempts 1 and 2. The receiver used there is
+`36B0:3002`, the same vendor ID and the same `RDMCTMZT` manufacturer string as
+this keyboard: **it is this keyboard's own 2.4 GHz receiver.** Those attempts
+had the receiver attached while the keyboard was not paired to it or not in
+2.4 GHz mode, so the receiver enumerated correctly and forwarded nothing. No
+software defect was ever involved in either attempt.
+
+**Operational consequence for the guarded run: press no unfamiliar Fn
+combinations.** A mode switch mid-attempt would mute the keyboard and cost the
+attempt.
+
+#### Escape cannot be produced, so a second finish control was added
+
+Escape (`0x29`) was never observed. Pressing the operator's Escape binding
+consistently coincided with the keyboard falling silent, consistent with that
+binding being an Fn combination that also switches mode. A standalone key
+remapped by the operator produced `0x65` (Keyboard Application) reliably: 21
+presses, 21 clean release pairs, no mode switch, no instability.
+
+Escape is the only route to `finish_requested`, and therefore the only route to
+`DISPLAY_CAUGHT_UP` and `TEST_COMPLETE`. Without a usable finish key a guarded
+attempt can only end by idle timeout, the 500-event ceiling, or the session
+timeout, all of which are `FAIL`. A PASS would have been unreachable.
+
+`0x65` was therefore adopted as an additional `FINISH` control, by operator
+decision, as a deliberate hardware-compatibility change rather than a probe
+workaround. The physical key mapping was left exactly as the operator set it.
+Escape remains a finish key and no other usage changed behaviour.
 
 #### What the probe establishes
 

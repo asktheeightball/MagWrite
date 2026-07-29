@@ -50,6 +50,16 @@ LAST_LETTER_USAGE = 0x1D
 USAGE_ESCAPE = 0x29
 USAGE_CAPS_LOCK = 0x39
 
+# Keyboard Application, the "menu" key. Accepted as a second finish control
+# because the keyboard used for the physical phase is a 40% board whose Escape
+# is only reachable through an Fn layer, and on that board the Fn combination
+# also switches the keyboard out of USB mode — pressing "Escape" silences the
+# device instead of ending the run. A standalone key sending 0x65 is the one
+# reliable finish gesture that hardware can produce. The usage has no other
+# meaning here: it has no glyph and no editor action, so it previously counted
+# only as an unsupported key.
+USAGE_APPLICATION = 0x65
+
 # ------------------------------------------------------------ control actions
 
 CONTROL_FINISH = "FINISH"
@@ -57,8 +67,13 @@ CONTROL_CAPS_LOCK = "CAPS_LOCK"
 CONTROL_UNSUPPORTED = "UNSUPPORTED"
 CONTROL_USAGES = {
     USAGE_ESCAPE: CONTROL_FINISH,
+    USAGE_APPLICATION: CONTROL_FINISH,
     USAGE_CAPS_LOCK: CONTROL_CAPS_LOCK,
 }
+FINISH_USAGES = tuple(
+    usage for usage, control in CONTROL_USAGES.items()
+    if control == CONTROL_FINISH
+)
 
 # ---------------------------------------------------------------- named keys
 

@@ -141,6 +141,11 @@ def decode(report):
             entry["kind"] = "ERROR"
         elif hid_keymap.is_modifier_usage(usage):
             entry["kind"] = "MODIFIER"
+        elif usage in hid_keymap.CONTROL_USAGES:
+            # Escape and Caps Lock are actioned by the adapter, not translated
+            # into document text, so translate() would call them unsupported.
+            entry["kind"] = "CONTROL"
+            entry["action"] = hid_keymap.CONTROL_USAGES[usage]
         else:
             translated = hid_keymap.translate(usage, shift, False)
             if translated is None:

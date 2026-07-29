@@ -462,6 +462,12 @@ class EvidenceTest(unittest.TestCase):
         self.assertIn("TODAY I WROTE A JOURNAL ENTRY", source)
         self.assertIn("Escape", source)
 
+    def test_the_document_records_both_finish_usages(self):
+        """Accepting 0x65 is a decision the evidence must carry, not hide."""
+        source = read(*self.DOC)
+        for observed in ("0x29", "0x65", "Application"):
+            self.assertIn(observed, source, observed)
+
 
 class HostSafetyTest(unittest.TestCase):
     FORBIDDEN = (

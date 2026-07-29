@@ -13,7 +13,9 @@ sys.path.insert(0, os.path.join(ROOT, "magtag"))
 sys.path.append(os.path.join(ROOT, "fruitjam"))
 sys.path.append(os.path.join(ROOT, "host-tests"))
 
-from keyboard_simulator import REAL_CONFIGURATION_DESCRIPTOR, report
+from keyboard_simulator import (
+    REAL_CONFIGURATION_DESCRIPTOR, press_release, report,
+)
 from magwrite.test_pattern import GLYPHS
 from magwrite_transport.editor import (
     BACKSPACE, CHAR, DELETE, DOWN, END, ENTER, HOME, LEFT, RIGHT, UP,
@@ -23,11 +25,11 @@ from magwrite_transport.hid_keyboard import (
     parse_report,
 )
 from magwrite_transport.hid_keymap import (
-    CONTROL_CAPS_LOCK, CONTROL_FINISH, CONTROL_UNSUPPORTED,
-    MODIFIER_LEFT_CTRL, MODIFIER_LEFT_SHIFT, MODIFIER_RIGHT_SHIFT,
-    REPEATABLE_KINDS, SHIFT_MASK, USAGE_CAPS_LOCK, USAGE_ERROR_ROLLOVER,
-    USAGE_ESCAPE, is_modifier_usage, shift_active, supported_characters,
-    translate,
+    CONTROL_CAPS_LOCK, CONTROL_FINISH, CONTROL_UNSUPPORTED, CONTROL_USAGES,
+    FINISH_USAGES, MODIFIER_LEFT_CTRL, MODIFIER_LEFT_SHIFT,
+    MODIFIER_RIGHT_SHIFT, REPEATABLE_KINDS, SHIFT_MASK, USAGE_APPLICATION,
+    USAGE_CAPS_LOCK, USAGE_ERROR_ROLLOVER, USAGE_ESCAPE, is_modifier_usage,
+    shift_active, supported_characters, translate,
 )
 from magwrite_transport.keyboard_repeat import (
     MAX_CATCH_UP, REPEAT_DELAY_MS, REPEAT_INTERVAL_MS, KeyRepeat,
@@ -307,6 +309,91 @@ class TranslatorStateTest(unittest.TestCase):
         outcome = self.press(USAGE_ESCAPE)
         self.assertEqual(outcome.decisions, ())
         self.assertEqual(outcome.controls, ((CONTROL_FINISH, USAGE_ESCAPE),))
+
+    def test_the_application_key_also_raises_a_finish_control(self):
+        """0x65 is a deliberate second finish control, not a probe hack.
+
+        The 40% keyboard used for the physical phase cannot deliver 0x29
+        without an Fn combination that switches it out of USB mode, so a
+        standalone key sending 0x65 is the only finish gesture it can produce.
+        """
+        outcome = self.press(USAGE_APPLICATION)
+        self.assertEqual(outcome.decisions, ())
+        self.assertEqual(
+            outcome.controls, ((CONTROL_FINISH, USAGE_APPLICATION),)
+        )
+
+    def test_both_finish_usages_are_registered_as_finish(self):
+        self.assertEqual(
+            set(FINISH_USAGES), {USAGE_ESCAPE, USAGE_APPLICATION}
+        )
+        for usage in FINISH_USAGES:
+            self.assertEqual(CONTROL_USAGES[usage], CONTROL_FINISH, usage)
+
+    def test_the_application_key_is_no_longer_unsupported(self):
+        outcome = self.press(USAGE_APPLICATION)
+        self.assertEqual(self.translator.unsupported_usages, 0)
+        for control, _ in outcome.controls:
+            self.assertNotEqual(control, CONTROL_UNSUPPORTED)
+
+    def test_each_finish_usage_emits_exactly_one_action_per_press(self):
+        for usage in (USAGE_ESCAPE, USAGE_APPLICATION):
+            translator = HidKeyboardTranslator()
+            finishes = 0
+            for _ in range(3):
+                for raw in press_release(usage):
+                    finishes += sum(
+                        1 for control, _ in translator.step(raw).controls
+                        if control == CONTROL_FINISH
+                    )
+            self.assertEqual(finishes, 3, usage)
+
+    def test_holding_a_finish_usage_does_not_finish_repeatedly(self):
+        """A held key stays in the held set, so it is pressed exactly once."""
+        for usage in (USAGE_ESCAPE, USAGE_APPLICATION):
+            translator = HidKeyboardTranslator()
+            report = bytes((0, 0, usage, 0, 0, 0, 0, 0))
+            finishes = 0
+            for _ in range(5):
+                # A distinct trailing byte defeats duplicate suppression, so
+                # this proves held-key tracking and not merely deduplication.
+                for raw in (report, bytes((0, 0, usage, 0, 0, 0, 0, 1))):
+                    finishes += sum(
+                        1 for control, _ in translator.step(raw).controls
+                        if control == CONTROL_FINISH
+                    )
+            self.assertEqual(finishes, 1, usage)
+
+    def test_a_duplicate_finish_report_emits_nothing(self):
+        for usage in (USAGE_ESCAPE, USAGE_APPLICATION):
+            translator = HidKeyboardTranslator()
+            report = bytes((0, 0, usage, 0, 0, 0, 0, 0))
+            translator.step(report)
+            outcome = translator.step(report)
+            self.assertTrue(outcome.duplicate, usage)
+            self.assertEqual(outcome.controls, (), usage)
+            self.assertEqual(translator.duplicate_reports, 1, usage)
+
+    def test_releasing_a_finish_usage_clears_the_held_state(self):
+        for usage in (USAGE_ESCAPE, USAGE_APPLICATION):
+            translator = HidKeyboardTranslator()
+            translator.step(bytes((0, 0, usage, 0, 0, 0, 0, 0)))
+            self.assertEqual(translator.held, (usage,), usage)
+            outcome = translator.step(bytes(8))
+            self.assertEqual(translator.held, (), usage)
+            self.assertEqual(outcome.released, (usage,), usage)
+            self.assertEqual(outcome.controls, (), usage)
+
+    def test_adding_a_finish_usage_left_other_usages_unchanged(self):
+        """The new control must not disturb characters, named keys, or errors."""
+        self.assertEqual(self.press(USAGE_A).decisions[0].value, "a")
+        self.release()
+        self.assertEqual(CONTROL_USAGES[USAGE_CAPS_LOCK], CONTROL_CAPS_LOCK)
+        self.assertNotIn(USAGE_F1, CONTROL_USAGES)
+        self.assertEqual(
+            self.press(USAGE_F1).controls, ((CONTROL_UNSUPPORTED, USAGE_F1),)
+        )
+        self.assertIsNone(translate(USAGE_APPLICATION, False, False))
 
     def test_an_unsupported_usage_is_counted_and_reported(self):
         outcome = self.press(USAGE_F1)
