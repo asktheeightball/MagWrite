@@ -498,6 +498,171 @@ mark FAIL or INCONCLUSIVE.
 
 ## Results
 
+### Unguarded wired-keyboard probe — 2026-07-29, commit `4e431a3` — **PASS**
+
+This phase is a read-only probe, not a physical attempt. It created no guard,
+wrote nothing to either board's filesystem beyond a temporary probe module,
+never activated the display, and never entered the editor integration state
+machine. It was run with both `config.py` files still `DISABLED`, so no
+one-shot harness was ever armed and no guarded attempt was consumed.
+
+Its purpose was the question attempts 1 and 2 could not answer: does a real
+keyboard deliver non-zero HID reports into the already-implemented adapter?
+
+Probe source: `tools/fruitjam_usb_keyboard_probe.py`, deployed to the Fruit Jam
+as `/usb_probe.py` and run from the serial REPL. Descriptor reading, interface
+selection, endpoint claiming, and report reading are performed by the shipped
+`usb_host_backend` and `usb_hid_descriptors` modules rather than by a parallel
+implementation, so these results are evidence about the real code path.
+
+Capture: `FRUITJAM_USB_KEYBOARD_PROBE.jsonl` (211 records, five runs).
+
+#### The wireless receiver was re-tested and failed again
+
+Before the wired keyboard was fitted, the operator found that the inter-board
+`GND` wire had been disconnected and reseated it, on the theory that this had
+caused attempt 2. It had not, and the probe demonstrated so at no cost:
+
+| Run | Device | Duration | Endpoint polls | Non-zero reports |
+| --- | --- | --- | --- | --- |
+| Smoke | `36B0:3002` Wireless 2.4G Dongle | 8 s | 3,950 | 0 |
+| After GND reseat | `36B0:3002` Wireless 2.4G Dongle | 90 s | 44,456 | 0 |
+
+A missing inter-board ground cannot explain absent USB reports in any case: HID
+reports arrive over the Fruit Jam's USB host port and never cross the UART
+link. Attempt 2's own record is consistent with this, showing `bytes_received:
+43` and a completed HELLO handshake — the UART was working. Both boards are
+powered from the same host PC, so their grounds were already bonded through the
+USB ground and the dedicated wire was not isolating anything.
+
+**Attempt 2 therefore stands as `FAIL` exactly as recorded.** Its evidence is
+unmodified. The receiver enumerates, parses, selects, and claims correctly, and
+delivers no key data on its boot-keyboard interface. Whether a paired wireless
+keyboard was powered and paired at the time was never established, and the
+receiver is out of scope for this phase.
+
+#### CircuitPython's built-in driver owns the keyboard until it is detached
+
+When the wired keyboard was first fitted, the operator's keystrokes appeared in
+the CircuitPython serial REPL and interleaved with the probe command, which
+died with `SyntaxError`. This is the condition `usb_host_backend.py` documents:
+CircuitPython's own USB host keyboard driver routes an attached keyboard to the
+serial console, and `_claim()` must detach it before the interrupt endpoint can
+be read.
+
+The detach is confirmed empirically. Before the probe claims the interface,
+keystrokes echo into the console; while it holds the interface, the serial
+output is pure JSON with no stray characters and 735 reports arrive at the
+endpoint. `is_kernel_driver_active(0)` reports `false` both before and after
+the claim, so that call is not by itself a reliable indicator of console
+ownership on this build — the observed console behaviour is.
+
+The receiver never exercised this path, because it had no key data to route.
+
+#### Wired keyboard identity and descriptors
+
+| Field | Observed |
+| --- | --- |
+| Product | EPOMAKER TH40 |
+| Manufacturer | RDMCTMZT |
+| Vendor ID | `36B0` |
+| Product ID | `304E` |
+| Serial number | none reported |
+| Speed | 2 |
+| Configuration descriptor | 91 bytes |
+| HID interfaces | 3 |
+| Selected interface | 0 |
+| Interface class/subclass/protocol | `03` / `01` / `01` |
+| Endpoint | `0x81` |
+| Maximum packet size | 8 |
+| Polling interval | 1 |
+| Report length | 8 |
+
+Raw configuration descriptor:
+
+```
+09025B00030100A0FA0904000001030101000921110100012244000705810308
+00010904010002030000000921110100012222000705820320000107050303200001
+09040200010300000009211101000122B60007058403200001
+```
+
+#### Observed reports
+
+90 s run, operator typing continuously:
+
+| Field | Observed |
+| --- | --- |
+| Reports received | 850 |
+| Non-zero reports | 735 |
+| Release reports | 77 |
+| Duplicate reports | 38 |
+| Error/rollover reports | 0 |
+| Unsupported usages | 4 |
+| Idle polls | 43,352 |
+| Disconnects | 0 |
+
+Sample reports, decoded through the shipped `hid_keymap`:
+
+```
+0000040F00000000  ->  a, l
+0000040F0E000000  ->  a, l, k
+0000361011061B00  ->  , m n c x
+2000370000000000  ->  '>'  (right Shift, usage 0x37)
+0000370000000000  ->  '.'
+0000000000000000  ->  release
+```
+
+Press and release cascades are clean, six-key rollover is handled, and no stale
+held-key state was observed.
+
+#### Key coverage established before arming
+
+| Key | Usage | Observed | Notes |
+| --- | --- | --- | --- |
+| Letters | `0x04`–`0x1D` | yes | lowercase and uppercase |
+| Shift | modifier `0x02` / `0x20` | yes | both left and right seen |
+| Punctuation | `0x36`, `0x37` | yes | `,` `.` `>` |
+| Enter | `0x28` | yes | |
+| Backspace | `0x2A` | yes | |
+| Left | `0x50` | yes | |
+| Right | `0x4F` | yes | |
+| Up | `0x52` | yes | |
+| Down | `0x51` | yes | |
+| Home | `0x4A` | **no** | see limitation below |
+| End | `0x4D` | **no** | see limitation below |
+| Delete | `0x4C` | **no** | see limitation below |
+| Caps Lock | `0x39` | not exercised | |
+| Key repeat | — | not exercised | |
+| Application/Menu | `0x65` | yes | correctly reported `UNSUPPORTED` |
+
+**Documented keyboard limitation.** The EPOMAKER TH40 is a 40% board with no
+dedicated navigation cluster. A 45 s probe restricted to Home, End and Delete
+produced zero reports of any kind across 22,228 endpoint polls. The operator
+does not know the TH40's layer mapping for these keys, so it is not established
+whether they are unmapped or simply were not pressed. They are recorded as
+**not exercised**, and Scenario 4 is run with the four arrow keys and Backspace,
+all of which are confirmed. This is a property of the keyboard, not of the
+adapter, and no software conclusion is drawn from it.
+
+#### What the probe establishes
+
+Verified on real hardware, with a real wired keyboard:
+
+- enumeration, descriptor read, and descriptor parse;
+- interface selection by the HID class triple;
+- endpoint claim, `SET_PROTOCOL` boot, and `SET_IDLE`;
+- detach of CircuitPython's own console keyboard driver;
+- real non-zero boot reports at the interrupt endpoint;
+- correct translation of letters, Shift, punctuation, Enter, Backspace, and all
+  four arrow keys through the shipped keymap;
+- correct press/release handling and six-key rollover;
+- duplicate suppression against real reports;
+- 43,352 bounded polls with zero errors and zero disconnects.
+
+Not established by the probe, and left to the guarded run: normalized event
+generation, the editor, the viewport builder, the UART transport, the display,
+Caps Lock, and key repeat.
+
 ### Attempt 2 — 2026-07-29, run commit `ab52961` — **FAIL**
 
 Authorised by the operator, who explicitly named

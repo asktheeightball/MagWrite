@@ -353,6 +353,7 @@ class EvidenceTest(unittest.TestCase):
         ("docs", "FRUITJAM_USB_KEYBOARD_SERIAL.jsonl"),
         ("docs", "MAGTAG_USB_KEYBOARD_DISPLAY_SERIAL.jsonl"),
     )
+    PROBE_CAPTURE = ("docs", "FRUITJAM_USB_KEYBOARD_PROBE.jsonl")
 
     def test_the_evidence_document_declares_a_status_up_front(self):
         source = read(*self.DOC)
@@ -380,12 +381,29 @@ class EvidenceTest(unittest.TestCase):
 
         The PASS criteria require ``TEST_COMPLETE``, so a results section that
         claims PASS while no capture contains it would be fabricated evidence.
+
+        The unguarded probe is the one deliberate exception. It is read-only,
+        arms nothing, and can never produce a ``TEST_COMPLETE``, so demanding
+        one of it is meaningless. It pays for the exemption by having to state
+        plainly that it is not a physical attempt and created no guard, which
+        is exactly the claim that would be dishonest if it were untrue.
         """
         results = read(*self.DOC).split("## Results")[1]
-        if "**PASS**" not in results:
-            return
-        captured = "".join(read(*parts) for parts in self.CAPTURES)
-        self.assertIn("test_complete\": true", captured.replace("'", '"'))
+        for section in re.split(r"\n### ", results):
+            if "**PASS**" not in section:
+                continue
+            if section.startswith("Unguarded"):
+                self.assertIn("not a physical attempt", section)
+                self.assertIn("created no guard", section)
+                continue
+            captured = "".join(read(*parts) for parts in self.CAPTURES)
+            self.assertIn("test_complete\": true", captured.replace("'", '"'))
+
+    def test_a_probe_pass_is_never_mistaken_for_an_attempt(self):
+        """The probe exemption must not become a way to smuggle in an attempt."""
+        results = read(*self.DOC).split("## Results")[1]
+        for heading in re.findall(r"### Unguarded[^\n]*", results):
+            self.assertNotRegex(heading, r"(?i)attempt", heading)
 
     def test_every_results_attempt_carries_an_explicit_verdict(self):
         results = read(*self.DOC).split("## Results")[1]
@@ -403,6 +421,31 @@ class EvidenceTest(unittest.TestCase):
                 record = json.loads(line)
                 self.assertIsInstance(record, dict, parts)
                 self.assertIn("event", record, parts)
+
+    def test_the_probe_capture_is_parseable_jsonl(self):
+        import json
+        lines = [
+            line for line in read(*self.PROBE_CAPTURE).splitlines()
+            if line.strip()
+        ]
+        self.assertTrue(lines)
+        for line in lines:
+            record = json.loads(line)
+            self.assertIsInstance(record, dict)
+            self.assertIn("event", record)
+
+    def test_the_probe_capture_is_the_real_wired_keyboard(self):
+        """The wired-keyboard claim must rest on the wired keyboard's own records."""
+        probe = read(*self.PROBE_CAPTURE)
+        self.assertIn('"product_id":"304E"', probe)
+        self.assertIn('"product":"EPOMAKER TH40"', probe)
+        self.assertIn('"nonzero_reports":735', probe)
+
+    def test_the_probe_capture_retains_the_receiver_failure(self):
+        """Re-testing the receiver must not erase that it failed again."""
+        probe = read(*self.PROBE_CAPTURE)
+        self.assertIn('"product":"Wireless 2.4G Dongle"', probe)
+        self.assertIn("dongle_90s_after_ground_reseat", probe)
 
     def test_the_captures_are_the_real_observed_device(self):
         """The recorded capture must be from the device the doc describes."""
