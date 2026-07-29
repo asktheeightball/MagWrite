@@ -1,194 +1,217 @@
 # MagWrite Roadmap
 
-## Priority 0 — Hardware gate
+## Current product direction
 
-### P0.1 Identify MagTag revision
+MagWrite is now a two-board prototype:
 
-- Confirm whether the physical MagTag uses the original UC8151D/IL0373-compatible panel.
-- Record board markings, purchase era, CircuitPython version, and display behavior.
-- Stop and redesign the display driver path if the board is the 2025 SSD1680 edition.
-- **Implemented, host-verified:** fail-closed revision/controller configuration
-  gate and repeatable setup instructions.
-- **Pending physical verification:** identification of the actual board and
-  controller.
-- **Completed 2026-07-28:** CircuitPython boot, USB, filesystem, and photographic
-  evidence is recorded in `docs/HARDWARE_IDENTITY_REPORT.md`. The photographed
-  `WFT0290CZ10 LW` display-flex marking, compared with Adafruit's documented
-  physical verification, identifies the original UC8151D/T5-family panel.
-  Decision is **`COMPATIBLE`** with high confidence. Physical display activation
-  remains disabled pending driver integration and controlled testing.
+```text
+USB HID keyboard
+        |
+        v
+Adafruit Fruit Jam
+- authoritative editor
+- viewport generation
+- future microSD persistence
+        |
+        | bidirectional UART
+        v
+Original Adafruit MagTag
+- partial-refresh e-paper terminal
+- four-button control surface
+```
 
-### P0.2 Validate partial refresh
+The Fruit Jam remains authoritative for document, cursor, viewport, storage, and workflow state. The MagTag renders supplied viewports, reports physical display status, and sends normalized button events back to the Fruit Jam.
 
-- Run the upstream clock example unchanged.
-- Confirm the first full refresh and subsequent no-flash updates.
-- Measure average, minimum, and maximum partial-refresh time.
-- Run 20, 50, 100, 500, and 1,000 update tests.
-- Photograph or record ghosting and pixel degradation.
-- Determine an initial safe full-refresh interval.
+Direct USB HID keyboard input on the Fruit Jam is the preferred keyboard path. The LOLIN32 Bluetooth bridge is deferred and should be revisited only if the intended keyboard is Bluetooth-only and cannot use a USB receiver or wired USB mode.
 
-**Exit:** physical MagTag produces repeatable no-flash updates and measured results are documented.
+## Completed feasibility gates
 
-Test procedure is documented; every physical result remains pending.
+### P0.1 MagTag identity and compatibility — COMPLETE
 
-**Integrated and host-verified:** GPL-3.0-or-later UC8151 driver at upstream
-commit `61bb0fb4b76e95f8c288fb5e0f9ab11e3e413437`, isolated adapter, four-way
-activation gate, full-seed/differential-state policy, timeout handling, and
-bounded one-full-plus-20-partial test harness. Physical refresh behavior remains
-pending until the controlled device run is completed and inspected.
+- Original 2.9-inch MagTag identified from the `WFT0290CZ10 LW` display-flex marking.
+- UC8151D/T5-family compatibility decision: `COMPATIBLE`.
+- CircuitPython and hardware evidence recorded in `docs/HARDWARE_IDENTITY_REPORT.md`.
 
-**Physically run 2026-07-28:** one 3,324 ms full seed and exactly 20 partial
-updates completed with zero timeouts. Partial timing was 718 ms mean, 716 ms
-minimum, and 720 ms maximum. The user observed no full-screen flashing, and the
-final update-20 photograph shows the expected stable pattern with no obvious
-ghosting, incomplete erasure, border artefact, or pixel defect at the supplied
-resolution. The controlled 20-update result is **`PASS`**.
+### P0.2 Partial-refresh characterization — COMPLETE THROUGH 100 UPDATES
 
-**Physically run 2026-07-28:** the independent 50-update characterization
-completed after one 3,324 ms full seed with zero timeouts and no stop
-conditions. Partial refreshes measured 717.5 ms mean, 716 ms minimum, 719 ms
-maximum, 0.8 ms standard deviation, and -0.6 ms first-to-final-ten drift. The
-user approved every visual checkpoint and reported the final frame good. The
-controlled 50-update result is **`PASS`**. The 100/500/1,000-update tests,
-long-term pixel longevity, and production refresh cadence remain pending.
+- 20-update physical run: PASS.
+- 50-update physical run: PASS.
+- 100-update physical run: PASS.
+- Typical controlled partial refresh: approximately 713–720 ms.
+- Full seed refresh: approximately 3.3 seconds.
+- 500/1,000-update longevity, production full-refresh cadence, and long-term wear remain deferred to product hardening.
 
-**Physically run 2026-07-28:** the independent 100-update characterization
-completed after one 3,323 ms full seed with zero timeouts and no stop
-conditions. Partial refreshes measured 717.4 ms mean, 713 ms minimum, 720 ms
-maximum, 1.0 ms standard deviation, and +0.5 ms first-to-final-ten drift. The
-user approved every visual checkpoint and reported the final frame good. The
-controlled 100-update result is **`PASS`**. The 500/1,000-update tests,
-long-term pixel longevity, and production refresh cadence remain pending.
+### P0.3 Local typing feasibility — COMPLETE
 
-## Priority 1 — Local typing harness
+- 201/201 deterministic events processed exactly once and in order.
+- Zero rejected events and zero queue overflows.
+- Stale-frame coalescing and final display catch-up physically verified.
+- One full and 36 partial refreshes completed without timeout.
 
-- Create a host-testable editor buffer.
-- Render one editable monospaced line.
-- Simulate key events locally without Bluetooth.
-- Use non-blocking refresh and revision tracking.
-- Prove that simulated input remains ordered while the display is busy.
-- Add a non-blinking block or underscore cursor.
+### P0.4 One-way Fruit Jam → MagTag UART — COMPLETE
 
-**Implemented and host-verified:** bounded line editor, deterministic 40/60/80
-WPM producer, bounded explicit-overflow queue, fixed landscape text snapshot
-with static underscore cursor, cooperative asynchronous refresh scheduling,
-separate document/display revisions, catch-up after busy periods, configurable
-full-refresh cadence, and structured refresh/event logs.
+- 17/17 frames received and validated.
+- 11 semantic viewports received; six rendered and five superseded.
+- Final transmitted/displayed revision 11 and hash `2171BE7F` reconciled.
+- Zero rejected frames, CRC failures, sequence gaps, or timeouts.
 
-**Pending physical verification:** actual MagTag drawing, no-flash partial
-refresh, refresh timing, ghosting, and the Priority 1 hardware exit.
+### P0.5 Bidirectional UART acknowledgements — COMPLETE
 
-**Physically verified 2026-07-28:** one bounded local single-line typing run
-processed all 201 deterministic events exactly once and in order across
-ordinary 40 WPM insertion, 80 WPM continuous typing, correction, and horizontal
-viewport scenarios. All four final texts matched, the bounded queue peaked at
-18/128 with zero overflow, 165 stale snapshots were skipped, 32 catch-up
-refreshes completed, and displayed revision 201 caught up to render revision
-201. The run used one initial full and 36 partial refreshes with zero timeout.
-The user approved every final state. Physical activation was restored disabled
-and both typing guards are present. Bluetooth, UART, multiline editing,
-storage, production cadence, and production readiness remain pending.
+- Fruit Jam A0 TX → MagTag D10 RX.
+- MagTag A1 TX → Fruit Jam A1 RX.
+- Common ground, 115200 baud.
+- Frame acceptance, refresh start, refresh completion, displayed catch-up, and `TEST_COMPLETE` physically verified.
+- Final transmitted/displayed revision 6 and hash `DC12F5C9` reconciled.
+- Zero rejected frames, CRC failures, sequence gaps, or timeouts.
 
-**Exit:** a simulated 80 WPM stream is captured without loss and the display catches up after input stops.
+## Priority 1 — Integrated multiline editor physical verification
 
-**Implemented and host-verified 2026-07-28:** a separate, one-way Fruit Jam to
-MagTag UART feasibility harness with versioned CRC-32 binary frames, explicit
-192-byte payload, 256-byte UART FIFO, and 512-byte parser bounds, deterministic complete semantic
-viewports, sequence/revision validation, malformed-stream resynchronization,
-newest-frame coalescing, drain-before-render scheduling, independent fail-closed
-activation gates, and independent persistent guards. The 83-test host suite
-passes. The Fruit Jam identity/pin alias, physical low-solder link, electrical
-behavior, two-console evidence, no-flash rendering, final catch-up, and both
-completion guards were subsequently physically tested.
+Implementation commit `d9ff23e` provides:
 
-**Physically verified 2026-07-28:** the separately USB-powered Fruit Jam
-`board.A0` TX to original MagTag `board.D10` RX link transmitted 17/17
-CRC-valid frames and 11 complete semantic viewports at 115200 baud. The MagTag
-rendered six newest snapshots, superseded five obsolete snapshots, reached
-displayed revision 11, and reconciled final hash `2171BE7F` with zero rejected
-frames, CRC failures, sequence gaps, or timeouts. One initial full and five
-no-flash partial refreshes completed; four observed partials measured
-699–702 ms (700.5 ms mean). The user approved the final viewport, cursor,
-erasure, ghosting, border/pixel condition, wiring, and power behavior. Both
-devices were restored disabled and all four independent UART guards are
-present. See `docs/FRUITJAM_MAGTAG_UART_TEST.md` for retained failed-attempt
-evidence and measurement limitations. Bidirectional traffic, acknowledgements,
-buttons, keyboards, editing, persistence, Wi-Fi, and production power remain
-unimplemented.
+- Fruit Jam authoritative multiline editor;
+- normalized deterministic `InputEvent` boundary;
+- Enter, Backspace, Delete, arrows, Home, and End;
+- deterministic wrapping and vertical scrolling;
+- five-line semantic MagTag viewport;
+- stale viewport coalescing;
+- preserved bidirectional display acknowledgements;
+- 245 passing host tests at implementation time.
 
-**Physically verified 2026-07-28 (PASS):** the bidirectional acknowledgement
-gate passed on hardware. The existing UART frame format carries bounded MagTag
-status messages for frame acceptance, physical refresh start/completion,
-displayed-revision catch-up, bounded errors, and final revision/hash
-reconciliation. Over the Fruit Jam `board.A0` TX to MagTag `board.D10` RX link
-and the MagTag `board.A1` TX to Fruit Jam `board.A1` RX return link at 115200
-baud, six viewports produced six acceptance acknowledgements, three
-refresh-start, three refresh-completion, and three catch-up acknowledgements,
-with `TEST_COMPLETE` received. Revisions 2–4 were accepted but coalesced away
-and were never falsely reported as displayed. Final transmitted revision 6
-equalled final displayed revision 6, and physical final hash `DC12F5C9`
-reconciled with the deterministic host simulation. Zero rejected frames, CRC
-failures, sequence gaps, duplicates, stale acknowledgements, queue overflows,
-or timeouts occurred. One initial full refresh (3578 ms) and two partial
-refreshes (952 ms, 988 ms) completed with no unexpected flash. Byte accounting
-closed exactly in both directions; 567 pre-magic bytes of reset-time line noise
-were discarded and recovered through five resynchronizations without losing a
-frame. The user approved the final screen; no photograph was taken. Both
-devices were restored disabled and observed failing closed, all four new
-independent guards are present, and all thirteen earlier guards were verified
-byte-identical. Two blocking implementation defects were fixed first: neither
-boot gate armed the new modes (`251aaae`), and the ESP32-S2 `hashlib` lacks
-`sha256`, which crashed the driver integrity check (`5193a24`). See
-`docs/FRUITJAM_MAGTAG_UART_ACK_TEST.md` for the retained inconclusive first
-attempt and measurement limitations. Buttons, keyboards, editing, persistence,
-Wi-Fi, and production power remain unimplemented.
+The physical integrated run remains pending. It must verify the five-line layout, punctuation glyphs, adjacent-row readability, scrolling, no-flash updates, final revision/hash reconciliation, and user visual approval.
 
-## Priority 2 — Bluetooth keyboard bridge
+**Exit:** complete a bounded physical multiline writing run with exact event integrity, final display catch-up, and both devices restored disabled.
 
-- Start from the ESP-IDF HID host example supported by the installed toolchain.
-- Pair with the actual intended keyboard.
-- Verify BLE versus Bluetooth Classic mode.
-- Normalize characters and semantic navigation keys.
-- Implement bonding, reconnect, repeat handling, and queue overflow reporting.
-- Add serial diagnostics and a documented bond-reset flow.
+## Priority 2 — MagTag button controls over UART
 
-**Exit:** keyboard input remains correct through keyboard sleep, power cycle, and bridge reboot.
+Use the four existing MagTag front buttons as a control surface for the Fruit Jam through the proven return UART link.
 
-## Priority 3 — Reliable wireless transport
+Requirements:
 
-- Establish an offline local network topology.
-- Start with persistent TCP.
-- Add protocol versioning, sequence numbers, acknowledgements, duplicate suppression, and reconnect replay.
-- Keep a bounded bridge queue and expose overflow visibly.
-- Add heartbeat and status frames.
+- debounce buttons locally on the MagTag;
+- send bounded, sequenced `BUTTON_EVENT` messages;
+- support press, release, and deliberate long-press semantics;
+- keep button interpretation and application state on the Fruit Jam;
+- do not let the MagTag independently edit, scroll, save, or change documents;
+- preserve display-status traffic on the same bounded return channel;
+- define explicit queue-overflow and duplicate-event behavior.
 
-**Exit:** no events are lost or reordered through MagTag display refresh, temporary disconnect, or reconnect within the queue limit.
+Initial product mapping should prioritize:
 
-## Priority 4 — Journal vertical slice
+- menu or document actions;
+- page/scroll up;
+- page/scroll down;
+- save/status or confirm/dismiss.
 
-- Create/open today’s entry.
-- Insert text, Backspace, Delete, Enter, arrows, Home, and End.
-- Add wrapping, scrolling, word count, and save state.
-- Add autosave, recovery log, checkpointing, and boot recovery.
-- Map MagTag buttons to previous page, next page, save, and menu.
+Exact mappings remain configurable and should be validated against the real workflow.
 
-**Exit:** complete a 30-minute journal session and recover the final checkpoint after forced power loss.
+**Exit:** every physical button event reaches the Fruit Jam exactly once, produces the intended Fruit Jam-owned action, and does not interfere with display acknowledgements.
 
-## Priority 5 — Product hardening
+## Priority 3 — Direct USB HID keyboard on Fruit Jam
 
-- Recent-document browser.
-- New, rename, and archive flows.
-- Storage-space safeguards.
-- Battery measurement and low-battery behavior.
-- Enclosure and one-battery power design.
-- Keyboard layout abstraction.
-- Export or backup over Wi-Fi.
-- Long-duration soak and display-wear testing.
+Integrate one known keyboard directly through the Fruit Jam USB host port.
+
+Preferred order:
+
+1. wired USB keyboard; or
+2. wireless keyboard with a standard USB receiver.
+
+Requirements:
+
+- implement a USB HID `InputAdapter` without changing the editor core;
+- support letters, punctuation, Shift, Caps Lock, Enter, Backspace, Delete, arrows, Home, and End;
+- handle key press, release, hold, and deliberate repeat;
+- report unsupported HID usages explicitly;
+- reconnect cleanly after keyboard sleep or receiver reconnect;
+- preserve bounded queues and exactly-once normalized event processing;
+- validate a real paragraph editing session on hardware.
+
+The LOLIN32 Bluetooth bridge is not part of this priority.
+
+**Exit:** a real USB HID keyboard can type and edit a multiline document while the MagTag display trails and catches up without lost or reordered input.
+
+## Priority 4 — Single-document persistence and recovery
+
+Add microSD-backed storage on the Fruit Jam.
+
+Requirements:
+
+- one active plain-text or Markdown document;
+- create/open the latest draft;
+- crash-safe autosave;
+- append-only recovery journal;
+- atomic or recoverable checkpoints;
+- tolerate a truncated final recovery record;
+- manual save and visible save state;
+- restore the last valid document after forced power loss.
+
+Do not begin with a full document browser. Prove one document and reliable recovery first.
+
+**Exit:** a writing session survives forced power loss with the final acknowledged edit recovered.
+
+## Priority 5 — Minimum standalone workflow
+
+Add the smallest complete on-device workflow:
+
+- new document;
+- open recent document;
+- save;
+- rename or archive;
+- word count;
+- storage, keyboard, display, and save indicators;
+- keyboard shortcuts plus MagTag button actions;
+- predictable startup, sleep, wake, and shutdown behavior.
+
+**Exit:** complete a 30-minute writing session without a connected development computer.
+
+## Priority 6 — Unified single-battery power
+
+Replace separate bench USB power with one internal battery and one charging input.
+
+Requirements:
+
+- one protected single-cell battery;
+- one charger with power-path/load-sharing support;
+- one system power switch;
+- regulated supply appropriate to the Fruit Jam and MagTag;
+- no parallel charger circuits on one battery;
+- measured peak, active, idle, sleep, and refresh current;
+- brownout margin;
+- battery-level reporting and low-battery behavior;
+- safe charging while the device is operating.
+
+**Exit:** both boards, keyboard receiver where applicable, storage, and display run reliably from one rechargeable battery through one external charging port.
+
+## Priority 7 — Enclosure and product hardening
+
+- enclosure and internal mounting;
+- cable strain relief and serviceability;
+- readable font/layout refinement;
+- long-duration editor, storage, UART, and keyboard soak tests;
+- 500/1,000 partial-refresh and wear characterization;
+- production full-refresh cadence;
+- recovery from resets and corrupted final writes;
+- storage-space safeguards;
+- low-battery shutdown;
+- recent-document browser refinement;
+- optional export or backup over Wi-Fi.
+
+## Deferred fallback — LOLIN32 Bluetooth keyboard bridge
+
+Revisit the LOLIN32 Lite only when a required keyboard is Bluetooth-only and direct USB HID is not viable.
+
+Possible scope if activated later:
+
+- BLE and/or Bluetooth Classic HID host;
+- pairing, bonding, reconnect, and bond reset;
+- normalized key-event transport into the existing Fruit Jam `InputAdapter`;
+- bounded buffering and overflow reporting.
+
+The LOLIN32 must not own document state and must not require changes to the editor, viewport, storage, or MagTag display architecture.
 
 ## Future options
 
-- Larger monochrome partial-refresh display.
-- microSD storage.
-- integrated keyboard or clamshell enclosure.
-- consolidated ESP32-S3/custom PCB design.
-- optional BYOK-style capture commands such as `::note` and `::task`.
+- larger monochrome partial-refresh display;
+- integrated keyboard or clamshell enclosure;
+- consolidated custom PCB;
+- optional BYOK-style capture commands such as `::note` and `::task`;
+- Bluetooth-only keyboard support if product requirements justify the additional bridge.
