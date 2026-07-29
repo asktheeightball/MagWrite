@@ -1,6 +1,11 @@
 # Fruit Jam Multiline Editor Integration Test
 
-**Status: ATTEMPT 1 — FAIL (harness timeout defect; editor behaviour correct so far as observed)**
+**Status: PASS on attempt 2 (2026-07-29). Attempt 1 failed on a harness timeout
+defect and is retained below in full.**
+
+The serial captures in `FRUITJAM_EDITOR_SERIAL.jsonl` and
+`MAGTAG_EDITOR_DISPLAY_SERIAL.jsonl` are the **attempt 2** captures. The
+attempt 1 captures remain in git history at commit `448c721`.
 
 This is one bounded integrated smoke test of the first usable MagWrite writing
 prototype. It is not a new qualification campaign. Detailed editor correctness
@@ -282,6 +287,97 @@ revision counters, restore the disabled configuration where safely possible, do
 not delete guards, and do not retry automatically.
 
 ## Results
+
+### Attempt 2 — 2026-07-29, run commit `dfd71c3` — **PASS**
+
+Authorised by the operator, who explicitly named the two attempt-1 `.started`
+guards for deletion. No other guard, evidence file, capture, configuration, or
+backup was touched. Exactly one guarded retry was run; no automatic retry.
+
+Every host-simulated expectation was reproduced exactly on hardware:
+
+| Expectation | Host simulation | Observed on hardware |
+| --- | --- | --- |
+| Normalized input events | 362 | 362 |
+| Events processed, in order | 362 | 362, contiguous 0–361, 0 duplicates |
+| Events rejected | 0 | 0 |
+| Maximum queue depth | 1 of 64 | 1 of 64 |
+| Viewport frames | 31 | 31 |
+| Locally coalesced viewport states | 330 | 330 |
+| MagTag-side superseded frames | 2 | 2 |
+| Protocol frames per direction | 33 sent, 116 received | 33 sent, 116 received |
+| Final transmitted revision | 365 | 365 |
+| Final displayed revision | 365 | 365 |
+| Final hash | `CFAEF7D1` | `CFAEF7D1` |
+| Full refreshes | 1 | 1 |
+| Partial refreshes | 28 | 28 |
+| `TEST_COMPLETE` | yes | yes |
+
+#### Observed values
+
+| Field | Observed |
+| --- | --- |
+| Repository commit | `dfd71c3` |
+| Fruit Jam CircuitPython version | 10.2.1 (`adafruit_fruit_jam`, UID `FFDBA7B15146C218`) |
+| MagTag CircuitPython version | 9.1.1 (`adafruit_magtag_2.9_grayscale`, UID `C7FD1A005DEA`) |
+| Wiring and pin aliases confirmed | yes — operator-confirmed wiring; `board.A0`/`board.A1` (Fruit Jam) and `board.D10`/`board.A1` (MagTag) confirmed on-device |
+| Baud / protocol version | 115200 8N1 / version 1 |
+| Arming wait (excluded from run budget) | 545.762 s, reported by `editor_run_clock_started` |
+| Events generated / processed / rejected | 362 / 362 / 0 |
+| Sequence integrity | contiguous 0–361, strictly increasing, 0 duplicates, 0 out-of-order |
+| Maximum queue depth / overflows | 1 of 64 / 0 |
+| Scenario 1 `paragraph` | **exact match** |
+| Scenario 2 `correction` | **exact match** |
+| Scenario 3 `fast_typing` | **exact match** |
+| Scenario 4 `scrolling` | **exact match** |
+| Scenario 5 `journal` | **exact match** |
+| Final document | 3 lines, 81 characters, cursor row 2 column 66 |
+| Final document / viewport revision | 320 / 365 |
+| Viewports built | 361 |
+| Viewport frames sent / accepted / rendered / superseded | 31 / 31 / 29 / 2 |
+| Viewport states coalesced locally (Fruit Jam) | 330 |
+| FRAME_ACCEPTED / REFRESH_STARTED / REFRESH_COMPLETED | 31 / 29 / 29 |
+| DISPLAY_CAUGHT_UP | 25 |
+| TEST_COMPLETE received | yes, with `final_hash CFAEF7D1` |
+| Final transmitted / displayed revision | 365 / 365 (equal; displayed never exceeded transmitted) |
+| Final hash reconciliation | `CFAEF7D1` on both sides, matching simulation |
+| Full / partial refreshes | 1 / 28 |
+| Refresh durations (ms) | 3505 (full), then 898, 941, 1010, 1079, 884, 934, 956, 947, 996, 1018, 842, 877, 885, 898, 1032, 875, 916, 965, 1010, 1007, 1014, 864, 898, 943, 1001, 1042, 1083, 1114 |
+| CRC failures / parser rejections | 0 / 0 |
+| Sequence gaps / duplicates / stale | 0 / 0 / 0 |
+| Discarded prefix bytes | 739 of 3552 received (MagTag); 0 (Fruit Jam) |
+| Maximum discarded prefix / resynchronizations | 120 bytes / 7 |
+| Status queue maximum depth | 2 of 32 |
+| Timeouts | 0 |
+| Bytes sent / received | Fruit Jam 2813 / 3464; MagTag 3464 / 3552 |
+| Visual observations | Operator approved the final screen: content matches, punctuation glyphs render correctly, five rows readable and distinct, text fully erased between screens, no ghosting, no border corruption, no dead or stuck pixels, no unexpected full-screen flash during partial refreshes |
+| Photograph filename or explicit no-photo statement | **No photograph was taken.** |
+| Fruit Jam guard states | `/magwrite_editor_integration.started` and `.complete` both present |
+| MagTag guard states | `/magwrite_editor_display.started` and `.complete` both present |
+| Prior guards verified untouched | yes — all 17 verified byte-identical before deletion of the two authorized attempt-1 guards, and re-verified after |
+| Final activation states restored to disabled | yes — both verified on-device after restore |
+| User approval of final screen | **granted** |
+| Result (PASS / FAIL / INCONCLUSIVE) | **PASS** |
+
+#### Goals carried over from attempt 1, now verified
+
+Punctuation glyphs, multiline wrapping, the five-line layout, erase quality
+between major viewport replacements, vertical scrolling, cursor visibility
+during scrolling, final revision and hash reconciliation, `DISPLAY_CAUGHT_UP`,
+`TEST_COMPLETE`, and absence of unexpected flash, ghosting, border corruption
+or pixel defects were all verified — the first four and the last group by
+operator observation, the rest from the reconciled captures.
+
+#### Correction to the attempt-1 hypothesis on discarded prefix bytes
+
+Attempt 1 recorded 4266 discarded bytes of 5674 with 36 resynchronizations, and
+this document attributed that to the length of the idle window in which the
+MagTag listened while the Fruit Jam was armed. **Attempt 2 does not support
+that explanation**: its idle window was far longer (545.8 s against roughly
+112 s) yet it discarded only 739 bytes of 3552 with 7 resynchronizations. The
+cause is therefore still uncharacterized. It has never corrupted a frame — CRC
+failures and parser rejections are zero across all runs — but it should be
+instrumented rather than explained away.
 
 ### Attempt 1 — 2026-07-28, run commit `dc5ac00`
 

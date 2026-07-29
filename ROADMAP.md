@@ -64,22 +64,45 @@ Direct USB HID keyboard input on the Fruit Jam is the preferred keyboard path. T
 - Final transmitted/displayed revision 6 and hash `DC12F5C9` reconciled.
 - Zero rejected frames, CRC failures, sequence gaps, or timeouts.
 
-## Priority 1 — Integrated multiline editor physical verification
+## Priority 1 — Integrated multiline editor physical verification — VERIFIED
 
-Implementation commit `d9ff23e` provides:
+Physically verified on 2026-07-29 at commit `dfd71c3`, attempt 2. Evidence:
+`docs/FRUITJAM_MULTILINE_EDITOR_TEST.md`.
+
+Verified on hardware:
 
 - Fruit Jam authoritative multiline editor;
-- normalized deterministic `InputEvent` boundary;
+- deterministic normalized `InputEvent` input adapter;
 - Enter, Backspace, Delete, arrows, Home, and End;
-- deterministic wrapping and vertical scrolling;
-- five-line semantic MagTag viewport;
-- stale viewport coalescing;
-- preserved bidirectional display acknowledgements;
-- 245 passing host tests at implementation time.
+- multiline viewport generation and deterministic wrapping;
+- vertical scrolling with the cursor kept visible;
+- five-line semantic MagTag viewport and punctuation glyphs;
+- integrated editor-to-display flow end to end;
+- physical stale-frame coalescing (330 states coalesced into 31 frames);
+- displayed-revision confirmation (365 transmitted, 365 displayed);
+- first usable writing prototype.
 
-The physical integrated run remains pending. It must verify the five-line layout, punctuation glyphs, adjacent-row readability, scrolling, no-flash updates, final revision/hash reconciliation, and user visual approval.
+Observed: 362 of 362 events processed in contiguous order, zero rejected, zero
+duplicates, maximum queue depth 1 of 64; all five scenario documents exact;
+final hash `CFAEF7D1` reconciled on both sides; one full and 28 partial
+refreshes; zero CRC failures, sequence gaps, overflows, or timeouts;
+`DISPLAY_CAUGHT_UP` and `TEST_COMPLETE` received; operator approved the final
+screen; both devices restored disabled.
 
-**Exit:** complete a bounded physical multiline writing run with exact event integrity, final display catch-up, and both devices restored disabled.
+Attempt 1 on 2026-07-28 failed on a harness defect: the MagTag charged the
+operator-paced arming wait to its run budget. Fixed by `magwrite/run_clock.py`.
+A second defect found in preflight — the MagTag boot gate never armed
+`MAGTAG_EDITOR_DISPLAY` for the writable remount — was fixed in `dc5ac00`.
+Both are covered by host tests; the suite is now 253 tests.
+
+**Exit met:** a bounded physical multiline writing run completed with exact
+event integrity, final display catch-up, and both devices restored disabled.
+
+Not verified by this phase, and explicitly still open: USB keyboard input,
+Bluetooth, LOLIN32, storage, microSD, autosave, battery integration, enclosure,
+and production readiness. The MagTag's discarded-prefix/resynchronization
+behaviour on the RX line remains uncharacterized, though it has never corrupted
+a frame.
 
 ## Priority 2 — MagTag button controls over UART
 
