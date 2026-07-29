@@ -17,6 +17,7 @@ import config
 from magwrite.ack_scheduler import AckDisplayScheduler
 from magwrite.display_adapter import validate_physical_test_activation
 from magwrite.serial_log import StructuredSerialLogger
+from magwrite.run_clock import RunClock
 from magwrite.sha256 import sha256_file
 from magwrite.status_queue import StatusQueue
 from magwrite.uart_protocol import DISPLAY_ERROR, FrameParser
@@ -80,7 +81,11 @@ outbox = StatusQueue(config.UART_STATUS_QUEUE_CAPACITY)
 scheduler = AckDisplayScheduler(
     parser, display, render_viewport, outbox, time.monotonic
 )
-started = time.monotonic()
+clock = RunClock(
+    time.monotonic,
+    getattr(config, "EDITOR_ARMING_TIMEOUT_SECONDS", 900),
+    config.EDITOR_TEST_TIMEOUT_SECONDS,
+)
 inflight_started = None
 bytes_received = 0
 bytes_sent = 0
@@ -112,6 +117,9 @@ try:
         after = scheduler.inflight
         if before is None and after is not None:
             inflight_started = after[2]
+        if not clock.running and scheduler.last_input_sequence:
+            logger({"event": "editor_run_clock_started",
+                    "arming_wait_seconds": round(clock.start_run(), 3)})
         while len(outbox):
             kind, sequence, revision, frame = outbox.pop()
             written = uart.write(frame)
@@ -136,8 +144,9 @@ try:
         if scheduler.test_complete_sent and len(outbox) == 0:
             result = "PASS"
             break
-        if time.monotonic() - started > config.EDITOR_TEST_TIMEOUT_SECONDS:
-            raise RuntimeError("editor display test timeout")
+        expiry = clock.expired()
+        if expiry:
+            raise RuntimeError(expiry)
         time.sleep(0.002)
 except Exception as error:
     reason = str(error)

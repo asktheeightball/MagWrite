@@ -1,1 +1,667 @@
-{"event":"placeholder","status":"NOT RUN","device":"fruitjam","test":"FRUITJAM_EDITOR_INTEGRATION","note":"No device run has been performed. This file contains no captured evidence. Replace its entire contents with the verbatim Fruit Jam serial capture when the guarded physical run is executed."}
+{"event": "editor_status_received", "fields": {"app_version": 1, "display_ready": true, "displayed_revision": 0, "protocol_version": 1, "receiver_ready": true, "test_id": "MAGWRITE-UART-ACK"}, "host_time": "2026-07-28T23:22:20", "message_type": 5, "revision": 0, "sequence": 1}
+{"event": "editor_scenario_started", "events": 69, "host_time": "2026-07-28T23:22:20", "scenario": "paragraph", "scenario_id": 1, "wpm": 60}
+{"cursor_column": 1, "cursor_row": 0, "document_revision": 1, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:20", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 0, "value": "M", "viewport_revision": 1}
+{"characters": 1, "document_revision": 1, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:20", "lines": 1, "scenario": "paragraph"}
+{"document_revision": 1, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:20", "outstanding": 1, "revision": 1, "scenario": "paragraph", "sequence": 2, "text_hash": "AB914D16"}
+{"event": "editor_status_received", "fields": {"pending_revision": 1, "received_sequence": 2, "superseded": false}, "host_time": "2026-07-28T23:22:20", "message_type": 6, "revision": 1, "sequence": 2}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:20", "refresh_completed": false, "refresh_started": false, "revision": 1, "superseded": false}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 1, "previous_displayed_revision": 0, "refresh_mode": 1, "viewport_sequence": 2}, "host_time": "2026-07-28T23:22:20", "message_type": 7, "revision": 1, "sequence": 3}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:20", "refresh_completed": false, "refresh_started": true, "revision": 1, "superseded": false}
+{"cursor_column": 2, "cursor_row": 0, "document_revision": 2, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:20", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 1, "value": "A", "viewport_revision": 2}
+{"characters": 2, "document_revision": 2, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:20", "lines": 1, "scenario": "paragraph"}
+{"cursor_column": 3, "cursor_row": 0, "document_revision": 3, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:20", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 2, "value": "G", "viewport_revision": 3}
+{"characters": 3, "document_revision": 3, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:20", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:20", "newest_revision": 3, "superseded_revision": 2}
+{"cursor_column": 4, "cursor_row": 0, "document_revision": 4, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:20", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 3, "value": "W", "viewport_revision": 4}
+{"characters": 4, "document_revision": 4, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:20", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:20", "newest_revision": 4, "superseded_revision": 3}
+{"cursor_column": 5, "cursor_row": 0, "document_revision": 5, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:20", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 4, "value": "R", "viewport_revision": 5}
+{"characters": 5, "document_revision": 5, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:20", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:20", "newest_revision": 5, "superseded_revision": 4}
+{"cursor_column": 6, "cursor_row": 0, "document_revision": 6, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:21", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 5, "value": "I", "viewport_revision": 6}
+{"characters": 6, "document_revision": 6, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:21", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:21", "newest_revision": 6, "superseded_revision": 5}
+{"cursor_column": 7, "cursor_row": 0, "document_revision": 7, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:21", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 6, "value": "T", "viewport_revision": 7}
+{"characters": 7, "document_revision": 7, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:21", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:21", "newest_revision": 7, "superseded_revision": 6}
+{"cursor_column": 8, "cursor_row": 0, "document_revision": 8, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:21", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 7, "value": "E", "viewport_revision": 8}
+{"characters": 8, "document_revision": 8, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:21", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:21", "newest_revision": 8, "superseded_revision": 7}
+{"cursor_column": 9, "cursor_row": 0, "document_revision": 9, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:21", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 8, "value": " ", "viewport_revision": 9}
+{"characters": 9, "document_revision": 9, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:21", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:21", "newest_revision": 9, "superseded_revision": 8}
+{"cursor_column": 10, "cursor_row": 0, "document_revision": 10, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:21", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 9, "value": "I", "viewport_revision": 10}
+{"characters": 10, "document_revision": 10, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:21", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:21", "newest_revision": 10, "superseded_revision": 9}
+{"cursor_column": 11, "cursor_row": 0, "document_revision": 11, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:22", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 10, "value": "S", "viewport_revision": 11}
+{"characters": 11, "document_revision": 11, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:22", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:22", "newest_revision": 11, "superseded_revision": 10}
+{"cursor_column": 12, "cursor_row": 0, "document_revision": 12, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:22", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 11, "value": " ", "viewport_revision": 12}
+{"characters": 12, "document_revision": 12, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:22", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:22", "newest_revision": 12, "superseded_revision": 11}
+{"cursor_column": 13, "cursor_row": 0, "document_revision": 13, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:22", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 12, "value": "A", "viewport_revision": 13}
+{"characters": 13, "document_revision": 13, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:22", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:22", "newest_revision": 13, "superseded_revision": 12}
+{"cursor_column": 14, "cursor_row": 0, "document_revision": 14, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:22", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 13, "value": " ", "viewport_revision": 14}
+{"characters": 14, "document_revision": 14, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:22", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:22", "newest_revision": 14, "superseded_revision": 13}
+{"cursor_column": 15, "cursor_row": 0, "document_revision": 15, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:22", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 14, "value": "W", "viewport_revision": 15}
+{"characters": 15, "document_revision": 15, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:22", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:22", "newest_revision": 15, "superseded_revision": 14}
+{"cursor_column": 16, "cursor_row": 0, "document_revision": 16, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:23", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 15, "value": "R", "viewport_revision": 16}
+{"characters": 16, "document_revision": 16, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:23", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:23", "newest_revision": 16, "superseded_revision": 15}
+{"document_revision": 16, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:23", "outstanding": 2, "revision": 16, "scenario": "paragraph", "sequence": 3, "text_hash": "28E37B15"}
+{"cursor_column": 17, "cursor_row": 0, "document_revision": 17, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:23", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 16, "value": "I", "viewport_revision": 17}
+{"characters": 17, "document_revision": 17, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:23", "lines": 1, "scenario": "paragraph"}
+{"cursor_column": 18, "cursor_row": 0, "document_revision": 18, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:23", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 17, "value": "T", "viewport_revision": 18}
+{"characters": 18, "document_revision": 18, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:23", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:23", "newest_revision": 18, "superseded_revision": 17}
+{"cursor_column": 19, "cursor_row": 0, "document_revision": 19, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:23", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 18, "value": "I", "viewport_revision": 19}
+{"characters": 19, "document_revision": 19, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:23", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:23", "newest_revision": 19, "superseded_revision": 18}
+{"event": "editor_status_received", "fields": {"pending_revision": 16, "received_sequence": 3, "superseded": false}, "host_time": "2026-07-28T23:22:23", "message_type": 6, "revision": 16, "sequence": 4}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:23", "refresh_completed": false, "refresh_started": false, "revision": 16, "superseded": false}
+{"event": "editor_status_received", "fields": {"duration_ms": 3493, "latest_received_revision": 16, "stale": true, "viewport_sequence": 2}, "host_time": "2026-07-28T23:22:23", "message_type": 8, "revision": 1, "sequence": 5}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:23", "refresh_completed": true, "refresh_started": true, "revision": 1, "superseded": false}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 16, "previous_displayed_revision": 1, "refresh_mode": 0, "viewport_sequence": 3}, "host_time": "2026-07-28T23:22:23", "message_type": 7, "revision": 16, "sequence": 6}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:23", "refresh_completed": false, "refresh_started": true, "revision": 16, "superseded": false}
+{"cursor_column": 20, "cursor_row": 0, "document_revision": 20, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:23", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 19, "value": "N", "viewport_revision": 20}
+{"characters": 20, "document_revision": 20, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:23", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:23", "newest_revision": 20, "superseded_revision": 19}
+{"cursor_column": 21, "cursor_row": 0, "document_revision": 21, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:24", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 20, "value": "G", "viewport_revision": 21}
+{"characters": 21, "document_revision": 21, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:24", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:24", "newest_revision": 21, "superseded_revision": 20}
+{"cursor_column": 22, "cursor_row": 0, "document_revision": 22, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:24", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 21, "value": " ", "viewport_revision": 22}
+{"characters": 22, "document_revision": 22, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:24", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:24", "newest_revision": 22, "superseded_revision": 21}
+{"cursor_column": 23, "cursor_row": 0, "document_revision": 23, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:24", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 22, "value": "T", "viewport_revision": 23}
+{"characters": 23, "document_revision": 23, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:24", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:24", "newest_revision": 23, "superseded_revision": 22}
+{"event": "editor_status_received", "fields": {"duration_ms": 894, "latest_received_revision": 16, "stale": false, "viewport_sequence": 3}, "host_time": "2026-07-28T23:22:24", "message_type": 8, "revision": 16, "sequence": 7}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:24", "refresh_completed": true, "refresh_started": true, "revision": 16, "superseded": false}
+{"cursor_column": 24, "cursor_row": 0, "document_revision": 24, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:24", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 23, "value": "O", "viewport_revision": 24}
+{"characters": 24, "document_revision": 24, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:24", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_status_received", "fields": {"displayed_revision": 16, "latest_received_revision": 16, "viewport_hash": 685996821}, "host_time": "2026-07-28T23:22:24", "message_type": 9, "revision": 16, "sequence": 8}
+{"accepted": true, "displayed": true, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:24", "refresh_completed": true, "refresh_started": true, "revision": 16, "superseded": false}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:24", "newest_revision": 24, "superseded_revision": 23}
+{"cursor_column": 25, "cursor_row": 0, "document_revision": 25, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:24", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 24, "value": "O", "viewport_revision": 25}
+{"characters": 25, "document_revision": 25, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:24", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:24", "newest_revision": 25, "superseded_revision": 24}
+{"cursor_column": 26, "cursor_row": 0, "document_revision": 26, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:25", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 25, "value": "L", "viewport_revision": 26}
+{"characters": 26, "document_revision": 26, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:25", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:25", "newest_revision": 26, "superseded_revision": 25}
+{"cursor_column": 27, "cursor_row": 0, "document_revision": 27, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:25", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 26, "value": ".", "viewport_revision": 27}
+{"characters": 27, "document_revision": 27, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:25", "lines": 1, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:25", "newest_revision": 27, "superseded_revision": 26}
+{"cursor_column": 0, "cursor_row": 1, "document_revision": 28, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:25", "kind": "ENTER", "queue_depth": 0, "scenario": "paragraph", "sequence": 27, "value": "", "viewport_revision": 28}
+{"characters": 28, "document_revision": 28, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:25", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:25", "newest_revision": 28, "superseded_revision": 27}
+{"cursor_column": 1, "cursor_row": 1, "document_revision": 29, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:25", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 28, "value": "I", "viewport_revision": 29}
+{"characters": 29, "document_revision": 29, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:25", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:25", "newest_revision": 29, "superseded_revision": 28}
+{"cursor_column": 2, "cursor_row": 1, "document_revision": 30, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:25", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 29, "value": "T", "viewport_revision": 30}
+{"characters": 30, "document_revision": 30, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:25", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:25", "newest_revision": 30, "superseded_revision": 29}
+{"cursor_column": 3, "cursor_row": 1, "document_revision": 31, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:26", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 30, "value": " ", "viewport_revision": 31}
+{"characters": 31, "document_revision": 31, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:26", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:26", "newest_revision": 31, "superseded_revision": 30}
+{"document_revision": 31, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:26", "outstanding": 1, "revision": 31, "scenario": "paragraph", "sequence": 4, "text_hash": "A21A47FF"}
+{"event": "editor_status_received", "fields": {"pending_revision": 31, "received_sequence": 4, "superseded": false}, "host_time": "2026-07-28T23:22:26", "message_type": 6, "revision": 31, "sequence": 9}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:26", "refresh_completed": false, "refresh_started": false, "revision": 31, "superseded": false}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 31, "previous_displayed_revision": 16, "refresh_mode": 0, "viewport_sequence": 4}, "host_time": "2026-07-28T23:22:26", "message_type": 7, "revision": 31, "sequence": 10}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:26", "refresh_completed": false, "refresh_started": true, "revision": 31, "superseded": false}
+{"cursor_column": 4, "cursor_row": 1, "document_revision": 32, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:26", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 31, "value": "R", "viewport_revision": 32}
+{"characters": 32, "document_revision": 32, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:26", "lines": 2, "scenario": "paragraph"}
+{"cursor_column": 5, "cursor_row": 1, "document_revision": 33, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:26", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 32, "value": "U", "viewport_revision": 33}
+{"characters": 33, "document_revision": 33, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:26", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:26", "newest_revision": 33, "superseded_revision": 32}
+{"cursor_column": 6, "cursor_row": 1, "document_revision": 34, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:26", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 33, "value": "N", "viewport_revision": 34}
+{"characters": 34, "document_revision": 34, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:26", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:26", "newest_revision": 34, "superseded_revision": 33}
+{"cursor_column": 7, "cursor_row": 1, "document_revision": 35, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:26", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 34, "value": "S", "viewport_revision": 35}
+{"characters": 35, "document_revision": 35, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:26", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:26", "newest_revision": 35, "superseded_revision": 34}
+{"cursor_column": 8, "cursor_row": 1, "document_revision": 36, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:27", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 35, "value": " ", "viewport_revision": 36}
+{"characters": 36, "document_revision": 36, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:27", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:27", "newest_revision": 36, "superseded_revision": 35}
+{"event": "editor_status_received", "fields": {"duration_ms": 941, "latest_received_revision": 31, "stale": false, "viewport_sequence": 4}, "host_time": "2026-07-28T23:22:27", "message_type": 8, "revision": 31, "sequence": 11}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:27", "refresh_completed": true, "refresh_started": true, "revision": 31, "superseded": false}
+{"event": "editor_status_received", "fields": {"displayed_revision": 31, "latest_received_revision": 31, "viewport_hash": 2719631359}, "host_time": "2026-07-28T23:22:27", "message_type": 9, "revision": 31, "sequence": 12}
+{"accepted": true, "displayed": true, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:27", "refresh_completed": true, "refresh_started": true, "revision": 31, "superseded": false}
+{"cursor_column": 9, "cursor_row": 1, "document_revision": 37, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:27", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 36, "value": "O", "viewport_revision": 37}
+{"characters": 37, "document_revision": 37, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:27", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:27", "newest_revision": 37, "superseded_revision": 36}
+{"cursor_column": 10, "cursor_row": 1, "document_revision": 38, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:27", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 37, "value": "N", "viewport_revision": 38}
+{"characters": 38, "document_revision": 38, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:27", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:27", "newest_revision": 38, "superseded_revision": 37}
+{"cursor_column": 11, "cursor_row": 1, "document_revision": 39, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:27", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 38, "value": " ", "viewport_revision": 39}
+{"characters": 39, "document_revision": 39, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:27", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:27", "newest_revision": 39, "superseded_revision": 38}
+{"cursor_column": 12, "cursor_row": 1, "document_revision": 40, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:27", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 39, "value": "E", "viewport_revision": 40}
+{"characters": 40, "document_revision": 40, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:27", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:27", "newest_revision": 40, "superseded_revision": 39}
+{"cursor_column": 13, "cursor_row": 1, "document_revision": 41, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:28", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 40, "value": "-", "viewport_revision": 41}
+{"characters": 41, "document_revision": 41, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:28", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:28", "newest_revision": 41, "superseded_revision": 40}
+{"cursor_column": 14, "cursor_row": 1, "document_revision": 42, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:28", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 41, "value": "P", "viewport_revision": 42}
+{"characters": 42, "document_revision": 42, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:28", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:28", "newest_revision": 42, "superseded_revision": 41}
+{"cursor_column": 15, "cursor_row": 1, "document_revision": 43, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:28", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 42, "value": "A", "viewport_revision": 43}
+{"characters": 43, "document_revision": 43, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:28", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:28", "newest_revision": 43, "superseded_revision": 42}
+{"cursor_column": 16, "cursor_row": 1, "document_revision": 44, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:28", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 43, "value": "P", "viewport_revision": 44}
+{"characters": 44, "document_revision": 44, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:28", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:28", "newest_revision": 44, "superseded_revision": 43}
+{"cursor_column": 17, "cursor_row": 1, "document_revision": 45, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:28", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 44, "value": "E", "viewport_revision": 45}
+{"characters": 45, "document_revision": 45, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:28", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:28", "newest_revision": 45, "superseded_revision": 44}
+{"cursor_column": 18, "cursor_row": 1, "document_revision": 46, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:29", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 45, "value": "R", "viewport_revision": 46}
+{"characters": 46, "document_revision": 46, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:29", "lines": 2, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:29", "newest_revision": 46, "superseded_revision": 45}
+{"document_revision": 46, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:29", "outstanding": 1, "revision": 46, "scenario": "paragraph", "sequence": 5, "text_hash": "7DB4951E"}
+{"event": "editor_status_received", "fields": {"pending_revision": 46, "received_sequence": 5, "superseded": false}, "host_time": "2026-07-28T23:22:29", "message_type": 6, "revision": 46, "sequence": 13}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:29", "refresh_completed": false, "refresh_started": false, "revision": 46, "superseded": false}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 46, "previous_displayed_revision": 31, "refresh_mode": 0, "viewport_sequence": 5}, "host_time": "2026-07-28T23:22:29", "message_type": 7, "revision": 46, "sequence": 14}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:29", "refresh_completed": false, "refresh_started": true, "revision": 46, "superseded": false}
+{"cursor_column": 19, "cursor_row": 1, "document_revision": 47, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:29", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 46, "value": ".", "viewport_revision": 47}
+{"characters": 47, "document_revision": 47, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:29", "lines": 2, "scenario": "paragraph"}
+{"cursor_column": 0, "cursor_row": 2, "document_revision": 48, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:29", "kind": "ENTER", "queue_depth": 0, "scenario": "paragraph", "sequence": 47, "value": "", "viewport_revision": 48}
+{"characters": 48, "document_revision": 48, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:29", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:29", "newest_revision": 48, "superseded_revision": 47}
+{"cursor_column": 1, "cursor_row": 2, "document_revision": 49, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:29", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 48, "value": "C", "viewport_revision": 49}
+{"characters": 49, "document_revision": 49, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:29", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:29", "newest_revision": 49, "superseded_revision": 48}
+{"cursor_column": 2, "cursor_row": 2, "document_revision": 50, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:29", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 49, "value": "U", "viewport_revision": 50}
+{"characters": 50, "document_revision": 50, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:29", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:29", "newest_revision": 50, "superseded_revision": 49}
+{"cursor_column": 3, "cursor_row": 2, "document_revision": 51, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:30", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 50, "value": "R", "viewport_revision": 51}
+{"characters": 51, "document_revision": 51, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:30", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:30", "newest_revision": 51, "superseded_revision": 50}
+{"cursor_column": 4, "cursor_row": 2, "document_revision": 52, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:30", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 51, "value": "S", "viewport_revision": 52}
+{"characters": 52, "document_revision": 52, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:30", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:30", "newest_revision": 52, "superseded_revision": 51}
+{"event": "editor_status_received", "fields": {"duration_ms": 1007, "latest_received_revision": 46, "stale": false, "viewport_sequence": 5}, "host_time": "2026-07-28T23:22:30", "message_type": 8, "revision": 46, "sequence": 15}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:30", "refresh_completed": true, "refresh_started": true, "revision": 46, "superseded": false}
+{"event": "editor_status_received", "fields": {"displayed_revision": 46, "latest_received_revision": 46, "viewport_hash": 2108986654}, "host_time": "2026-07-28T23:22:30", "message_type": 9, "revision": 46, "sequence": 16}
+{"accepted": true, "displayed": true, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:30", "refresh_completed": true, "refresh_started": true, "revision": 46, "superseded": false}
+{"cursor_column": 5, "cursor_row": 2, "document_revision": 53, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:30", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 52, "value": "O", "viewport_revision": 53}
+{"characters": 53, "document_revision": 53, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:30", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:30", "newest_revision": 53, "superseded_revision": 52}
+{"cursor_column": 6, "cursor_row": 2, "document_revision": 54, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:30", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 53, "value": "R", "viewport_revision": 54}
+{"characters": 54, "document_revision": 54, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:30", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:30", "newest_revision": 54, "superseded_revision": 53}
+{"cursor_column": 7, "cursor_row": 2, "document_revision": 55, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:30", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 54, "value": " ", "viewport_revision": 55}
+{"characters": 55, "document_revision": 55, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:30", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:30", "newest_revision": 55, "superseded_revision": 54}
+{"cursor_column": 8, "cursor_row": 2, "document_revision": 56, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:31", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 55, "value": "S", "viewport_revision": 56}
+{"characters": 56, "document_revision": 56, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:31", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:31", "newest_revision": 56, "superseded_revision": 55}
+{"cursor_column": 9, "cursor_row": 2, "document_revision": 57, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:31", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 56, "value": "T", "viewport_revision": 57}
+{"characters": 57, "document_revision": 57, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:31", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:31", "newest_revision": 57, "superseded_revision": 56}
+{"cursor_column": 10, "cursor_row": 2, "document_revision": 58, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:31", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 57, "value": "A", "viewport_revision": 58}
+{"characters": 58, "document_revision": 58, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:31", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:31", "newest_revision": 58, "superseded_revision": 57}
+{"cursor_column": 11, "cursor_row": 2, "document_revision": 59, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:31", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 58, "value": "Y", "viewport_revision": 59}
+{"characters": 59, "document_revision": 59, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:31", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:31", "newest_revision": 59, "superseded_revision": 58}
+{"cursor_column": 12, "cursor_row": 2, "document_revision": 60, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:31", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 59, "value": "S", "viewport_revision": 60}
+{"characters": 60, "document_revision": 60, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:31", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:31", "newest_revision": 60, "superseded_revision": 59}
+{"cursor_column": 13, "cursor_row": 2, "document_revision": 61, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:32", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 60, "value": " ", "viewport_revision": 61}
+{"characters": 61, "document_revision": 61, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:32", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:32", "newest_revision": 61, "superseded_revision": 60}
+{"cursor_column": 14, "cursor_row": 2, "document_revision": 62, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:32", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 61, "value": "V", "viewport_revision": 62}
+{"characters": 62, "document_revision": 62, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:32", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:32", "newest_revision": 62, "superseded_revision": 61}
+{"cursor_column": 15, "cursor_row": 2, "document_revision": 63, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:32", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 62, "value": "I", "viewport_revision": 63}
+{"characters": 63, "document_revision": 63, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:32", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:32", "newest_revision": 63, "superseded_revision": 62}
+{"cursor_column": 16, "cursor_row": 2, "document_revision": 64, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:32", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 63, "value": "S", "viewport_revision": 64}
+{"characters": 64, "document_revision": 64, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:32", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:32", "newest_revision": 64, "superseded_revision": 63}
+{"cursor_column": 17, "cursor_row": 2, "document_revision": 65, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:32", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 64, "value": "I", "viewport_revision": 65}
+{"characters": 65, "document_revision": 65, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:32", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:32", "newest_revision": 65, "superseded_revision": 64}
+{"cursor_column": 18, "cursor_row": 2, "document_revision": 66, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:33", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 65, "value": "B", "viewport_revision": 66}
+{"characters": 66, "document_revision": 66, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:33", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:33", "newest_revision": 66, "superseded_revision": 65}
+{"cursor_column": 19, "cursor_row": 2, "document_revision": 67, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:33", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 66, "value": "L", "viewport_revision": 67}
+{"characters": 67, "document_revision": 67, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:33", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:33", "newest_revision": 67, "superseded_revision": 66}
+{"cursor_column": 20, "cursor_row": 2, "document_revision": 68, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:33", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 67, "value": "E", "viewport_revision": 68}
+{"characters": 68, "document_revision": 68, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:33", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:33", "newest_revision": 68, "superseded_revision": 67}
+{"cursor_column": 21, "cursor_row": 2, "document_revision": 69, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:33", "kind": "CHAR", "queue_depth": 0, "scenario": "paragraph", "sequence": 68, "value": ".", "viewport_revision": 69}
+{"characters": 69, "document_revision": 69, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:33", "lines": 3, "scenario": "paragraph"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:33", "newest_revision": 69, "superseded_revision": 68}
+{"document_revision": 69, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:33", "outstanding": 1, "revision": 69, "scenario": "paragraph", "sequence": 6, "text_hash": "4EE52615"}
+{"event": "editor_status_received", "fields": {"pending_revision": 69, "received_sequence": 6, "superseded": false}, "host_time": "2026-07-28T23:22:33", "message_type": 6, "revision": 69, "sequence": 17}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:33", "refresh_completed": false, "refresh_started": false, "revision": 69, "superseded": false}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 69, "previous_displayed_revision": 46, "refresh_mode": 0, "viewport_sequence": 6}, "host_time": "2026-07-28T23:22:33", "message_type": 7, "revision": 69, "sequence": 18}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:33", "refresh_completed": false, "refresh_started": true, "revision": 69, "superseded": false}
+{"event": "editor_status_received", "fields": {"duration_ms": 1080, "latest_received_revision": 69, "stale": false, "viewport_sequence": 6}, "host_time": "2026-07-28T23:22:35", "message_type": 8, "revision": 69, "sequence": 19}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:35", "refresh_completed": true, "refresh_started": true, "revision": 69, "superseded": false}
+{"event": "editor_status_received", "fields": {"displayed_revision": 69, "latest_received_revision": 69, "viewport_hash": 1323640341}, "host_time": "2026-07-28T23:22:35", "message_type": 9, "revision": 69, "sequence": 20}
+{"accepted": true, "displayed": true, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:35", "refresh_completed": true, "refresh_started": true, "revision": 69, "superseded": false}
+{"displayed_revision": 69, "document_revision": 69, "event": "editor_scenario_complete", "host_time": "2026-07-28T23:22:35", "scenario": "paragraph", "scenario_id": 1, "text": "MAGWRITE IS A WRITING TOOL.\nIT RUNS ON E-PAPER.\nCURSOR STAYS VISIBLE.", "viewport_revision": 69}
+{"event": "editor_scenario_started", "events": 88, "host_time": "2026-07-28T23:22:35", "scenario": "correction", "scenario_id": 2, "wpm": 60}
+{"cursor_column": 1, "cursor_row": 0, "document_revision": 71, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:35", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 69, "value": "T", "viewport_revision": 71}
+{"characters": 1, "document_revision": 71, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:35", "lines": 1, "scenario": "correction"}
+{"cursor_column": 2, "cursor_row": 0, "document_revision": 72, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:35", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 70, "value": "O", "viewport_revision": 72}
+{"characters": 2, "document_revision": 72, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:35", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:35", "newest_revision": 72, "superseded_revision": 71}
+{"cursor_column": 3, "cursor_row": 0, "document_revision": 73, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:35", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 71, "value": "D", "viewport_revision": 73}
+{"characters": 3, "document_revision": 73, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:35", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:35", "newest_revision": 73, "superseded_revision": 72}
+{"cursor_column": 4, "cursor_row": 0, "document_revision": 74, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:35", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 72, "value": "A", "viewport_revision": 74}
+{"characters": 4, "document_revision": 74, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:35", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:35", "newest_revision": 74, "superseded_revision": 73}
+{"cursor_column": 5, "cursor_row": 0, "document_revision": 75, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:35", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 73, "value": "Y", "viewport_revision": 75}
+{"characters": 5, "document_revision": 75, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:35", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:35", "newest_revision": 75, "superseded_revision": 74}
+{"cursor_column": 6, "cursor_row": 0, "document_revision": 76, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:36", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 74, "value": " ", "viewport_revision": 76}
+{"characters": 6, "document_revision": 76, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:36", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:36", "newest_revision": 76, "superseded_revision": 75}
+{"cursor_column": 7, "cursor_row": 0, "document_revision": 77, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:36", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 75, "value": "I", "viewport_revision": 77}
+{"characters": 7, "document_revision": 77, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:36", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:36", "newest_revision": 77, "superseded_revision": 76}
+{"cursor_column": 8, "cursor_row": 0, "document_revision": 78, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:36", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 76, "value": " ", "viewport_revision": 78}
+{"characters": 8, "document_revision": 78, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:36", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:36", "newest_revision": 78, "superseded_revision": 77}
+{"cursor_column": 9, "cursor_row": 0, "document_revision": 79, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:36", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 77, "value": "W", "viewport_revision": 79}
+{"characters": 9, "document_revision": 79, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:36", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:36", "newest_revision": 79, "superseded_revision": 78}
+{"cursor_column": 10, "cursor_row": 0, "document_revision": 80, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:36", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 78, "value": "R", "viewport_revision": 80}
+{"characters": 10, "document_revision": 80, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:36", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:36", "newest_revision": 80, "superseded_revision": 79}
+{"document_revision": 80, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:37", "outstanding": 1, "revision": 80, "scenario": "correction", "sequence": 7, "text_hash": "CD3352AB"}
+{"event": "editor_status_received", "fields": {"pending_revision": 80, "received_sequence": 7, "superseded": false}, "host_time": "2026-07-28T23:22:37", "message_type": 6, "revision": 80, "sequence": 21}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:37", "refresh_completed": false, "refresh_started": false, "revision": 80, "superseded": false}
+{"cursor_column": 11, "cursor_row": 0, "document_revision": 81, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:37", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 79, "value": "O", "viewport_revision": 81}
+{"characters": 11, "document_revision": 81, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:37", "lines": 1, "scenario": "correction"}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 80, "previous_displayed_revision": 69, "refresh_mode": 0, "viewport_sequence": 7}, "host_time": "2026-07-28T23:22:37", "message_type": 7, "revision": 80, "sequence": 22}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:37", "refresh_completed": false, "refresh_started": true, "revision": 80, "superseded": false}
+{"cursor_column": 12, "cursor_row": 0, "document_revision": 82, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:37", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 80, "value": "T", "viewport_revision": 82}
+{"characters": 12, "document_revision": 82, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:37", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:37", "newest_revision": 82, "superseded_revision": 81}
+{"cursor_column": 13, "cursor_row": 0, "document_revision": 83, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:37", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 81, "value": "E", "viewport_revision": 83}
+{"characters": 13, "document_revision": 83, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:37", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:37", "newest_revision": 83, "superseded_revision": 82}
+{"cursor_column": 14, "cursor_row": 0, "document_revision": 84, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:37", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 82, "value": " ", "viewport_revision": 84}
+{"characters": 14, "document_revision": 84, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:37", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:37", "newest_revision": 84, "superseded_revision": 83}
+{"cursor_column": 15, "cursor_row": 0, "document_revision": 85, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:37", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 83, "value": "A", "viewport_revision": 85}
+{"characters": 15, "document_revision": 85, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:37", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:37", "newest_revision": 85, "superseded_revision": 84}
+{"event": "editor_status_received", "fields": {"duration_ms": 876, "latest_received_revision": 80, "stale": false, "viewport_sequence": 7}, "host_time": "2026-07-28T23:22:38", "message_type": 8, "revision": 80, "sequence": 23}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:38", "refresh_completed": true, "refresh_started": true, "revision": 80, "superseded": false}
+{"event": "editor_status_received", "fields": {"displayed_revision": 80, "latest_received_revision": 80, "viewport_hash": 3442692779}, "host_time": "2026-07-28T23:22:38", "message_type": 9, "revision": 80, "sequence": 24}
+{"accepted": true, "displayed": true, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:38", "refresh_completed": true, "refresh_started": true, "revision": 80, "superseded": false}
+{"cursor_column": 16, "cursor_row": 0, "document_revision": 86, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:38", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 84, "value": " ", "viewport_revision": 86}
+{"characters": 16, "document_revision": 86, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:38", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:38", "newest_revision": 86, "superseded_revision": 85}
+{"cursor_column": 17, "cursor_row": 0, "document_revision": 87, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:38", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 85, "value": "J", "viewport_revision": 87}
+{"characters": 17, "document_revision": 87, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:38", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:38", "newest_revision": 87, "superseded_revision": 86}
+{"cursor_column": 18, "cursor_row": 0, "document_revision": 88, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:38", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 86, "value": "O", "viewport_revision": 88}
+{"characters": 18, "document_revision": 88, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:38", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:38", "newest_revision": 88, "superseded_revision": 87}
+{"cursor_column": 19, "cursor_row": 0, "document_revision": 89, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:38", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 87, "value": "R", "viewport_revision": 89}
+{"characters": 19, "document_revision": 89, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:38", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:38", "newest_revision": 89, "superseded_revision": 88}
+{"cursor_column": 20, "cursor_row": 0, "document_revision": 90, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:38", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 88, "value": "U", "viewport_revision": 90}
+{"characters": 20, "document_revision": 90, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:38", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:38", "newest_revision": 90, "superseded_revision": 89}
+{"cursor_column": 21, "cursor_row": 0, "document_revision": 91, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:39", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 89, "value": "N", "viewport_revision": 91}
+{"characters": 21, "document_revision": 91, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:39", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:39", "newest_revision": 91, "superseded_revision": 90}
+{"cursor_column": 22, "cursor_row": 0, "document_revision": 92, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:39", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 90, "value": "A", "viewport_revision": 92}
+{"characters": 22, "document_revision": 92, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:39", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:39", "newest_revision": 92, "superseded_revision": 91}
+{"cursor_column": 23, "cursor_row": 0, "document_revision": 93, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:39", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 91, "value": "L", "viewport_revision": 93}
+{"characters": 23, "document_revision": 93, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:39", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:39", "newest_revision": 93, "superseded_revision": 92}
+{"cursor_column": 0, "cursor_row": 1, "document_revision": 94, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:39", "kind": "ENTER", "queue_depth": 0, "scenario": "correction", "sequence": 92, "value": "", "viewport_revision": 94}
+{"characters": 24, "document_revision": 94, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:39", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:39", "newest_revision": 94, "superseded_revision": 93}
+{"cursor_column": 1, "cursor_row": 1, "document_revision": 95, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:39", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 93, "value": "E", "viewport_revision": 95}
+{"characters": 25, "document_revision": 95, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:39", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:39", "newest_revision": 95, "superseded_revision": 94}
+{"cursor_column": 2, "cursor_row": 1, "document_revision": 96, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:40", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 94, "value": "N", "viewport_revision": 96}
+{"characters": 26, "document_revision": 96, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:40", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:40", "newest_revision": 96, "superseded_revision": 95}
+{"document_revision": 96, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:40", "outstanding": 1, "revision": 96, "scenario": "correction", "sequence": 8, "text_hash": "77D23292"}
+{"cursor_column": 3, "cursor_row": 1, "document_revision": 97, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:40", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 95, "value": "T", "viewport_revision": 97}
+{"characters": 27, "document_revision": 97, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:40", "lines": 2, "scenario": "correction"}
+{"event": "editor_status_received", "fields": {"pending_revision": 96, "received_sequence": 8, "superseded": false}, "host_time": "2026-07-28T23:22:40", "message_type": 6, "revision": 96, "sequence": 25}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:40", "refresh_completed": false, "refresh_started": false, "revision": 96, "superseded": false}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 96, "previous_displayed_revision": 80, "refresh_mode": 0, "viewport_sequence": 8}, "host_time": "2026-07-28T23:22:40", "message_type": 7, "revision": 96, "sequence": 26}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:40", "refresh_completed": false, "refresh_started": true, "revision": 96, "superseded": false}
+{"cursor_column": 4, "cursor_row": 1, "document_revision": 98, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:40", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 96, "value": "R", "viewport_revision": 98}
+{"characters": 28, "document_revision": 98, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:40", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:40", "newest_revision": 98, "superseded_revision": 97}
+{"cursor_column": 5, "cursor_row": 1, "document_revision": 99, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:40", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 97, "value": "Y", "viewport_revision": 99}
+{"characters": 29, "document_revision": 99, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:40", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:40", "newest_revision": 99, "superseded_revision": 98}
+{"cursor_column": 6, "cursor_row": 1, "document_revision": 100, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:40", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 98, "value": ".", "viewport_revision": 100}
+{"characters": 30, "document_revision": 100, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:40", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:40", "newest_revision": 100, "superseded_revision": 99}
+{"cursor_column": 0, "cursor_row": 1, "document_revision": 100, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:41", "kind": "HOME", "queue_depth": 0, "scenario": "correction", "sequence": 99, "value": "", "viewport_revision": 101}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:41", "newest_revision": 101, "superseded_revision": 100}
+{"event": "editor_status_received", "fields": {"duration_ms": 930, "latest_received_revision": 96, "stale": false, "viewport_sequence": 8}, "host_time": "2026-07-28T23:22:41", "message_type": 8, "revision": 96, "sequence": 27}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:41", "refresh_completed": true, "refresh_started": true, "revision": 96, "superseded": false}
+{"event": "editor_status_received", "fields": {"displayed_revision": 96, "latest_received_revision": 96, "viewport_hash": 2010264210}, "host_time": "2026-07-28T23:22:41", "message_type": 9, "revision": 96, "sequence": 28}
+{"accepted": true, "displayed": true, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:41", "refresh_completed": true, "refresh_started": true, "revision": 96, "superseded": false}
+{"cursor_column": 23, "cursor_row": 0, "document_revision": 101, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:41", "kind": "BACKSPACE", "queue_depth": 0, "scenario": "correction", "sequence": 100, "value": "", "viewport_revision": 102}
+{"characters": 29, "document_revision": 101, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:41", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:41", "newest_revision": 102, "superseded_revision": 101}
+{"cursor_column": 24, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:41", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 101, "value": " ", "viewport_revision": 103}
+{"characters": 30, "document_revision": 102, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:41", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:41", "newest_revision": 103, "superseded_revision": 102}
+{"cursor_column": 0, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:41", "kind": "HOME", "queue_depth": 0, "scenario": "correction", "sequence": 102, "value": "", "viewport_revision": 104}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:41", "newest_revision": 104, "superseded_revision": 103}
+{"cursor_column": 1, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:41", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 103, "value": "", "viewport_revision": 105}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:41", "newest_revision": 105, "superseded_revision": 104}
+{"cursor_column": 2, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:42", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 104, "value": "", "viewport_revision": 106}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:42", "newest_revision": 106, "superseded_revision": 105}
+{"cursor_column": 3, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:42", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 105, "value": "", "viewport_revision": 107}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:42", "newest_revision": 107, "superseded_revision": 106}
+{"cursor_column": 4, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:42", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 106, "value": "", "viewport_revision": 108}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:42", "newest_revision": 108, "superseded_revision": 107}
+{"cursor_column": 5, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:42", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 107, "value": "", "viewport_revision": 109}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:42", "newest_revision": 109, "superseded_revision": 108}
+{"cursor_column": 6, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:42", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 108, "value": "", "viewport_revision": 110}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:42", "newest_revision": 110, "superseded_revision": 109}
+{"cursor_column": 7, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:43", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 109, "value": "", "viewport_revision": 111}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:43", "newest_revision": 111, "superseded_revision": 110}
+{"cursor_column": 8, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:43", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 110, "value": "", "viewport_revision": 112}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:43", "newest_revision": 112, "superseded_revision": 111}
+{"document_revision": 102, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:43", "outstanding": 1, "revision": 112, "scenario": "correction", "sequence": 9, "text_hash": "BF7A961B"}
+{"cursor_column": 9, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:43", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 111, "value": "", "viewport_revision": 113}
+{"event": "editor_status_received", "fields": {"pending_revision": 112, "received_sequence": 9, "superseded": false}, "host_time": "2026-07-28T23:22:43", "message_type": 6, "revision": 112, "sequence": 29}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:43", "refresh_completed": false, "refresh_started": false, "revision": 112, "superseded": false}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 112, "previous_displayed_revision": 96, "refresh_mode": 0, "viewport_sequence": 9}, "host_time": "2026-07-28T23:22:43", "message_type": 7, "revision": 112, "sequence": 30}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:43", "refresh_completed": false, "refresh_started": true, "revision": 112, "superseded": false}
+{"cursor_column": 10, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:43", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 112, "value": "", "viewport_revision": 114}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:43", "newest_revision": 114, "superseded_revision": 113}
+{"cursor_column": 11, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:43", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 113, "value": "", "viewport_revision": 115}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:43", "newest_revision": 115, "superseded_revision": 114}
+{"cursor_column": 12, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:44", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 114, "value": "", "viewport_revision": 116}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:44", "newest_revision": 116, "superseded_revision": 115}
+{"cursor_column": 13, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:44", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 115, "value": "", "viewport_revision": 117}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:44", "newest_revision": 117, "superseded_revision": 116}
+{"cursor_column": 14, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:44", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 116, "value": "", "viewport_revision": 118}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:44", "newest_revision": 118, "superseded_revision": 117}
+{"event": "editor_status_received", "fields": {"duration_ms": 953, "latest_received_revision": 112, "stale": false, "viewport_sequence": 9}, "host_time": "2026-07-28T23:22:44", "message_type": 8, "revision": 112, "sequence": 31}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:44", "refresh_completed": true, "refresh_started": true, "revision": 112, "superseded": false}
+{"event": "editor_status_received", "fields": {"displayed_revision": 112, "latest_received_revision": 112, "viewport_hash": 3212482075}, "host_time": "2026-07-28T23:22:44", "message_type": 9, "revision": 112, "sequence": 32}
+{"accepted": true, "displayed": true, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:44", "refresh_completed": true, "refresh_started": true, "revision": 112, "superseded": false}
+{"cursor_column": 15, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:44", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 117, "value": "", "viewport_revision": 119}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:44", "newest_revision": 119, "superseded_revision": 118}
+{"cursor_column": 16, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:44", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 118, "value": "", "viewport_revision": 120}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:44", "newest_revision": 120, "superseded_revision": 119}
+{"cursor_column": 17, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:45", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 119, "value": "", "viewport_revision": 121}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:45", "newest_revision": 121, "superseded_revision": 120}
+{"cursor_column": 18, "cursor_row": 0, "document_revision": 102, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:45", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 120, "value": "", "viewport_revision": 122}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:45", "newest_revision": 122, "superseded_revision": 121}
+{"cursor_column": 18, "cursor_row": 0, "document_revision": 103, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:45", "kind": "DELETE", "queue_depth": 0, "scenario": "correction", "sequence": 121, "value": "", "viewport_revision": 123}
+{"characters": 29, "document_revision": 103, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:45", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:45", "newest_revision": 123, "superseded_revision": 122}
+{"cursor_column": 19, "cursor_row": 0, "document_revision": 103, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:45", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 122, "value": "", "viewport_revision": 124}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:45", "newest_revision": 124, "superseded_revision": 123}
+{"cursor_column": 20, "cursor_row": 0, "document_revision": 104, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:45", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 123, "value": "R", "viewport_revision": 125}
+{"characters": 30, "document_revision": 104, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:45", "lines": 1, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:45", "newest_revision": 125, "superseded_revision": 124}
+{"cursor_column": 30, "cursor_row": 0, "document_revision": 104, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:46", "kind": "END", "queue_depth": 0, "scenario": "correction", "sequence": 124, "value": "", "viewport_revision": 126}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:46", "newest_revision": 126, "superseded_revision": 125}
+{"cursor_column": 0, "cursor_row": 1, "document_revision": 105, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:46", "kind": "ENTER", "queue_depth": 0, "scenario": "correction", "sequence": 125, "value": "", "viewport_revision": 127}
+{"characters": 31, "document_revision": 105, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:46", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:46", "newest_revision": 127, "superseded_revision": 126}
+{"cursor_column": 1, "cursor_row": 1, "document_revision": 106, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:46", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 126, "value": "S", "viewport_revision": 128}
+{"characters": 32, "document_revision": 106, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:46", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:46", "newest_revision": 128, "superseded_revision": 127}
+{"document_revision": 106, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:46", "outstanding": 1, "revision": 128, "scenario": "correction", "sequence": 10, "text_hash": "C0A1A9E1"}
+{"cursor_column": 2, "cursor_row": 1, "document_revision": 107, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:46", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 127, "value": "E", "viewport_revision": 129}
+{"characters": 33, "document_revision": 107, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:46", "lines": 2, "scenario": "correction"}
+{"event": "editor_status_received", "fields": {"pending_revision": 128, "received_sequence": 10, "superseded": false}, "host_time": "2026-07-28T23:22:46", "message_type": 6, "revision": 128, "sequence": 33}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:46", "refresh_completed": false, "refresh_started": false, "revision": 128, "superseded": false}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 128, "previous_displayed_revision": 112, "refresh_mode": 0, "viewport_sequence": 10}, "host_time": "2026-07-28T23:22:46", "message_type": 7, "revision": 128, "sequence": 34}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:46", "refresh_completed": false, "refresh_started": true, "revision": 128, "superseded": false}
+{"cursor_column": 3, "cursor_row": 1, "document_revision": 108, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:46", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 128, "value": "C", "viewport_revision": 130}
+{"characters": 34, "document_revision": 108, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:46", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:46", "newest_revision": 130, "superseded_revision": 129}
+{"cursor_column": 4, "cursor_row": 1, "document_revision": 109, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:47", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 129, "value": "O", "viewport_revision": 131}
+{"characters": 35, "document_revision": 109, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:47", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:47", "newest_revision": 131, "superseded_revision": 130}
+{"cursor_column": 5, "cursor_row": 1, "document_revision": 110, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:47", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 130, "value": "N", "viewport_revision": 132}
+{"characters": 36, "document_revision": 110, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:47", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:47", "newest_revision": 132, "superseded_revision": 131}
+{"cursor_column": 6, "cursor_row": 1, "document_revision": 111, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:47", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 131, "value": "D", "viewport_revision": 133}
+{"characters": 37, "document_revision": 111, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:47", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:47", "newest_revision": 133, "superseded_revision": 132}
+{"cursor_column": 7, "cursor_row": 1, "document_revision": 112, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:47", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 132, "value": " ", "viewport_revision": 134}
+{"characters": 38, "document_revision": 112, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:47", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:47", "newest_revision": 134, "superseded_revision": 133}
+{"event": "editor_status_received", "fields": {"duration_ms": 947, "latest_received_revision": 128, "stale": false, "viewport_sequence": 10}, "host_time": "2026-07-28T23:22:47", "message_type": 8, "revision": 128, "sequence": 35}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:47", "refresh_completed": true, "refresh_started": true, "revision": 128, "superseded": false}
+{"event": "editor_status_received", "fields": {"displayed_revision": 128, "latest_received_revision": 128, "viewport_hash": 3231820257}, "host_time": "2026-07-28T23:22:47", "message_type": 9, "revision": 128, "sequence": 36}
+{"accepted": true, "displayed": true, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:47", "refresh_completed": true, "refresh_started": true, "revision": 128, "superseded": false}
+{"cursor_column": 8, "cursor_row": 1, "document_revision": 113, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:47", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 133, "value": "L", "viewport_revision": 135}
+{"characters": 39, "document_revision": 113, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:47", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:47", "newest_revision": 135, "superseded_revision": 134}
+{"cursor_column": 9, "cursor_row": 1, "document_revision": 114, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:48", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 134, "value": "I", "viewport_revision": 136}
+{"characters": 40, "document_revision": 114, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:48", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:48", "newest_revision": 136, "superseded_revision": 135}
+{"cursor_column": 10, "cursor_row": 1, "document_revision": 115, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:48", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 135, "value": "N", "viewport_revision": 137}
+{"characters": 41, "document_revision": 115, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:48", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:48", "newest_revision": 137, "superseded_revision": 136}
+{"cursor_column": 11, "cursor_row": 1, "document_revision": 116, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:48", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 136, "value": "E", "viewport_revision": 138}
+{"characters": 42, "document_revision": 116, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:48", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:48", "newest_revision": 138, "superseded_revision": 137}
+{"cursor_column": 12, "cursor_row": 1, "document_revision": 117, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:48", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 137, "value": ".", "viewport_revision": 139}
+{"characters": 43, "document_revision": 117, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:48", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:48", "newest_revision": 139, "superseded_revision": 138}
+{"cursor_column": 30, "cursor_row": 0, "document_revision": 117, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:48", "kind": "UP", "queue_depth": 0, "scenario": "correction", "sequence": 138, "value": "", "viewport_revision": 140}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:48", "newest_revision": 140, "superseded_revision": 139}
+{"cursor_column": 12, "cursor_row": 0, "document_revision": 117, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:49", "kind": "UP", "queue_depth": 0, "scenario": "correction", "sequence": 139, "value": "", "viewport_revision": 141}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:49", "newest_revision": 141, "superseded_revision": 140}
+{"cursor_column": 30, "cursor_row": 0, "document_revision": 117, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:49", "kind": "DOWN", "queue_depth": 0, "scenario": "correction", "sequence": 140, "value": "", "viewport_revision": 142}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:49", "newest_revision": 142, "superseded_revision": 141}
+{"cursor_column": 12, "cursor_row": 1, "document_revision": 117, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:49", "kind": "DOWN", "queue_depth": 0, "scenario": "correction", "sequence": 141, "value": "", "viewport_revision": 143}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:49", "newest_revision": 143, "superseded_revision": 142}
+{"cursor_column": 0, "cursor_row": 1, "document_revision": 117, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:49", "kind": "HOME", "queue_depth": 0, "scenario": "correction", "sequence": 142, "value": "", "viewport_revision": 144}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:49", "newest_revision": 144, "superseded_revision": 143}
+{"document_revision": 117, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:49", "outstanding": 1, "revision": 144, "scenario": "correction", "sequence": 11, "text_hash": "1457EC47"}
+{"cursor_column": 30, "cursor_row": 0, "document_revision": 117, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:49", "kind": "LEFT", "queue_depth": 0, "scenario": "correction", "sequence": 143, "value": "", "viewport_revision": 145}
+{"event": "editor_status_received", "fields": {"pending_revision": 144, "received_sequence": 11, "superseded": false}, "host_time": "2026-07-28T23:22:49", "message_type": 6, "revision": 144, "sequence": 37}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:49", "refresh_completed": false, "refresh_started": false, "revision": 144, "superseded": false}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 144, "previous_displayed_revision": 128, "refresh_mode": 0, "viewport_sequence": 11}, "host_time": "2026-07-28T23:22:49", "message_type": 7, "revision": 144, "sequence": 38}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:49", "refresh_completed": false, "refresh_started": true, "revision": 144, "superseded": false}
+{"cursor_column": 0, "cursor_row": 1, "document_revision": 117, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:50", "kind": "RIGHT", "queue_depth": 0, "scenario": "correction", "sequence": 144, "value": "", "viewport_revision": 146}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:50", "newest_revision": 146, "superseded_revision": 145}
+{"cursor_column": 12, "cursor_row": 1, "document_revision": 117, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:50", "kind": "END", "queue_depth": 0, "scenario": "correction", "sequence": 145, "value": "", "viewport_revision": 147}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:50", "newest_revision": 147, "superseded_revision": 146}
+{"cursor_column": 0, "cursor_row": 2, "document_revision": 118, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:50", "kind": "ENTER", "queue_depth": 0, "scenario": "correction", "sequence": 146, "value": "", "viewport_revision": 148}
+{"characters": 44, "document_revision": 118, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:50", "lines": 3, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:50", "newest_revision": 148, "superseded_revision": 147}
+{"cursor_column": 1, "cursor_row": 2, "document_revision": 119, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:50", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 147, "value": "A", "viewport_revision": 149}
+{"characters": 45, "document_revision": 119, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:50", "lines": 3, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:50", "newest_revision": 149, "superseded_revision": 148}
+{"cursor_column": 2, "cursor_row": 2, "document_revision": 120, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:50", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 148, "value": "M", "viewport_revision": 150}
+{"characters": 46, "document_revision": 120, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:50", "lines": 3, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:50", "newest_revision": 150, "superseded_revision": 149}
+{"event": "editor_status_received", "fields": {"duration_ms": 994, "latest_received_revision": 144, "stale": false, "viewport_sequence": 11}, "host_time": "2026-07-28T23:22:50", "message_type": 8, "revision": 144, "sequence": 39}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:50", "refresh_completed": true, "refresh_started": true, "revision": 144, "superseded": false}
+{"event": "editor_status_received", "fields": {"displayed_revision": 144, "latest_received_revision": 144, "viewport_hash": 341306439}, "host_time": "2026-07-28T23:22:50", "message_type": 9, "revision": 144, "sequence": 40}
+{"accepted": true, "displayed": true, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:50", "refresh_completed": true, "refresh_started": true, "revision": 144, "superseded": false}
+{"cursor_column": 3, "cursor_row": 2, "document_revision": 121, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:51", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 149, "value": "E", "viewport_revision": 151}
+{"characters": 47, "document_revision": 121, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:51", "lines": 3, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:51", "newest_revision": 151, "superseded_revision": 150}
+{"cursor_column": 4, "cursor_row": 2, "document_revision": 122, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:51", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 150, "value": "N", "viewport_revision": 152}
+{"characters": 48, "document_revision": 122, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:51", "lines": 3, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:51", "newest_revision": 152, "superseded_revision": 151}
+{"cursor_column": 5, "cursor_row": 2, "document_revision": 123, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:51", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 151, "value": ".", "viewport_revision": 153}
+{"characters": 49, "document_revision": 123, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:51", "lines": 3, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:51", "newest_revision": 153, "superseded_revision": 152}
+{"cursor_column": 0, "cursor_row": 2, "document_revision": 123, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:51", "kind": "HOME", "queue_depth": 0, "scenario": "correction", "sequence": 152, "value": "", "viewport_revision": 154}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:51", "newest_revision": 154, "superseded_revision": 153}
+{"cursor_column": 12, "cursor_row": 1, "document_revision": 123, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:51", "kind": "LEFT", "queue_depth": 0, "scenario": "correction", "sequence": 153, "value": "", "viewport_revision": 155}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:51", "newest_revision": 155, "superseded_revision": 154}
+{"cursor_column": 12, "cursor_row": 1, "document_revision": 124, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:52", "kind": "DELETE", "queue_depth": 0, "scenario": "correction", "sequence": 154, "value": "", "viewport_revision": 156}
+{"characters": 48, "document_revision": 124, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:52", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:52", "newest_revision": 156, "superseded_revision": 155}
+{"cursor_column": 13, "cursor_row": 1, "document_revision": 125, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:52", "kind": "CHAR", "queue_depth": 0, "scenario": "correction", "sequence": 155, "value": " ", "viewport_revision": 157}
+{"characters": 49, "document_revision": 125, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:52", "lines": 2, "scenario": "correction"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:52", "newest_revision": 157, "superseded_revision": 156}
+{"cursor_column": 18, "cursor_row": 1, "document_revision": 125, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:52", "kind": "END", "queue_depth": 0, "scenario": "correction", "sequence": 156, "value": "", "viewport_revision": 158}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:52", "newest_revision": 158, "superseded_revision": 157}
+{"document_revision": 125, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:52", "outstanding": 1, "revision": 158, "scenario": "correction", "sequence": 12, "text_hash": "28E7CF35"}
+{"event": "editor_status_received", "fields": {"pending_revision": 158, "received_sequence": 12, "superseded": false}, "host_time": "2026-07-28T23:22:52", "message_type": 6, "revision": 158, "sequence": 41}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:52", "refresh_completed": false, "refresh_started": false, "revision": 158, "superseded": false}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 158, "previous_displayed_revision": 144, "refresh_mode": 0, "viewport_sequence": 12}, "host_time": "2026-07-28T23:22:52", "message_type": 7, "revision": 158, "sequence": 42}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:52", "refresh_completed": false, "refresh_started": true, "revision": 158, "superseded": false}
+{"event": "editor_status_received", "fields": {"duration_ms": 1015, "latest_received_revision": 158, "stale": false, "viewport_sequence": 12}, "host_time": "2026-07-28T23:22:53", "message_type": 8, "revision": 158, "sequence": 43}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:53", "refresh_completed": true, "refresh_started": true, "revision": 158, "superseded": false}
+{"event": "editor_status_received", "fields": {"displayed_revision": 158, "latest_received_revision": 158, "viewport_hash": 686280501}, "host_time": "2026-07-28T23:22:53", "message_type": 9, "revision": 158, "sequence": 44}
+{"accepted": true, "displayed": true, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:53", "refresh_completed": true, "refresh_started": true, "revision": 158, "superseded": false}
+{"displayed_revision": 158, "document_revision": 125, "event": "editor_scenario_complete", "host_time": "2026-07-28T23:22:53", "scenario": "correction", "scenario_id": 2, "text": "TODAY I WROTE A JOURNAL ENTRY.\nSECOND LINE. AMEN.", "viewport_revision": 158}
+{"event": "editor_scenario_started", "events": 54, "host_time": "2026-07-28T23:22:53", "scenario": "fast_typing", "scenario_id": 3, "wpm": 80}
+{"cursor_column": 1, "cursor_row": 0, "document_revision": 127, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:53", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 157, "value": "M", "viewport_revision": 160}
+{"characters": 1, "document_revision": 127, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:53", "lines": 1, "scenario": "fast_typing"}
+{"document_revision": 127, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:53", "outstanding": 1, "revision": 160, "scenario": "fast_typing", "sequence": 13, "text_hash": "B5B383BE"}
+{"event": "editor_status_received", "fields": {"pending_revision": 160, "received_sequence": 13, "superseded": false}, "host_time": "2026-07-28T23:22:53", "message_type": 6, "revision": 160, "sequence": 45}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:53", "refresh_completed": false, "refresh_started": false, "revision": 160, "superseded": false}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 160, "previous_displayed_revision": 158, "refresh_mode": 0, "viewport_sequence": 13}, "host_time": "2026-07-28T23:22:53", "message_type": 7, "revision": 160, "sequence": 46}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:53", "refresh_completed": false, "refresh_started": true, "revision": 160, "superseded": false}
+{"cursor_column": 2, "cursor_row": 0, "document_revision": 128, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:53", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 158, "value": "A", "viewport_revision": 161}
+{"characters": 2, "document_revision": 128, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:53", "lines": 1, "scenario": "fast_typing"}
+{"cursor_column": 3, "cursor_row": 0, "document_revision": 129, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:54", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 159, "value": "G", "viewport_revision": 162}
+{"characters": 3, "document_revision": 129, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:54", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:54", "newest_revision": 162, "superseded_revision": 161}
+{"cursor_column": 4, "cursor_row": 0, "document_revision": 130, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:54", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 160, "value": "W", "viewport_revision": 163}
+{"characters": 4, "document_revision": 130, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:54", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:54", "newest_revision": 163, "superseded_revision": 162}
+{"document_revision": 130, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:54", "outstanding": 2, "revision": 163, "scenario": "fast_typing", "sequence": 14, "text_hash": "C478E618"}
+{"event": "editor_status_received", "fields": {"pending_revision": 163, "received_sequence": 14, "superseded": false}, "host_time": "2026-07-28T23:22:54", "message_type": 6, "revision": 163, "sequence": 47}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:54", "refresh_completed": false, "refresh_started": false, "revision": 163, "superseded": false}
+{"cursor_column": 5, "cursor_row": 0, "document_revision": 131, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:54", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 161, "value": "R", "viewport_revision": 164}
+{"characters": 5, "document_revision": 131, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:54", "lines": 1, "scenario": "fast_typing"}
+{"cursor_column": 6, "cursor_row": 0, "document_revision": 132, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:54", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 162, "value": "I", "viewport_revision": 165}
+{"characters": 6, "document_revision": 132, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:54", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:54", "newest_revision": 165, "superseded_revision": 164}
+{"cursor_column": 7, "cursor_row": 0, "document_revision": 133, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:54", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 163, "value": "T", "viewport_revision": 166}
+{"characters": 7, "document_revision": 133, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:54", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:54", "newest_revision": 166, "superseded_revision": 165}
+{"document_revision": 133, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:54", "outstanding": 3, "revision": 166, "scenario": "fast_typing", "sequence": 15, "text_hash": "17BE3E4F"}
+{"event": "editor_status_received", "fields": {"duration_ms": 842, "latest_received_revision": 163, "stale": true, "viewport_sequence": 13}, "host_time": "2026-07-28T23:22:54", "message_type": 8, "revision": 160, "sequence": 48}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:54", "refresh_completed": true, "refresh_started": true, "revision": 160, "superseded": false}
+{"event": "editor_status_received", "fields": {"pending_revision": 166, "received_sequence": 15, "superseded": true}, "host_time": "2026-07-28T23:22:54", "message_type": 6, "revision": 166, "sequence": 49}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:54", "refresh_completed": false, "refresh_started": false, "revision": 166, "superseded": false}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 166, "previous_displayed_revision": 160, "refresh_mode": 0, "viewport_sequence": 15}, "host_time": "2026-07-28T23:22:54", "message_type": 7, "revision": 166, "sequence": 50}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:54", "refresh_completed": false, "refresh_started": true, "revision": 166, "superseded": false}
+{"cursor_column": 8, "cursor_row": 0, "document_revision": 134, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:54", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 164, "value": "E", "viewport_revision": 167}
+{"characters": 8, "document_revision": 134, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:54", "lines": 1, "scenario": "fast_typing"}
+{"cursor_column": 9, "cursor_row": 0, "document_revision": 135, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:54", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 165, "value": " ", "viewport_revision": 168}
+{"characters": 9, "document_revision": 135, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:54", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:54", "newest_revision": 168, "superseded_revision": 167}
+{"cursor_column": 10, "cursor_row": 0, "document_revision": 136, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:55", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 166, "value": "C", "viewport_revision": 169}
+{"characters": 10, "document_revision": 136, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:55", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:55", "newest_revision": 169, "superseded_revision": 168}
+{"document_revision": 136, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:55", "outstanding": 2, "revision": 169, "scenario": "fast_typing", "sequence": 16, "text_hash": "5DA53C8D"}
+{"event": "editor_status_received", "fields": {"pending_revision": 169, "received_sequence": 16, "superseded": false}, "host_time": "2026-07-28T23:22:55", "message_type": 6, "revision": 169, "sequence": 51}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:55", "refresh_completed": false, "refresh_started": false, "revision": 169, "superseded": false}
+{"cursor_column": 11, "cursor_row": 0, "document_revision": 137, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:55", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 167, "value": "A", "viewport_revision": 170}
+{"characters": 11, "document_revision": 137, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:55", "lines": 1, "scenario": "fast_typing"}
+{"cursor_column": 12, "cursor_row": 0, "document_revision": 138, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:55", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 168, "value": "P", "viewport_revision": 171}
+{"characters": 12, "document_revision": 138, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:55", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:55", "newest_revision": 171, "superseded_revision": 170}
+{"cursor_column": 13, "cursor_row": 0, "document_revision": 139, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:55", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 169, "value": "T", "viewport_revision": 172}
+{"characters": 13, "document_revision": 139, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:55", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:55", "newest_revision": 172, "superseded_revision": 171}
+{"document_revision": 139, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:55", "outstanding": 3, "revision": 172, "scenario": "fast_typing", "sequence": 17, "text_hash": "8E760E4D"}
+{"event": "editor_status_received", "fields": {"pending_revision": 172, "received_sequence": 17, "superseded": true}, "host_time": "2026-07-28T23:22:55", "message_type": 6, "revision": 172, "sequence": 52}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:55", "refresh_completed": false, "refresh_started": false, "revision": 172, "superseded": false}
+{"event": "editor_status_received", "fields": {"duration_ms": 882, "latest_received_revision": 172, "stale": true, "viewport_sequence": 15}, "host_time": "2026-07-28T23:22:55", "message_type": 8, "revision": 166, "sequence": 53}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:55", "refresh_completed": true, "refresh_started": true, "revision": 166, "superseded": false}
+{"cursor_column": 14, "cursor_row": 0, "document_revision": 140, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:55", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 170, "value": "U", "viewport_revision": 173}
+{"characters": 14, "document_revision": 140, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:55", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 172, "previous_displayed_revision": 166, "refresh_mode": 0, "viewport_sequence": 17}, "host_time": "2026-07-28T23:22:55", "message_type": 7, "revision": 172, "sequence": 54}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:55", "refresh_completed": false, "refresh_started": true, "revision": 172, "superseded": false}
+{"cursor_column": 15, "cursor_row": 0, "document_revision": 141, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:55", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 171, "value": "R", "viewport_revision": 174}
+{"characters": 15, "document_revision": 141, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:55", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:55", "newest_revision": 174, "superseded_revision": 173}
+{"cursor_column": 16, "cursor_row": 0, "document_revision": 142, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:55", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 172, "value": "E", "viewport_revision": 175}
+{"characters": 16, "document_revision": 142, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:55", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:55", "newest_revision": 175, "superseded_revision": 174}
+{"document_revision": 142, "event": "editor_viewport_sent", "host_time": "2026-07-28T23:22:56", "outstanding": 2, "revision": 175, "scenario": "fast_typing", "sequence": 18, "text_hash": "76871CA5"}
+{"cursor_column": 17, "cursor_row": 0, "document_revision": 143, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:56", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 173, "value": "S", "viewport_revision": 176}
+{"characters": 17, "document_revision": 143, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:56", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_status_received", "fields": {"pending_revision": 175, "received_sequence": 18, "superseded": false}, "host_time": "2026-07-28T23:22:56", "message_type": 6, "revision": 175, "sequence": 55}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:56", "refresh_completed": false, "refresh_started": false, "revision": 175, "superseded": false}
+{"cursor_column": 18, "cursor_row": 0, "document_revision": 144, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:56", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 174, "value": " ", "viewport_revision": 177}
+{"characters": 18, "document_revision": 144, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:56", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:56", "newest_revision": 177, "superseded_revision": 176}
+{"cursor_column": 19, "cursor_row": 0, "document_revision": 145, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:56", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 175, "value": "E", "viewport_revision": 178}
+{"characters": 19, "document_revision": 145, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:56", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:56", "newest_revision": 178, "superseded_revision": 177}
+{"cursor_column": 20, "cursor_row": 0, "document_revision": 146, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:56", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 176, "value": "V", "viewport_revision": 179}
+{"characters": 20, "document_revision": 146, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:56", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:56", "newest_revision": 179, "superseded_revision": 178}
+{"event": "editor_status_received", "fields": {"duration_ms": 888, "latest_received_revision": 175, "stale": true, "viewport_sequence": 17}, "host_time": "2026-07-28T23:22:56", "message_type": 8, "revision": 172, "sequence": 56}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:56", "refresh_completed": true, "refresh_started": true, "revision": 172, "superseded": false}
+{"event": "editor_status_received", "fields": {"latest_received_revision": 175, "previous_displayed_revision": 172, "refresh_mode": 0, "viewport_sequence": 18}, "host_time": "2026-07-28T23:22:56", "message_type": 7, "revision": 175, "sequence": 57}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:56", "refresh_completed": false, "refresh_started": true, "revision": 175, "superseded": false}
+{"cursor_column": 21, "cursor_row": 0, "document_revision": 147, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:56", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 177, "value": "E", "viewport_revision": 180}
+{"characters": 21, "document_revision": 147, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:56", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:56", "newest_revision": 180, "superseded_revision": 179}
+{"cursor_column": 22, "cursor_row": 0, "document_revision": 148, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:56", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 178, "value": "R", "viewport_revision": 181}
+{"characters": 22, "document_revision": 148, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:56", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:56", "newest_revision": 181, "superseded_revision": 180}
+{"cursor_column": 23, "cursor_row": 0, "document_revision": 149, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:57", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 179, "value": "Y", "viewport_revision": 182}
+{"characters": 23, "document_revision": 149, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:57", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:57", "newest_revision": 182, "superseded_revision": 181}
+{"cursor_column": 24, "cursor_row": 0, "document_revision": 150, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:57", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 180, "value": " ", "viewport_revision": 183}
+{"characters": 24, "document_revision": 150, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:57", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:57", "newest_revision": 183, "superseded_revision": 182}
+{"cursor_column": 25, "cursor_row": 0, "document_revision": 151, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:57", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 181, "value": "K", "viewport_revision": 184}
+{"characters": 25, "document_revision": 151, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:57", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:57", "newest_revision": 184, "superseded_revision": 183}
+{"cursor_column": 26, "cursor_row": 0, "document_revision": 152, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:57", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 182, "value": "E", "viewport_revision": 185}
+{"characters": 26, "document_revision": 152, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:57", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:57", "newest_revision": 185, "superseded_revision": 184}
+{"event": "editor_status_received", "fields": {"duration_ms": 908, "latest_received_revision": 175, "stale": false, "viewport_sequence": 18}, "host_time": "2026-07-28T23:22:57", "message_type": 8, "revision": 175, "sequence": 58}
+{"accepted": true, "displayed": false, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:57", "refresh_completed": true, "refresh_started": true, "revision": 175, "superseded": false}
+{"event": "editor_status_received", "fields": {"displayed_revision": 175, "latest_received_revision": 175, "viewport_hash": 1988566181}, "host_time": "2026-07-28T23:22:57", "message_type": 9, "revision": 175, "sequence": 59}
+{"accepted": true, "displayed": true, "event": "editor_viewport_ack_state", "host_time": "2026-07-28T23:22:57", "refresh_completed": true, "refresh_started": true, "revision": 175, "superseded": false}
+{"cursor_column": 27, "cursor_row": 0, "document_revision": 153, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:57", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 183, "value": "Y", "viewport_revision": 186}
+{"characters": 27, "document_revision": 153, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:57", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:57", "newest_revision": 186, "superseded_revision": 185}
+{"cursor_column": 28, "cursor_row": 0, "document_revision": 154, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:57", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 184, "value": " ", "viewport_revision": 187}
+{"characters": 28, "document_revision": 154, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:57", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:57", "newest_revision": 187, "superseded_revision": 186}
+{"cursor_column": 29, "cursor_row": 0, "document_revision": 155, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:57", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 185, "value": "W", "viewport_revision": 188}
+{"characters": 29, "document_revision": 155, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:57", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:57", "newest_revision": 188, "superseded_revision": 187}
+{"cursor_column": 30, "cursor_row": 0, "document_revision": 156, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:58", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 186, "value": "H", "viewport_revision": 189}
+{"characters": 30, "document_revision": 156, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:58", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:58", "newest_revision": 189, "superseded_revision": 188}
+{"cursor_column": 31, "cursor_row": 0, "document_revision": 157, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:58", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 187, "value": "I", "viewport_revision": 190}
+{"characters": 31, "document_revision": 157, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:58", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:58", "newest_revision": 190, "superseded_revision": 189}
+{"cursor_column": 32, "cursor_row": 0, "document_revision": 158, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:58", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 188, "value": "L", "viewport_revision": 191}
+{"characters": 32, "document_revision": 158, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:58", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:58", "newest_revision": 191, "superseded_revision": 190}
+{"cursor_column": 33, "cursor_row": 0, "document_revision": 159, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:58", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 189, "value": "E", "viewport_revision": 192}
+{"characters": 33, "document_revision": 159, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:58", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:58", "newest_revision": 192, "superseded_revision": 191}
+{"cursor_column": 34, "cursor_row": 0, "document_revision": 160, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:58", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 190, "value": " ", "viewport_revision": 193}
+{"characters": 34, "document_revision": 160, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:58", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:58", "newest_revision": 193, "superseded_revision": 192}
+{"cursor_column": 35, "cursor_row": 0, "document_revision": 161, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:58", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 191, "value": "T", "viewport_revision": 194}
+{"characters": 35, "document_revision": 161, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:58", "lines": 1, "scenario": "fast_typing"}
+{"event": "editor_viewport_superseded", "host_time": "2026-07-28T23:22:58", "newest_revision": 194, "superseded_revision": 193}
+{"cursor_column": 36, "cursor_row": 0, "document_revision": 162, "event": "editor_event_processed", "host_time": "2026-07-28T23:22:58", "kind": "CHAR", "queue_depth": 0, "scenario": "fast_typing", "sequence": 192, "value": "H", "viewport_revision": 195}
+{"characters": 36, "document_revision": 162, "event": "editor_document_revision_changed", "host_time": "2026-07-28T23:22:58", "lines": 1, "scenario": "fast_typing"}
+{"bytes_received": 1821, "bytes_sent": 1408, "crc_failures": 0, "discarded_prefix_bytes": 0, "display_caught_up_received": 11, "document_revision": 162, "event": "editor_physical_test_summary", "events_generated": 193, "events_processed": 193, "events_rejected": 0, "final_cursor_column": 36, "final_cursor_row": 0, "final_displayed_revision": 175, "final_document_characters": 36, "final_document_lines": 1, "final_hash": "76871CA5", "final_transmitted_revision": 175, "final_viewport_revision": 195, "frame_accepted_received": 17, "host_time": "2026-07-28T23:22:59", "input_frames_sent": 18, "intermediate_catch_ups": 0, "maximum_discarded_prefix": 0, "maximum_queue_depth": 1, "queue_overflows": 0, "refresh_completed_received": 15, "refresh_started_received": 15, "result": "FAIL", "resynchronization_events": 0, "scenario_final_texts": {"correction": "TODAY I WROTE A JOURNAL ENTRY.\nSECOND LINE. AMEN.", "paragraph": "MAGWRITE IS A WRITING TOOL.\nIT RUNS ON E-PAPER.\nCURSOR STAYS VISIBLE."}, "status_duplicates": 0, "status_frames_rejected": 0, "status_sequence_gaps": 0, "status_stale": 0, "stop_reason": "editor display test timeout", "test_complete": false, "timeouts": 1, "viewport_frames_accepted": 17, "viewport_frames_sent": 17, "viewports_built": 192, "viewports_superseded_locally": 174}

@@ -1,6 +1,6 @@
 # Fruit Jam Multiline Editor Integration Test
 
-**Status: NOT RUN**
+**Status: ATTEMPT 1 — FAIL (harness timeout defect; editor behaviour correct so far as observed)**
 
 This is one bounded integrated smoke test of the first usable MagWrite writing
 prototype. It is not a new qualification campaign. Detailed editor correctness
@@ -17,11 +17,23 @@ evidence only. Nothing in this document may be written in advance of the run.
 | --- | --- |
 | Repository | `asktheeightball/MagWrite` |
 | Branch | `main` |
-| Implementation commit | _record at run time_ |
-| Host tests at implementation commit | 245/245 pass |
+| Implementation commit | `d9ff23e` |
+| Attempt 1 run commit | `dc5ac00` |
+| Host tests at `d9ff23e` | 245/245 pass |
+| Host tests at `dc5ac00` (run commit) | 247/247 pass |
 | `python -m compileall -q magtag fruitjam host-tests` | pass |
 | `python tools/validate_uart_harness.py` | pass |
 | `git diff --check` | pass |
+
+### Defect found during preflight, before attempt 1
+
+`magtag/hardware_test_boot.py`, which ships as the MagTag `/boot.py`, gated the
+writable remount on a hardcoded mode tuple that the editor phase never updated.
+`MAGTAG_EDITOR_DISPLAY` was added to `display_adapter.APPROVED_TEST_MODES`,
+`magtag/code.py`, and the display harness, but not to that tuple, so arming the
+MagTag would have booted read-only and the harness would have raised `OSError`
+writing its `.started` guard before touching the panel. The Fruit Jam `boot.py`
+already had its matching branch. Fixed and covered by host tests in `dc5ac00`.
 
 ## Architecture under test
 
@@ -271,56 +283,114 @@ not delete guards, and do not retry automatically.
 
 ## Results
 
-**Status: NOT RUN.** No device run has been performed. Every row below is a
-placeholder and must be replaced with observed evidence.
+### Attempt 1 — 2026-07-28, run commit `dc5ac00`
+
+**Result: FAIL.** Stop condition: `editor display test timeout`, raised by the
+MagTag. Both devices halted, both `.started` guards preserved, no retry
+attempted, no guard deleted.
+
+#### Root cause
+
+The MagTag started its test deadline at `editor_display_ready` and compared it
+against `EDITOR_TEST_TIMEOUT_SECONDS = 150`. The arming order in this document
+requires the MagTag to be armed, reset, and *confirmed ready* before the Fruit
+Jam is armed and reset, so the operator-paced arming wait was charged to the
+run budget.
+
+| Event | Host time |
+| --- | --- |
+| MagTag `editor_display_ready` — deadline started | 23:20:28 |
+| Fruit Jam first frame — test actually began | 23:22:20 |
+| MagTag timeout fired (23:20:29 + 150 s) | 23:22:59 |
+
+The wait consumed 112 s of the 150 s budget, leaving 39 s for a run that needs
+roughly 90–100 s. The Fruit Jam's own 240 s budget was never approached. This
+is a harness-clock defect, not an editor, layout, transport, or display defect.
+Fixed after the attempt by `magwrite/run_clock.py`, which gives the arming wait
+its own separate bound; covered by `host-tests/test_run_clock.py`.
+
+#### Observed values
 
 | Field | Observed |
 | --- | --- |
-| Repository commit | NOT RUN |
-| Fruit Jam CircuitPython version | NOT RUN |
-| MagTag CircuitPython version | NOT RUN |
-| Wiring and pin aliases confirmed | NOT RUN |
-| Events generated | NOT RUN |
-| Events processed | NOT RUN |
-| Events rejected | NOT RUN |
-| Maximum queue depth | NOT RUN |
-| Scenario 1 final document | NOT RUN |
-| Scenario 2 final document | NOT RUN |
-| Scenario 3 final document | NOT RUN |
-| Scenario 4 final document | NOT RUN |
-| Scenario 5 final document | NOT RUN |
-| Final document revision | NOT RUN |
-| Final viewport revision | NOT RUN |
-| Viewport frames sent | NOT RUN |
-| Viewport frames rendered | NOT RUN |
-| Viewport frames superseded (MagTag) | NOT RUN |
-| Viewport states superseded (Fruit Jam) | NOT RUN |
-| FRAME_ACCEPTED count | NOT RUN |
-| REFRESH_STARTED count | NOT RUN |
-| REFRESH_COMPLETED count | NOT RUN |
-| DISPLAY_CAUGHT_UP count | NOT RUN |
-| TEST_COMPLETE received | NOT RUN |
-| Final transmitted revision | NOT RUN |
-| Final displayed revision | NOT RUN |
-| Final viewport hash | NOT RUN |
-| Full refreshes | NOT RUN |
-| Partial refreshes | NOT RUN |
-| Refresh durations (ms) | NOT RUN |
-| CRC failures | NOT RUN |
-| Sequence gaps | NOT RUN |
-| Status duplicates / stale | NOT RUN |
-| Discarded prefix bytes | NOT RUN |
-| Resynchronization events | NOT RUN |
-| Timeouts | NOT RUN |
-| Bytes sent / received | NOT RUN |
-| Visual observations | NOT RUN |
-| Photograph filename or explicit no-photo statement | NOT RUN |
-| Fruit Jam guard states | NOT RUN |
-| MagTag guard states | NOT RUN |
-| Prior guards verified untouched | NOT RUN |
-| Final activation states restored to disabled | NOT RUN |
-| User approval of final screen | NOT RUN |
-| Result (PASS / FAIL / INCONCLUSIVE) | NOT RUN |
+| Repository commit | `dc5ac00` |
+| Fruit Jam CircuitPython version | 10.2.1 (`adafruit_fruit_jam`, UID `FFDBA7B15146C218`) |
+| MagTag CircuitPython version | 9.1.1 (`adafruit_magtag_2.9_grayscale`, UID `C7FD1A005DEA`) |
+| Wiring and pin aliases confirmed | yes — wiring confirmed by operator; `board.A0`/`board.A1` on Fruit Jam and `board.D10`/`board.A1` on MagTag all confirmed present on-device via REPL |
+| Baud / protocol version | 115200 8N1 / protocol version 1 |
+| Events generated | 193 (of 362 scripted; run aborted during scenario 3) |
+| Events processed | 193 |
+| Sequence integrity | contiguous 0–192, strictly increasing, 0 duplicates, 0 out-of-order |
+| Events rejected | 0 |
+| Maximum queue depth | 1 of 64 |
+| Queue overflows | 0 |
+| Scenario 1 final document | **exact match** — `MAGWRITE IS A WRITING TOOL.\nIT RUNS ON E-PAPER.\nCURSOR STAYS VISIBLE.` |
+| Scenario 2 final document | **exact match** — `TODAY I WROTE A JOURNAL ENTRY.\nSECOND LINE. AMEN.` |
+| Scenario 3 final document | NOT REACHED — aborted at event 192 of 54-event scenario segment |
+| Scenario 4 final document | NOT REACHED |
+| Scenario 5 final document | NOT REACHED |
+| Final document revision | 162 |
+| Final viewport revision | 195 |
+| Viewports built | 192 |
+| Viewport frames sent | 17 |
+| Viewport frames rendered | 15 |
+| Viewport frames superseded (MagTag) | 2 |
+| Viewport states superseded (Fruit Jam) | 174 |
+| FRAME_ACCEPTED count | 17 |
+| REFRESH_STARTED count | 15 |
+| REFRESH_COMPLETED count | 15 |
+| DISPLAY_CAUGHT_UP count | 11 |
+| TEST_COMPLETE received | no |
+| Final transmitted revision | 175 |
+| Final displayed revision | 175 (equal; displayed never exceeded transmitted) |
+| Final viewport hash | `76871CA5` (Fruit Jam); no expected value — run aborted mid-scenario |
+| Full refreshes | 1 |
+| Partial refreshes | 14 |
+| Refresh durations (ms) | 3493 (full), then 894, 941, 1007, 1080, 876, 930, 953, 947, 994, 1015, 842, 882, 888, 908 |
+| CRC failures | 0 |
+| Parser rejections | 0 |
+| Sequence gaps | 0 |
+| Status duplicates / stale | 0 / 0 |
+| Discarded prefix bytes | 4266 of 5674 received (MagTag); 0 (Fruit Jam) |
+| Maximum discarded prefix | 120 bytes |
+| Resynchronization events | 36 (MagTag); 0 (Fruit Jam) |
+| Status queue maximum depth | 2 of 32 |
+| Timeouts | 1 |
+| Bytes sent / received | Fruit Jam 1408 / 1821; MagTag 1762 / 5674 |
+| Visual observations | NOT RECORDED — see note below |
+| Photograph filename or explicit no-photo statement | **No photograph was taken.** |
+| Fruit Jam guard states | `/magwrite_editor_integration.started` present (1267 bytes, holds failure summary); `.complete` absent |
+| MagTag guard states | `/magwrite_editor_display.started` present; `.complete` absent |
+| Prior guards verified untouched | yes — all 17 prior guards SHA-256 inventoried before the run and re-verified byte-identical after |
+| Final activation states restored to disabled | yes — both `config.py` files restored to the disabled repository versions |
+| User approval of final screen | not sought — no final screen was produced |
+| Result (PASS / FAIL / INCONCLUSIVE) | **FAIL** |
+
+#### Note on discarded prefix bytes
+
+The MagTag discarded 4266 of 5674 received bytes before the frame magic, with
+36 resynchronizations, while accepting 17 of 17 frames with zero CRC failures
+and zero parser rejections. The earlier *passing* bidirectional acknowledgement
+run recorded 567 discarded of 1087 received with 5 resynchronizations, so this
+is the same pre-existing, proportionally similar link characteristic, amplified
+by the 112 s window in which the MagTag listened to an idle line while the Fruit
+Jam was being armed and reset. No frame was corrupted. It is not a new fault,
+but it remains uncharacterized and is worth instrumenting.
+
+#### Note on visual observations
+
+No visual evidence was recorded for attempt 1. The run aborted 39 s in, during
+scenario 3, so the final expected screen was never produced; the panel was left
+holding viewport revision 175, a single partial line of the `fast_typing` text.
+Scenario 4 (`scrolling`) never ran, so **vertical scrolling and cursor
+visibility remain physically unverified**, as do the scenario 5 journal view and
+the five-line adjacent-row readability check.
+
+The following PASS criteria are therefore **unverified**, not merely unmet:
+multiline scrolling with cursor visibility, the final expected screen, final
+hash reconciliation against an expected value, `TEST_COMPLETE`, complete erase
+between major viewport replacements, ghosting, border integrity, and operator
+approval of the final screen.
 
 ## PASS criteria
 
