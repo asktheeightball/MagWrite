@@ -129,7 +129,44 @@ Exact mappings remain configurable and should be validated against the real work
 
 **Exit:** every physical button event reaches the Fruit Jam exactly once, produces the intended Fruit Jam-owned action, and does not interfere with display acknowledgements.
 
-## Priority 3 — Direct USB HID keyboard on Fruit Jam
+## Priority 3 — Direct USB HID keyboard on Fruit Jam — IMPLEMENTED, PHYSICALLY UNVERIFIED
+
+Implemented at commit `ab52961`. Host suite raised from 253 to 456 tests, all
+passing. **Two guarded physical attempts on 2026-07-29 both failed, neither on a
+software defect.** Evidence: `docs/FRUITJAM_USB_KEYBOARD_TEST.md`.
+
+Verified on real hardware:
+
+- CircuitPython 10.2.1 USB host API surface and the absence of
+  `adafruit_usb_host_descriptors`, so descriptors are parsed in-repo with no new
+  dependency;
+- enumeration of the real receiver `0x36B0`/`0x3002`, which exposes three HID
+  interfaces;
+- correct selection of interface 0 by the HID class triple, endpoint `0x81`,
+  8-byte boot reports;
+- `detach_kernel_driver`, `set_configuration`, `SET_PROTOCOL(boot)`, `SET_IDLE`;
+- the `NO_DEVICE → ENUMERATING → READY` state machine and its diagnostics;
+- boot report parsing and duplicate suppression on real reports;
+- the HELLO/STATUS_HELLO handshake over the real UART;
+- the two-phase run clock excluding a 79.7 s operator arming wait;
+- fail-closed refusal, guard preservation, and a complete FAIL summary on the
+  idle-timeout stop condition.
+
+**Not verified, because zero keystrokes were ever captured:** normalized real-key
+events, Shift, Caps Lock, punctuation, repeat, live multiline typing, input
+during refresh, viewport coalescing from real input, final revision/hash
+reconciliation, and lowercase glyph legibility.
+
+Blocking issue: the wireless keyboard stopped delivering any HID data to its
+receiver while that receiver was in the Fruit Jam host port, despite the same
+keyboard and receiver having delivered real usages to that same port earlier the
+same day, and typing correctly on a PC afterwards. Three independent checks
+confirmed no data reached either the adapter or CircuitPython's own console.
+Candidate causes — marginal host-port supply to the receiver's radio, or a lost
+pairing session — remain open and untested. A different keyboard, preferably a
+wired one, is the cheapest next diagnostic.
+
+### Original requirements
 
 Integrate one known keyboard directly through the Fruit Jam USB host port.
 

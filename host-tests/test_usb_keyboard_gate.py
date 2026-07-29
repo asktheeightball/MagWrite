@@ -9,6 +9,7 @@ imported and behaviourally where it can.
 
 import ast
 import os
+import re
 import sys
 import unittest
 
@@ -353,9 +354,10 @@ class EvidenceTest(unittest.TestCase):
         ("docs", "MAGTAG_USB_KEYBOARD_DISPLAY_SERIAL.jsonl"),
     )
 
-    def test_the_evidence_document_exists_and_declares_its_status(self):
+    def test_the_evidence_document_declares_a_status_up_front(self):
         source = read(*self.DOC)
-        self.assertIn("**Status: NOT RUN**", source)
+        header = source.split("##")[0]
+        self.assertRegex(header, r"\*\*Status: (NOT RUN|PASS|FAIL|INCONCLUSIVE)")
 
     def test_the_document_records_the_observed_device_identity(self):
         source = read(*self.DOC)
@@ -373,13 +375,24 @@ class EvidenceTest(unittest.TestCase):
         expected = "".join("%02X" % b for b in REAL_CONFIGURATION_DESCRIPTOR)
         self.assertIn(expected, source)
 
-    def test_the_document_claims_no_physical_result_yet(self):
-        source = read(*self.DOC)
-        self.assertIn("NOT RUN", source.split("## Results")[1])
-        for forbidden in ("**PASS**", "Result: PASS"):
-            self.assertNotIn(forbidden, source.split("## Results")[1], forbidden)
+    def test_the_document_never_claims_an_untested_pass(self):
+        """A PASS may only be claimed alongside a captured TEST_COMPLETE.
 
-    def test_both_captures_are_parseable_jsonl_and_marked_not_run(self):
+        The PASS criteria require ``TEST_COMPLETE``, so a results section that
+        claims PASS while no capture contains it would be fabricated evidence.
+        """
+        results = read(*self.DOC).split("## Results")[1]
+        if "**PASS**" not in results:
+            return
+        captured = "".join(read(*parts) for parts in self.CAPTURES)
+        self.assertIn("test_complete\": true", captured.replace("'", '"'))
+
+    def test_every_results_attempt_carries_an_explicit_verdict(self):
+        results = read(*self.DOC).split("## Results")[1]
+        for heading in re.findall(r"### Attempt [^\n]*", results):
+            self.assertRegex(heading, r"(PASS|FAIL|INCONCLUSIVE)", heading)
+
+    def test_both_captures_are_parseable_jsonl(self):
         import json
         for parts in self.CAPTURES:
             lines = [
@@ -388,7 +401,15 @@ class EvidenceTest(unittest.TestCase):
             self.assertTrue(lines, parts)
             for line in lines:
                 record = json.loads(line)
-                self.assertEqual(record["status"], "NOT RUN", parts)
+                self.assertIsInstance(record, dict, parts)
+                self.assertIn("event", record, parts)
+
+    def test_the_captures_are_the_real_observed_device(self):
+        """The recorded capture must be from the device the doc describes."""
+        fruitjam = read(*self.CAPTURES[0])
+        self.assertIn('"vendor_id":"36B0"', fruitjam)
+        self.assertIn('"product_id":"3002"', fruitjam)
+        self.assertIn('"protocol":"boot_keyboard"', fruitjam)
 
     def test_the_document_states_the_scenarios_and_the_finish_key(self):
         source = read(*self.DOC)

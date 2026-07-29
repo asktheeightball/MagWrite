@@ -194,9 +194,15 @@ Do not connect one battery simultaneously to the independent charger circuits on
 - [x] Verify one-way Fruit Jam-to-MagTag UART using signal and common ground.
 - [x] Verify bidirectional UART acknowledgements using A0→D10 and A1→A1.
 - [x] Confirm no inter-board power conductor during verified UART bench tests.
-- [ ] Physically verify the integrated multiline editor and five-line layout.
+- [x] Physically verify the integrated multiline editor and five-line layout.
 - [ ] Implement and verify MagTag button events over return UART.
-- [ ] Verify one known USB HID keyboard on the Fruit Jam.
+- [ ] Verify one known USB HID keyboard on the Fruit Jam. Enumeration, interface
+      selection, and boot-report reading are verified; **live typing is not** —
+      two attempts failed because the keyboard sent no HID data to its receiver
+      while that receiver was in the Fruit Jam host port. See
+      `docs/FRUITJAM_USB_KEYBOARD_TEST.md`.
+- [ ] Determine whether the Fruit Jam host port supplies enough current for a
+      2.4 GHz receiver's radio, or retry with a wired USB keyboard.
 - [ ] Verify keyboard reconnect, modifiers, hold, and repeat.
 - [ ] Verify microSD autosave and forced-power-loss recovery.
 - [ ] Measure active and idle current for each board and USB receiver.

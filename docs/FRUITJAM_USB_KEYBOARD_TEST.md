@@ -1,6 +1,15 @@
 # Fruit Jam Live USB HID Keyboard Test
 
-**Status: NOT RUN**
+**Status: FAIL after two guarded attempts on 2026-07-29. Neither attempt was
+blocked by a software defect. The run is blocked on a hardware finding: the
+wireless keyboard stopped delivering any HID data to its receiver while that
+receiver was in the Fruit Jam host port, even though the same keyboard and
+receiver had delivered real usages to that same port earlier the same day and
+typed correctly on a PC afterwards.**
+
+Zero keystrokes were captured, so **no PASS criterion below has been tested**.
+Everything in the "USB host discovery gate" section *was* observed on real
+hardware and remains valid evidence.
 
 This is one bounded integrated smoke test of the first *interactive* MagWrite
 writing prototype: a real USB HID keyboard typing into the authoritative Fruit
@@ -489,26 +498,158 @@ mark FAIL or INCONCLUSIVE.
 
 ## Results
 
-**NOT RUN.** No physical live-typing attempt has been made at the implementation
-commit. `docs/FRUITJAM_USB_KEYBOARD_SERIAL.jsonl` and
-`docs/MAGTAG_USB_KEYBOARD_DISPLAY_SERIAL.jsonl` are placeholders and contain no
-run data.
+### Attempt 2 — 2026-07-29, run commit `ab52961` — **FAIL**
 
-The USB host discovery gate above **was** performed on real hardware and every
-descriptor value in it is observed, not inferred. No other physical claim in
-this document is evidence of anything yet.
+Authorised by the operator, who explicitly named
+`/magwrite_usb_keyboard_display.started` for deletion after attempt 1. No other
+guard, evidence file, capture, configuration, or backup was touched.
 
-When the run happens, record: repository commit; both CircuitPython versions;
-exact wiring; keyboard make/model and receiver type; USB vendor and product ID;
-interface descriptors; endpoint details; report format; events generated and
-processed; duplicate reports suppressed; repeat events; unsupported usages;
-maximum queue depth and overflow count; final document text; viewport frames
-sent, rendered, and superseded; acknowledgement counts; CRC failures; sequence
-gaps; discarded-prefix bytes; resynchronization count; final transmitted
-revision; final displayed revision; final hash; refresh counts; valid timing
-observations; disconnects; timeouts; visual observations including lowercase
-legibility; photograph filename or an explicit no-photo statement; guard states;
-final disabled configurations; and PASS, FAIL, or INCONCLUSIVE.
+Captures: `FRUITJAM_USB_KEYBOARD_SERIAL.jsonl` (8 records) and
+`MAGTAG_USB_KEYBOARD_DISPLAY_SERIAL.jsonl` (3 records). Both are the verbatim
+JSON records from this attempt.
+
+**Stop condition: `live session idle timeout`**, raised by the Fruit Jam after
+the configured 600 s of no keyboard activity.
+
+| Field | Observed |
+| --- | --- |
+| Repository commit | `ab52961` |
+| Fruit Jam CircuitPython | 10.2.1 (`adafruit_fruit_jam`, UID `FFDBA7B15146C218`) |
+| MagTag CircuitPython | 9.1.1 (`adafruit_magtag_2.9_grayscale`, UID `C7FD1A005DEA`) |
+| Wiring | A0→D10, A1→A1, common ground; no inter-board power conductor; both separately USB-powered |
+| Baud / protocol version | 115200 8N1 / version 1 |
+| Keyboard | wireless keyboard with 2.4 GHz USB receiver; no operator-supplied make/model recorded |
+| USB vendor / product ID | `0x36B0` / `0x3002` |
+| USB strings | `RDMCTMZT`, `Wireless 2.4G Dongle`, serial `19971217` |
+| Interface / endpoint selected | interface 0 (class 3, subclass 1, protocol 1), endpoint `0x81`, 8-byte packets, 1 ms interval |
+| HID interfaces present | 3 |
+| USB device state | reached `READY`; 1 open attempt, 1 connect, 0 disconnects, 0 errors, 2 transitions |
+| MagTag arming wait | 79.664 s, correctly excluded from the run budget |
+| HID reports received | **2**, both all-zero release reports (`keys:[0,0,0,0,0,0]`); the second correctly suppressed as a duplicate |
+| Normalized events | **0** |
+| Events processed / rejected | 0 / 0 |
+| Duplicate reports suppressed | 1 |
+| Repeat events | 0 |
+| Unsupported usages | 0 |
+| Rollover reports | 0 |
+| Maximum queue depth / overflows | 0 of 64 / 0 |
+| Held-key resets | 1 (the correct reset on connect) |
+| Final document text | empty |
+| Viewport frames sent / accepted / rendered / superseded | 0 / 0 / 0 / 0 |
+| Viewports built / coalesced locally | 0 / 0 |
+| FRAME_ACCEPTED / REFRESH_STARTED / REFRESH_COMPLETED / DISPLAY_CAUGHT_UP | 0 / 0 / 0 / 0 |
+| STATUS_HELLO | received; `receiver_ready` and `display_ready` both true |
+| TEST_COMPLETE | not received |
+| Final transmitted / displayed revision | 0 / 0 |
+| Final hash | `00000000` |
+| Refreshes | 0 full, 0 partial — the panel was never sent a viewport |
+| CRC failures / parser rejections | 0 / 0 |
+| Sequence gaps / duplicates / stale | 0 / 0 / 0 |
+| Discarded prefix bytes / resynchronizations | 0 / 0 |
+| Bytes sent / received (Fruit Jam) | 35 / 43 |
+| Timeouts | 1 |
+| Visual observations | The panel never displayed a MagWrite viewport. It retained the CircuitPython traceback drawn during an earlier autoreload boot, which is expected: the MagTag only refreshes on receiving a VIEWPORT frame and none was ever sent. No ghosting, corruption, or defect assessment is possible from this attempt. |
+| Lowercase glyph legibility | **untested** — nothing was ever rendered |
+| Photograph | **No photograph was taken.** |
+| Fruit Jam guard states | `/magwrite_usb_keyboard.started` present, holding the FAIL summary; `.complete` absent |
+| MagTag guard states | `/magwrite_usb_keyboard_display.started` present; `.complete` absent |
+| Prior guards verified untouched | yes — all 20 SHA-256 inventoried before the run and re-verified byte-identical after |
+| Final activation states | both restored to disabled and verified on-device |
+| Result | **FAIL** |
+
+#### What the attempt did prove
+
+Everything up to the keyboard itself worked on real hardware, first time:
+
+- the Fruit Jam enumerated the receiver and selected the correct interface out of
+  three by the HID class triple;
+- `detach_kernel_driver`, `set_configuration`, `SET_PROTOCOL(boot)` and
+  `SET_IDLE` all succeeded against the real device;
+- the connection state machine ran `NO_DEVICE → ENUMERATING → READY` and logged
+  the observed descriptor;
+- the two all-zero reports were parsed correctly and produced **zero** editor
+  events, and the second was correctly suppressed as a duplicate — the
+  duplicate-suppression rule working on real data;
+- the HELLO/STATUS_HELLO handshake completed over the real UART;
+- the MagTag reached `usb_keyboard_display_ready` and started its run clock only
+  on the first received frame, excluding a 79.7 s operator arming wait — the
+  `RunClock` fix from the editor phase working as intended;
+- the idle timeout fired, wrote a complete FAIL summary, preserved the
+  `.started` guard, wrote no `.complete`, and did not retry.
+
+#### Root cause
+
+The keyboard was not transmitting to its receiver. Three independent checks:
+
+1. Polling endpoint `0x81` alone for 18 s while the operator typed: **0 reports**.
+2. Polling all three interrupt IN endpoints for 18 s while typing: 4 reports,
+   all on `0x84`, all zero-payload, **none on the keyboard endpoint**.
+3. Re-attaching CircuitPython's own host keyboard driver and typing for 15 s:
+   `supervisor.runtime.serial_bytes_available` stayed at **0**, so CircuitPython
+   received nothing either.
+
+All three runs showed roughly 8,900 clean `USBTimeoutError` reads per 18 s, so
+the read path was healthy throughout — there was simply no data.
+
+Two hypotheses were tested and **disproved**:
+
+- *`SET_PROTOCOL(boot)` silences this receiver.* Polling with and without it in
+  the same session gave 1 all-zero report and 0 reports respectively. Not the
+  cause.
+- *CircuitPython's host driver wins a race for the interrupt endpoint.* With the
+  driver deliberately re-attached and owning the interface, its own console
+  received nothing. Not the cause.
+
+The receiver enumerated correctly and its consumer-control interface kept
+emitting idle reports throughout, so the receiver was powered and responsive.
+The keyboard typed correctly on a PC immediately afterwards. Earlier the same
+day, before any harness existed, the same keyboard and receiver in the same
+Fruit Jam port delivered real usages (`0x04` a, `0x07` d, `0x0B` h, `0x13` p,
+`0x16` s) including a three-key rollover.
+
+The remaining candidates are physical and were not resolved: marginal 5 V supply
+to the receiver's radio from the Fruit Jam host port, or the keyboard losing its
+pairing session. This is recorded as an open hardware question, not a diagnosis.
+
+### Attempt 1 — 2026-07-29, run commit `ab52961` — **FAIL**
+
+**Stop condition: `KeyboardInterrupt` inside `magwrite/sha256.py` line 72,
+`_compress`.** The armed MagTag harness was aborted partway through the
+pre-existing `sha256_file("/uc8151.py")` driver-hash gate.
+
+Root cause: **operator-procedure defect, introduced by the harness driver, not
+by the repository.** The MagTag was reset by issuing `microcontroller.reset()`
+over its serial REPL. That is unsafe for a one-shot armed harness, because the
+same CDC channel used to trigger the reset can also deliver a Ctrl-C into the
+harness it just started. The pure-Python SHA-256 over a 10 KB file takes many
+seconds on the ESP32-S2, which is a wide window for a stray interrupt to land.
+
+Because the hash check runs at line 67 and the guard is claimed at line 73, this
+particular boot wrote no guard. A subsequent boot claimed
+`/magwrite_usb_keyboard_display.started`; a later boot then correctly refused at
+line 69 with `RuntimeError: MagTag USB keyboard display guard exists`, which is
+the fail-closed behaviour working, not a defect.
+
+The MagTag also dropped off USB entirely during this attempt and required a
+physical power-cycle to re-enumerate.
+
+No keystrokes were typed, no viewport was sent, and the Fruit Jam was never
+armed during attempt 1.
+
+**Corrected procedure, used for attempt 2 and required for any future attempt:
+never write to either serial port while a harness is armed. Start the read-only
+captures first, then have the operator press the physical reset button.**
+
+#### A second, harmless failure mode found during attempt 2 arming
+
+Writing an armed `config.py` from the host triggers CircuitPython autoreload,
+which re-runs `code.py` but **not** `boot.py`. Without `boot.py` the filesystem
+is never remounted writable for the device, so the harness reaches its guard
+write and dies with `OSError: [Errno 30] Read-only filesystem` at line 73. The
+operator's subsequent physical reset then boots cleanly and the run proceeds
+normally. This is visible in the MagTag capture and is benign — it writes no
+guard and corrupts nothing — but it means the panel can be left showing a
+traceback from that aborted boot until the first real viewport arrives.
 
 ## PASS criteria
 

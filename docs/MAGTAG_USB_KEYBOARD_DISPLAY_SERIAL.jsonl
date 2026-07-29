@@ -1,1 +1,3 @@
-{"event":"capture_placeholder","device":"magtag","status":"NOT RUN","note":"No physical live USB keyboard typing run has been performed. This file holds no run data and must be replaced in full by the verbatim MagTag serial capture."}
+{"tx_alias":"A1","event":"usb_keyboard_display_ready","rx_alias":"D10","baud":115200}
+{"arming_wait_seconds":79.664,"event":"usb_keyboard_run_clock_started"}
+{"revision":0,"event":"usb_keyboard_status_sent","message_type":5,"sequence":1}
