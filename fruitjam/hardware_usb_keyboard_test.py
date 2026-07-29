@@ -23,6 +23,7 @@ from magwrite_transport.diagnostics import log
 from magwrite_transport.live_session import (
     MAX_PROTOCOL_FRAMES, MAX_VIEWPORT_FRAMES, LiveTypingSession,
 )
+from magwrite_transport.pacing import DisplayPacer
 from magwrite_transport.protocol import MAX_PAYLOAD_SIZE, VERSION
 from magwrite_transport.usb_host_backend import UsbHostKeyboardBackend
 from magwrite_transport.usb_keyboard_adapter import UsbKeyboardAdapter
@@ -75,11 +76,21 @@ session = LiveTypingSession(
         backend, queue, log,
         poll_budget=config.USB_KEYBOARD_POLL_BUDGET,
         max_events=config.USB_KEYBOARD_MAX_EVENTS,
+        layout=config.USB_KEYBOARD_LAYOUT,
         now=time.monotonic(),
     ),
     queue_capacity=config.USB_KEYBOARD_QUEUE_CAPACITY,
     tracker_capacity=config.USB_KEYBOARD_ACK_TRACKER_CAPACITY,
-    min_send_seconds=config.USB_KEYBOARD_MIN_SEND_SECONDS,
+    pacer=DisplayPacer(
+        coalesce_seconds=config.USB_KEYBOARD_COALESCE_SECONDS,
+        quiet_seconds=config.USB_KEYBOARD_QUIET_SECONDS,
+        caught_up_min_send_seconds=(
+            config.USB_KEYBOARD_CAUGHT_UP_MIN_SEND_SECONDS
+        ),
+        sustained_min_send_seconds=(
+            config.USB_KEYBOARD_SUSTAINED_MIN_SEND_SECONDS
+        ),
+    ),
     idle_timeout_seconds=config.USB_KEYBOARD_IDLE_TIMEOUT_SECONDS,
     session_timeout_seconds=config.USB_KEYBOARD_SESSION_TIMEOUT_SECONDS,
 )

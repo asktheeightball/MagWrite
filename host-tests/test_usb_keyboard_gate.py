@@ -308,7 +308,6 @@ class PhysicalLimitTest(unittest.TestCase):
     def test_the_fruitjam_config_matches_the_session_defaults(self):
         from magwrite_transport.live_session import (
             ACK_TRACKER_CAPACITY, EVENT_QUEUE_CAPACITY, MAX_KEYBOARD_EVENTS,
-            MIN_SEND_SECONDS,
         )
         source = read("fruitjam", "config.py")
         self.assertIn("USB_KEYBOARD_MAX_EVENTS = %d" % MAX_KEYBOARD_EVENTS, source)
@@ -319,22 +318,56 @@ class PhysicalLimitTest(unittest.TestCase):
         self.assertIn(
             "USB_KEYBOARD_QUEUE_CAPACITY = %d" % EVENT_QUEUE_CAPACITY, source
         )
-        self.assertIn(
-            "USB_KEYBOARD_MIN_SEND_SECONDS = %s" % MIN_SEND_SECONDS, source
-        )
+
+    def test_the_fruitjam_config_matches_the_centralized_pacing_constants(self):
+        """``pacing`` is the single source of truth; config may only mirror it."""
+        from magwrite_transport import pacing
+        source = read("fruitjam", "config.py")
+        for name, value in (
+            ("COALESCE_SECONDS", pacing.COALESCE_SECONDS),
+            ("QUIET_SECONDS", pacing.QUIET_SECONDS),
+            ("CAUGHT_UP_MIN_SEND_SECONDS", pacing.CAUGHT_UP_MIN_SEND_SECONDS),
+            ("SUSTAINED_MIN_SEND_SECONDS", pacing.SUSTAINED_MIN_SEND_SECONDS),
+        ):
+            self.assertIn("USB_KEYBOARD_%s = %s" % (name, value), source)
+
+    def test_no_send_interval_is_hard_coded_outside_the_pacing_module(self):
+        """A second source of truth for pacing is what this phase removed."""
+        for parts in (
+            ("fruitjam", "magwrite_transport", "live_session.py"),
+            ("fruitjam", "hardware_usb_keyboard_test.py"),
+        ):
+            source = read(*parts)
+            self.assertNotIn("MIN_SEND_SECONDS = ", source, parts[-1])
 
     def test_transmission_is_paced_to_the_panel_not_to_the_typing_rate(self):
         """Sending faster than a refresh only makes frames the MagTag drops."""
+        from magwrite_transport import pacing
         from magwrite_transport.live_session import (
-            MAX_PARTIAL_REFRESHES, MAX_PROTOCOL_FRAMES, MIN_SEND_SECONDS,
+            MAX_PARTIAL_REFRESHES, MAX_PROTOCOL_FRAMES,
         )
-        self.assertGreaterEqual(MIN_SEND_SECONDS, 2.0)
+        self.assertGreaterEqual(pacing.SUSTAINED_MIN_SEND_SECONDS, 2.0)
         # 500 events at 60 WPM is about 100 s of continuous typing. That must fit
         # the *binding* ceiling, which is partial refreshes rather than frames,
         # and must leave room in the status-frame budget at four statuses each.
-        expected_frames = 100.0 / MIN_SEND_SECONDS
+        expected_frames = 100.0 / pacing.SUSTAINED_MIN_SEND_SECONDS
         self.assertLess(expected_frames, MAX_PARTIAL_REFRESHES)
         self.assertLess(expected_frames * 4, MAX_PROTOCOL_FRAMES)
+
+    def test_no_pacing_floor_is_shorter_than_the_panel_can_refresh(self):
+        """The panel, not the policy, must be the thing that limits refreshes."""
+        from magwrite_transport import pacing
+        self.assertGreaterEqual(
+            pacing.CAUGHT_UP_MIN_SEND_SECONDS,
+            pacing.MEASURED_PARTIAL_REFRESH_SLOWEST_SECONDS,
+        )
+        self.assertLessEqual(
+            pacing.CAUGHT_UP_MIN_SEND_SECONDS,
+            pacing.SUSTAINED_MIN_SEND_SECONDS,
+        )
+        # One viewport in flight at a time: a refresh is never started while the
+        # MagTag is busy, and a queued frame can never go stale before it renders.
+        self.assertEqual(pacing.SEND_WINDOW, 1)
 
     def test_the_refresh_ceiling_is_documented_as_the_binding_one(self):
         source = read("fruitjam", "magwrite_transport", "live_session.py")
@@ -477,6 +510,76 @@ class EvidenceTest(unittest.TestCase):
             self.assertIn(observed, source, observed)
 
 
+class ChangedEntryPathTest(unittest.TestCase):
+    """Everything this phase changed in the Fruit Jam entry point.
+
+    Both prior physical blockers were in device-entry code the host suite never
+    reached, so a changed line here needs an assertion here.
+    """
+
+    def test_the_entry_point_builds_the_pacer_from_config(self):
+        source = read(*FRUITJAM_ENTRY)
+        self.assertIn("from magwrite_transport.pacing import DisplayPacer", source)
+        self.assertIn("pacer=DisplayPacer(", source)
+        for name in (
+            "USB_KEYBOARD_COALESCE_SECONDS", "USB_KEYBOARD_QUIET_SECONDS",
+            "USB_KEYBOARD_CAUGHT_UP_MIN_SEND_SECONDS",
+            "USB_KEYBOARD_SUSTAINED_MIN_SEND_SECONDS",
+        ):
+            self.assertIn("config." + name, source)
+
+    def test_the_entry_point_passes_the_configured_keyboard_layout(self):
+        source = read(*FRUITJAM_ENTRY)
+        self.assertIn("layout=config.USB_KEYBOARD_LAYOUT", source)
+
+    def test_the_layout_default_detects_rather_than_assuming_a_keyboard(self):
+        self.assertIn('USB_KEYBOARD_LAYOUT = "AUTO"', read("fruitjam", "config.py"))
+
+    def test_the_shipped_config_builds_a_valid_pacer_and_layout(self):
+        """The exact values on the board must construct, not just parse."""
+        from magwrite_transport.keyboard_layout import resolve
+        from magwrite_transport.pacing import DisplayPacer
+        values = {}
+        for line in read("fruitjam", "config.py").splitlines():
+            if line.startswith("USB_KEYBOARD_") and "=" in line:
+                name, _, raw = line.partition("=")
+                try:
+                    values[name.strip()] = ast.literal_eval(raw.strip())
+                except (SyntaxError, ValueError):
+                    pass
+        pacer = DisplayPacer(
+            coalesce_seconds=values["USB_KEYBOARD_COALESCE_SECONDS"],
+            quiet_seconds=values["USB_KEYBOARD_QUIET_SECONDS"],
+            caught_up_min_send_seconds=values[
+                "USB_KEYBOARD_CAUGHT_UP_MIN_SEND_SECONDS"
+            ],
+            sustained_min_send_seconds=values[
+                "USB_KEYBOARD_SUSTAINED_MIN_SEND_SECONDS"
+            ],
+        )
+        self.assertFalse(pacer.due(0.0, busy=False))
+        self.assertIsNotNone(resolve(values["USB_KEYBOARD_LAYOUT"], None))
+
+    def test_the_entry_point_still_writes_only_this_phases_guards(self):
+        source = read(*FRUITJAM_ENTRY)
+        self.assertIn('START = "/magwrite_usb_keyboard.started"', source)
+        self.assertIn('COMPLETE = "/magwrite_usb_keyboard.complete"', source)
+        for guard in PRIOR_GUARDS:
+            self.assertNotIn(guard, source, guard)
+
+    def test_the_changed_modules_did_not_acquire_a_guard_or_a_file_write(self):
+        """Guards and filesystem writes belong to the entry point alone."""
+        for name in ("pacing.py", "keyboard_layout.py", "live_session.py",
+                     "hid_keyboard.py", "usb_keyboard_adapter.py"):
+            source = read("fruitjam", "magwrite_transport", name)
+            self.assertNotIn("/magwrite_", source, name)
+            self.assertNotIn("import os", source, name)
+            # A builtin open(), not backend.open(), which is a USB endpoint.
+            self.assertIsNone(
+                re.search(r"(?<![.\w])open\(", source), name
+            )
+
+
 class HostSafetyTest(unittest.TestCase):
     FORBIDDEN = (
         "board", "busio", "storage", "supervisor", "displayio", "digitalio",
@@ -485,9 +588,15 @@ class HostSafetyTest(unittest.TestCase):
 
     HOST_SAFE_MODULES = (
         "hid_keymap.py", "hid_keyboard.py", "keyboard_repeat.py",
+        "keyboard_layout.py", "pacing.py",
         "usb_device_state.py", "usb_hid_descriptors.py",
         "usb_keyboard_adapter.py", "live_session.py",
     )
+
+    def test_the_modules_added_this_phase_import_under_cpython(self):
+        from magwrite_transport import keyboard_layout, pacing
+        self.assertTrue(hasattr(pacing, "DisplayPacer"))
+        self.assertTrue(hasattr(keyboard_layout, "layout_for"))
 
     def test_no_keyboard_module_imports_hardware_at_module_level(self):
         for name in self.HOST_SAFE_MODULES:

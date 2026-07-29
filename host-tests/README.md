@@ -22,7 +22,12 @@ Logic that does not require CircuitPython or ESP32 hardware should be testable u
 - simulated display-busy typing at 40, 60, and 80 WPM.
 - bounded UART framing, CRC-32, chunking, resynchronization, and malformed input;
 - semantic viewport bounds, deterministic scenarios, newest-frame coalescing,
-  drain-before-render ordering, final revision catch-up, and hash reconciliation.
+  drain-before-render ordering, final revision catch-up, and hash reconciliation;
+- adaptive display pacing under isolated, burst, sustained, and display-busy
+  input, including maximum pending time, final catch-up, and the guarantee that
+  no obsolete frame is transmitted and no input is lost or duplicated;
+- per-device keyboard layout compatibility, and every essential key asserted by
+  the document it produces.
 
 Hardware acceptance tests must remain separate and must not be marked passed by host simulation.
 
@@ -32,4 +37,4 @@ Run the current feasibility suite from the repository root:
 python -m unittest discover -s host-tests -p "test_*.py" -v
 ```
 
-The current suite contains 83 tests and has no third-party host dependencies.
+The current suite contains 572 tests and has no third-party host dependencies.

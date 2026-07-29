@@ -24,6 +24,27 @@ The Fruit Jam remains authoritative for document, cursor, viewport, storage, and
 
 Direct USB HID keyboard input on the Fruit Jam is the preferred keyboard path. The LOLIN32 Bluetooth bridge is deferred and should be revisited only if the intended keyboard is Bluetooth-only and cannot use a USB receiver or wired USB mode.
 
+## V1 delivery order
+
+This is the authoritative order for V1. The older `Priority N` headings below
+are kept because the evidence documents reference them; where the two disagree,
+this list wins.
+
+| V1 | Phase | Section below | State |
+| --- | --- | --- | --- |
+| 1 | Responsiveness and keyboard completeness | V1.1 | Host-verified; physical run pending |
+| 2 | microSD persistence and forced-power-loss recovery | Priority 4 | Not started |
+| 3 | MagWrite Shell | V1.3 | Not started |
+| 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | Not started |
+| 5 | Standalone workflow | Priority 5 | Not started |
+| 6 | Optional MagTag buttons | Priority 2 | Not started, optional |
+| 7 | Battery, enclosure, and hardening | Priorities 6 and 7 | Not started |
+
+Writing must feel right before anything is stored, and storage must be
+trustworthy before a shell is built on top of it. MagTag buttons moved down and
+became optional because the USB keyboard already provides every control the
+writing loop needs; they are a convenience, not a dependency.
+
 ## Completed feasibility gates
 
 ### P0.1 MagTag identity and compatibility — COMPLETE
@@ -104,7 +125,11 @@ and production readiness. The MagTag's discarded-prefix/resynchronization
 behaviour on the RX line remains uncharacterized, though it has never corrupted
 a frame.
 
-## Priority 2 — MagTag button controls over UART
+## Priority 2 — MagTag button controls over UART — V1.6, OPTIONAL
+
+Deferred to **V1 position 6 and marked optional.** The USB keyboard already
+supplies every control the writing loop needs, so buttons are a convenience.
+Nothing later in V1 depends on them.
 
 Use the four existing MagTag front buttons as a control surface for the Fruit Jam through the proven return UART link.
 
@@ -185,10 +210,10 @@ Next in this area, recommended and not yet started: **MagTag button events over
 the existing UART return link**, with the Fruit Jam interpreting button actions.
 Storage and battery work stay out of scope for it.
 
-Also observed by the operator during the verified run and worth a later look:
-the display updates in bursts rather than per keystroke, because viewport sends
-are paced to the panel at 2.6 s. That pacing is deliberate and matched to the
-~1.05 s partial refresh, but a more responsive scheme is a legitimate follow-up.
+Also observed by the operator during the verified run: the display updated in
+bursts rather than per keystroke, because viewport sends were paced by a single
+fixed 2.6 s interval. That follow-up is now **V1.1 below**, which replaced the
+fixed interval with an adaptive policy.
 
 ### Original requirements
 
@@ -213,7 +238,63 @@ The LOLIN32 Bluetooth bridge is not part of this priority.
 
 **Exit:** a real USB HID keyboard can type and edit a multiline document while the MagTag display trails and catches up without lost or reordered input.
 
-## Priority 4 — Single-document persistence and recovery
+## V1.1 — Responsiveness and keyboard completeness — HOST-VERIFIED
+
+Implemented on 2026-07-29. Host suite raised from 472 to 572 tests, all
+passing. **No physical run has been performed for this phase, so no claim is
+made about physical latency or about any key behaving correctly on real
+hardware.** Everything below is host-verified only.
+
+### Adaptive display pacing
+
+The fixed 2.6 s send interval was replaced by an adaptive policy in
+`fruitjam/magwrite_transport/pacing.py`, which is now the single home for every
+display timing constant. Three gates, applied to the newest pending viewport:
+
+1. **busy** — never transmit while the MagTag has an unfinished refresh; at
+   most one viewport is ever in flight;
+2. **coalescing** — a change must be pending for 0.25 s before it may be sent,
+   so a single keypress can never earn its own frame;
+3. **interval**, whose floor depends on what the writer is doing:
+   - onset, nothing sent yet — send as soon as coalescing allows;
+   - caught up, no input for 0.6 s — floor drops to 1.3 s, just past the
+     slowest measured partial refresh;
+   - sustained, still typing — floor stays 2.6 s, the interval already proved
+     to fit the authorised 50-partial-refresh ceiling.
+
+The two cases a writer actually perceives — the first text of a burst, and the
+last text before a pause — no longer wait out a full interval. A pause costs at
+most one extra frame, because once it is caught up nothing is pending until
+typing resumes.
+
+Constants are chosen from the measured panel: full refresh 3500 ms, partial
+refreshes 873–1122 ms, mean ≈1050 ms.
+
+### Keyboard completeness
+
+Apostrophe, double quote, Delete, Home, End, Caps Lock on and off, Shift with
+Caps Lock, and repeat for Backspace, Delete, arrows and printable characters —
+with cancellation on release — are all covered end to end by host tests that
+assert the resulting document.
+
+The EPOMAKER TH40's apostrophe was diagnosed before anything was changed. It
+sends usage `0x2E` (`=`/`+`) **with modifier byte `0`**, so it is neither a
+Shift nor an Fn/AltGr question: the keyboard sends the wrong usage. Standard HID
+was therefore left alone, and a named device layout in
+`fruitjam/magwrite_transport/keyboard_layout.py` remaps `0x2E → 0x34` for that
+vendor and product only. Every unrecognised keyboard gets standard HID.
+
+Escape `0x29` and Application `0x65` remain FINISH, and unsupported usages
+remain explicitly and boundedly reported.
+
+**Not resolved:** Home, End and Delete were never reachable on the TH40 — every
+attempt at its Fn layer switched the keyboard out of USB mode, so no report was
+ever captured. No mapping was invented for them.
+
+**Exit:** a physical run on the two boards confirming the display keeps up with
+live typing and that each listed key behaves as the host tests predict.
+
+## Priority 4 — Single-document persistence and recovery — V1.2
 
 Add microSD-backed storage on the Fruit Jam.
 
@@ -232,7 +313,42 @@ Do not begin with a full document browser. Prove one document and reliable recov
 
 **Exit:** a writing session survives forced power loss with the final acknowledged edit recovered.
 
-## Priority 5 — Minimum standalone workflow
+## V1.3 — MagWrite Shell
+
+The application shell the writing modes live in. It comes after persistence
+because a shell that cannot reliably open and save a document is a menu, not a
+product.
+
+Requirements:
+
+- one owner of application state on the Fruit Jam, distinct from the editor;
+- explicit modes with defined entry, exit, and back behaviour;
+- a viewport the shell can draw that reuses the proven renderer and pacing;
+- keyboard-driven navigation with no dependency on MagTag buttons;
+- bounded, fail-closed transitions with no unsaved-work loss on any path.
+
+**Exit:** the writer can move between the shell and a document repeatedly
+without losing state or stalling the display.
+
+## V1.4 — Journal, Quick Note, Drafts, and Recent
+
+The four writing modes, built on the shell and on persistence.
+
+- **Journal** — dated, append-oriented entries;
+- **Quick Note** — fastest possible capture into a new document;
+- **Drafts** — the working set of documents;
+- **Recent** — return to what was open last.
+
+Requirements:
+
+- each mode is a thin policy over the one proven editor and storage layer;
+- no mode owns its own document format or its own recovery rules;
+- Recent survives forced power loss.
+
+**Exit:** a real writing session that starts in the shell, captures in two
+different modes, and recovers correctly after a forced power loss.
+
+## Priority 5 — Minimum standalone workflow — V1.5
 
 Add the smallest complete on-device workflow:
 
@@ -247,7 +363,7 @@ Add the smallest complete on-device workflow:
 
 **Exit:** complete a 30-minute writing session without a connected development computer.
 
-## Priority 6 — Unified single-battery power
+## Priority 6 — Unified single-battery power — V1.7
 
 Replace separate bench USB power with one internal battery and one charging input.
 
@@ -265,7 +381,7 @@ Requirements:
 
 **Exit:** both boards, keyboard receiver where applicable, storage, and display run reliably from one rechargeable battery through one external charging port.
 
-## Priority 7 — Enclosure and product hardening
+## Priority 7 — Enclosure and product hardening — V1.7
 
 - enclosure and internal mounting;
 - cable strain relief and serviceability;

@@ -314,12 +314,22 @@ frame is rendered, so 100 frames would demand roughly 99 partial refreshes
 against a ceiling of 50, and roughly 400 status frames against a ceiling of 200
 per direction. Fifty partial refreshes is the real bound.
 
-Transmission is therefore paced to the panel at a 2.6 s minimum send interval —
-the same pacing the physically verified editor scenarios used — rather than to
-the typing rate. A keypress never gets its own frame, and a pause costs nothing
-because a frame is only built when the viewport state actually changed. If a
-typing pattern would still exceed a ceiling, the harness stops with an explicit
-stop condition rather than quietly over-running an authorised physical limit.
+Transmission is therefore paced to the panel rather than to the typing rate. A
+keypress never gets its own frame, and a frame is only ever built when the
+viewport state actually changed. If a typing pattern would still exceed a
+ceiling, the harness stops with an explicit stop condition rather than quietly
+over-running an authorised physical limit.
+
+**Pacing changed after this run.** The guarded run above used a single fixed
+2.6 s minimum send interval. It has since been replaced by the adaptive policy
+in `fruitjam/magwrite_transport/pacing.py`, which keeps the 2.6 s floor while
+the writer is still typing but drops to 1.3 s once they pause, and sends the
+first frame of a session one 0.25 s coalescing window after typing begins. At
+most one viewport is now in flight at a time. The sustained-typing budget is
+therefore unchanged against the 50-refresh ceiling; a pause adds at most one
+catch-up frame. **None of that has been measured on hardware.** The numbers in
+the table above are from the fixed-interval run and are not a prediction of what
+the adaptive policy will do physically.
 
 A second attempt requires explicit authorisation. The harness never retries
 automatically.
@@ -609,11 +619,42 @@ case the adapter behaved correctly with what it was given.
 - **Apostrophe.** The TH40's apostrophe key emits usage `0x2E` (`=`/`+`), not
   `0x34`. `0x2E` has no glyph in the proven table, so it was correctly counted
   as unsupported and ignored. `It's` and `don't` therefore appear as `Its` and
-  `dont` in the final document.
+  `dont` in the final document. **Addressed after this run** — see
+  "Apostrophe diagnosis" below.
 - **Home, End, Delete.** Not reachable on this board; see the probe section.
 - **Caps Lock.** Confirmed live by the probe as `0x39` → `CAPS_LOCK`, but not
   toggled during the guarded run: `caps_lock_toggles` is 0.
 - **Key repeat.** No key was held long enough; `repeat_events` is 0.
+
+#### Apostrophe diagnosis — resolved in host code, not yet on hardware
+
+The behaviour was diagnosed from this run's own records before any mapping was
+changed. Two consecutive lines of `FRUITJAM_USB_KEYBOARD_SERIAL.jsonl`:
+
+```json
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[46,0,0,0,0,0],"duplicate":false}
+{"event":"usb_keyboard_unsupported_usage","usage":46,"unsupported_usages":1}
+```
+
+`46` is `0x2E`, and **the modifier byte is `0`**. That settles what this is:
+
+- not a Shift question — no Shift bit is set;
+- not an Fn or AltGr layer question — no modifier bit of any kind is set,
+  whereas the TH40's Fn layer demonstrably *does* set modifier bits
+  (`FRUITJAM_USB_KEYBOARD_PROBE.jsonl` shows its Fn combinations arriving as
+  `0x40` right-alt and `0x10` right-ctrl alongside usage `0x65`);
+- not a translation fault — `0x2E` was translated correctly to `=`/`+`, which
+  has no glyph, so it was counted as unsupported exactly as designed.
+
+The keyboard simply sends the wrong usage for that physical key. Standard HID
+was therefore left unchanged, and the fix was made a property of this device: a
+named layout in `fruitjam/magwrite_transport/keyboard_layout.py` remaps
+`0x2E → 0x34` for vendor `36B0`, product `304E` only. Every keyboard that is not
+that one continues to get the specification's mapping, and both `0x29` and
+`0x65` remain FINISH under every layout.
+
+This is host-verified only. **No physical run has confirmed that the TH40 types
+an apostrophe on the real device.**
 
 #### Evidence gaps in this attempt, stated plainly
 

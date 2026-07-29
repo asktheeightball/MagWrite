@@ -26,6 +26,7 @@ from magwrite_transport.hid_keymap import (
     CONTROL_CAPS_LOCK, CONTROL_UNSUPPORTED, CONTROL_USAGES, REPEATABLE_KINDS,
     USAGE_NONE, is_error_usage, is_modifier_usage, shift_active, translate,
 )
+from magwrite_transport.keyboard_layout import STANDARD
 
 REPORT_SIZE = 8
 MODIFIER_INDEX = 0
@@ -39,15 +40,25 @@ class HidReportError(Exception):
 
 
 class KeyDecision:
-    """One translated key press or repeat."""
+    """One translated key press or repeat.
 
-    __slots__ = ("kind", "value", "usage", "repeat")
+    ``usage`` is always the raw usage the keyboard sent, so repeat ownership and
+    release matching stay in the keyboard's own vocabulary. ``mapped_usage`` is
+    what was actually translated, and differs only under a device layout.
+    """
 
-    def __init__(self, kind, value, usage, repeat=False):
+    __slots__ = ("kind", "value", "usage", "mapped_usage", "repeat")
+
+    def __init__(self, kind, value, usage, repeat=False, mapped_usage=None):
         self.kind = kind
         self.value = value
         self.usage = usage
+        self.mapped_usage = usage if mapped_usage is None else mapped_usage
         self.repeat = repeat
+
+    @property
+    def remapped(self):
+        return self.mapped_usage != self.usage
 
     @property
     def repeatable(self):
@@ -99,7 +110,8 @@ def parse_report(raw):
 class HidKeyboardTranslator:
     """Stateful press/release/hold tracking across consecutive reports."""
 
-    def __init__(self):
+    def __init__(self, layout=STANDARD):
+        self.layout = layout
         self.caps_lock = False
         self.previous_raw = None
         self.held = ()
@@ -110,7 +122,12 @@ class HidKeyboardTranslator:
         self.consecutive_rollover = 0
         self.unsupported_usages = 0
         self.caps_lock_toggles = 0
+        self.remapped_usages = 0
         self.resets = 0
+
+    def set_layout(self, layout):
+        """Adopt a device layout, normally once, when a keyboard is identified."""
+        self.layout = layout
 
     def reset(self):
         """Forget all transient keyboard state.
@@ -162,7 +179,12 @@ class HidKeyboardTranslator:
         decisions = []
         controls = []
         for usage in pressed:
-            control = CONTROL_USAGES.get(usage)
+            # The layout decides *what key this is*; everything downstream still
+            # sees the raw usage, so releases and repeats stay consistent.
+            mapped = self.layout.usage(usage)
+            if mapped != usage:
+                self.remapped_usages += 1
+            control = CONTROL_USAGES.get(mapped)
             if control == CONTROL_CAPS_LOCK:
                 self.caps_lock = not self.caps_lock
                 self.caps_lock_toggles += 1
@@ -171,13 +193,17 @@ class HidKeyboardTranslator:
             if control is not None:
                 controls.append((control, usage))
                 continue
-            translated = translate(usage, shift, self.caps_lock)
+            translated = translate(mapped, shift, self.caps_lock)
             if translated is None:
                 self.unsupported_usages += 1
+                # The raw usage is reported: the diagnostic must say what the
+                # keyboard actually sent, not what we hoped it meant.
                 controls.append((CONTROL_UNSUPPORTED, usage))
                 continue
             kind, value = translated
-            decisions.append(KeyDecision(kind, value, usage))
+            decisions.append(
+                KeyDecision(kind, value, usage, mapped_usage=mapped)
+            )
         return ReportOutcome(
             modifier=modifier, usages=usages, pressed=pressed,
             released=released, held=active, decisions=tuple(decisions),

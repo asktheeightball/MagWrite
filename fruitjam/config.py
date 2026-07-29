@@ -30,9 +30,17 @@ USB_KEYBOARD_MAX_EVENTS = 500
 # timeout, so a silent keyboard never blocks display polling.
 USB_KEYBOARD_POLL_BUDGET = 4
 USB_KEYBOARD_READ_TIMEOUT_MS = 2
-# Paced to the panel, not to the typing rate, matching the physically verified
-# editor scenarios. Fifty partial refreshes is the binding physical ceiling.
-USB_KEYBOARD_MIN_SEND_SECONDS = 2.6
+# Adaptive display pacing. These mirror magwrite_transport/pacing.py, which is
+# the single source of truth and carries the measured panel numbers behind each
+# value; a host test asserts the two agree. Fifty partial refreshes remains the
+# binding physical ceiling.
+USB_KEYBOARD_COALESCE_SECONDS = 0.25
+USB_KEYBOARD_QUIET_SECONDS = 0.6
+USB_KEYBOARD_CAUGHT_UP_MIN_SEND_SECONDS = 1.3
+USB_KEYBOARD_SUSTAINED_MIN_SEND_SECONDS = 2.6
+# "AUTO" identifies the keyboard from its USB descriptor and applies a recorded
+# device layout if one matches; anything unrecognised gets standard HID.
+USB_KEYBOARD_LAYOUT = "AUTO"
 # A live run is operator-paced, so it is abandoned only after a long silence.
 USB_KEYBOARD_IDLE_TIMEOUT_SECONDS = 600
 USB_KEYBOARD_SESSION_TIMEOUT_SECONDS = 2700

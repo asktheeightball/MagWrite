@@ -30,6 +30,11 @@ from magwrite_transport.editor import (
     SequenceTracker,
 )
 from magwrite_transport.editor_viewport import EditorViewport
+from magwrite_transport.pacing import (
+    CAUGHT_UP_MIN_SEND_SECONDS, COALESCE_SECONDS, MAX_VISIBLE_LAG_SECONDS,
+    QUIET_SECONDS, SEND_WINDOW, SENDING_REASONS, SUSTAINED_MIN_SEND_SECONDS,
+    DisplayPacer,
+)
 from magwrite_transport.protocol import (
     END_OF_TEST, HELLO, VIEWPORT, FrameParser, crc32, encode_frame,
 )
@@ -52,17 +57,18 @@ EVENT_QUEUE_CAPACITY = 64
 ACK_TRACKER_CAPACITY = 128
 INPUT_DRAIN_BUDGET = 16
 STATUS_FRAME_BUDGET = 16
-SEND_WINDOW = 2
-# The same pacing the physically verified editor scenarios used (2.6-3.2 s).
+
+# Display pacing lives in one place, ``pacing``, so a physical run can never
+# have two disagreeing send intervals. Re-exported here because this is where a
+# reader of the scheduler looks for them.
 #
 # The 100-frame viewport ceiling is not the binding one. Almost every accepted
 # frame is rendered, so 100 frames would demand ~99 partial refreshes against a
 # ceiling of 50, and ~400 status frames against a ceiling of 200 per direction.
-# Fifty refreshes is therefore the real bound, and transmission is paced to the
-# panel rather than to the typing rate so a whole session fits inside it. A
-# keypress never gets its own frame, and a pause costs nothing because a frame is
-# only ever built when the viewport state actually changed.
-MIN_SEND_SECONDS = 2.6
+# Fifty refreshes is therefore the real bound, and transmission stays paced to
+# the panel rather than to the typing rate so a whole session fits inside it. A
+# keypress never gets its own frame, and a pause costs at most one catch-up
+# frame because a frame is only ever built when the viewport state changed.
 # Operator-paced: a live run is only abandoned after a long silence, never on a
 # fixed schedule, because a person pausing to read the panel is not a fault.
 IDLE_TIMEOUT_SECONDS = 600.0
@@ -84,10 +90,9 @@ class LiveTypingSession:
         self, monotonic, log, adapter=None, adapter_factory=None,
         queue_capacity=EVENT_QUEUE_CAPACITY,
         tracker_capacity=ACK_TRACKER_CAPACITY, send_window=SEND_WINDOW,
-        min_send_seconds=MIN_SEND_SECONDS,
         idle_timeout_seconds=IDLE_TIMEOUT_SECONDS,
         session_timeout_seconds=SESSION_TIMEOUT_SECONDS,
-        viewport=None, tracker=None, editor=None,
+        viewport=None, tracker=None, editor=None, pacer=None,
     ):
         self.monotonic = monotonic
         self.log = log
@@ -101,7 +106,7 @@ class LiveTypingSession:
         )
         self.adapter = adapter if adapter is not None else adapter_factory(self.queue)
         self.send_window = send_window
-        self.min_send_seconds = min_send_seconds
+        self.pacer = pacer or DisplayPacer()
         self.idle_timeout_seconds = idle_timeout_seconds
         self.session_timeout_seconds = session_timeout_seconds
         self.phase = PHASE_HELLO
@@ -197,6 +202,9 @@ class LiveTypingSession:
             self.events_processed += 1
             applied += 1
             self.last_activity_at = now
+            # Pacing needs to know the writer is still typing, so it can tell a
+            # sustained burst from a pause it should catch up after.
+            self.pacer.note_input(now)
             self.log({
                 "event": "live_event_processed", "sequence": event.sequence,
                 "kind": event.kind, "value": event.value,
@@ -255,8 +263,11 @@ class LiveTypingSession:
             return False
         revision, payload = built
         if payload == self.last_sent_payload:
+            # The panel already shows this exact state; nothing is pending.
             self.built_revision = None
+            self.pacer.clear_pending()
             return False
+        self.pacer.note_pending(now)
         if self.built_revision is None:
             self.viewports_built += 1
         elif self.built_revision != revision:
@@ -268,14 +279,14 @@ class LiveTypingSession:
                 "newest_revision": revision,
             })
         self.built_revision = revision
-        if self._outstanding() >= self.send_window:
+        # The busy gate is absolute and applies to the forced final send too: a
+        # refresh is never started while the MagTag is still working.
+        busy = self._outstanding() >= self.send_window
+        reason = self.pacer.decide(now, busy)
+        if busy:
             return False
-        if not force:
-            if (
-                self.last_send_at is not None
-                and now - self.last_send_at < self.min_send_seconds
-            ):
-                return False
+        if not force and reason not in SENDING_REASONS:
+            return False
         if self.viewport_frames_sent >= MAX_VIEWPORT_FRAMES:
             raise LiveSessionError("viewport frame limit exceeded")
         self._emit(VIEWPORT, revision, payload)
@@ -287,11 +298,13 @@ class LiveTypingSession:
         self.last_sent_hash = digest
         self.last_send_at = now
         self.built_revision = None
+        self.pacer.note_sent(now, None if force else reason)
         self.log({
             "event": "live_viewport_sent", "sequence": self.frame_sequence,
             "revision": revision,
             "document_revision": self.editor.document_revision,
             "text_hash": "%08X" % digest, "outstanding": self._outstanding(),
+            "pacing_reason": "FORCED" if force else reason,
         })
         return True
 
@@ -425,5 +438,6 @@ class LiveTypingSession:
                 1 if self.stop_reason and "timeout" in self.stop_reason else 0
             ),
         }
+        record.update(self.pacer.summary())
         record.update(self.adapter.summary())
         return record

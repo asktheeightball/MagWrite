@@ -21,6 +21,7 @@ from magwrite_transport.hid_keyboard import HidKeyboardTranslator
 from magwrite_transport.hid_keymap import (
     CONTROL_CAPS_LOCK, CONTROL_FINISH, CONTROL_UNSUPPORTED,
 )
+from magwrite_transport.keyboard_layout import AUTO, resolve
 from magwrite_transport.keyboard_repeat import KeyRepeat
 from magwrite_transport.usb_device_state import ERROR, UsbDeviceState
 from magwrite_transport.usb_hid_descriptors import (
@@ -42,10 +43,14 @@ class UsbKeyboardAdapter:
         self, backend, queue, log, scenario=LIVE_SCENARIO, translator=None,
         repeat=None, state=None, poll_budget=REPORT_POLL_BUDGET,
         rollover_tolerance=ROLLOVER_TOLERANCE,
-        max_events=MAX_KEYBOARD_EVENTS, now=0.0,
+        max_events=MAX_KEYBOARD_EVENTS, now=0.0, layout=AUTO,
     ):
         if poll_budget < 1:
             raise ValueError("poll budget must be positive")
+        # Fail closed on a misspelled layout now, at construction, rather than
+        # midway through an armed physical run.
+        resolve(layout, None)
+        self.layout_selection = layout
         self.backend = backend
         self.queue = queue
         self.log = log
@@ -109,11 +114,21 @@ class UsbKeyboardAdapter:
         # A fresh session must never inherit held keys or a guessed latch state.
         self.translator.reset()
         self.repeat.cancel()
+        # The layout is chosen from the descriptor of the keyboard actually
+        # attached, so an unrecognised device always gets standard HID.
+        layout = resolve(self.layout_selection, self.descriptor)
+        self.translator.set_layout(layout)
         self.state.opened(now)
         record = {"event": "usb_keyboard_connected"}
         if isinstance(self.descriptor, dict):
             record.update(self.descriptor)
         self.log(record)
+        self.log({
+            "event": "usb_keyboard_layout_selected",
+            "selection": self.layout_selection,
+            "layout": layout.describe(),
+            "note": layout.note,
+        })
         self.last_activity_at = now
         return True
 
@@ -157,6 +172,7 @@ class UsbKeyboardAdapter:
             "event": "keyboard_event_normalized",
             "sequence": event.sequence, "kind": event.kind,
             "value": event.value, "usage": decision.usage,
+            "mapped_usage": decision.mapped_usage,
             "repeat": repeat, "queue_depth": depth,
         })
         return 1
@@ -240,6 +256,8 @@ class UsbKeyboardAdapter:
             "repeat_resynchronizations": self.repeat.resynchronizations,
             "unsupported_usages": self.unsupported_usages,
             "caps_lock_toggles": self.translator.caps_lock_toggles,
+            "keyboard_layout": self.translator.layout.name,
+            "remapped_usages": self.translator.remapped_usages,
             "queue_overflows": self.queue_overflows,
             "held_key_resets": self.translator.resets,
             "usb_device": self.state.describe(),

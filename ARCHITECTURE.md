@@ -52,6 +52,9 @@ The physical bidirectional gate passed on 2026-07-28 at 115200 baud. The system 
 USB HID or deterministic input source
         |
         v
+device layout (per-keyboard usage compatibility, standard HID by default)
+        |
+        v
 InputAdapter boundary (normalized InputEvent)
         |
         v
@@ -70,6 +73,9 @@ layout and viewport builder
         +-- viewport_revision
         |
         v
+adaptive send pacing (when to transmit; never what)
+        |
+        v
 bidirectional UART transport
         |
         v
@@ -81,6 +87,25 @@ MagTag display-only terminal
 ```
 
 The MagTag performs no editing, wrapping, scrolling, persistence, or document interpretation. It validates bounded viewport payloads and renders them.
+
+### Keyboard layout compatibility
+
+`hid_keymap` implements HID Usage Page 0x07 as specified and does not bend for
+any particular keyboard. Devices that do not follow the specification are
+accommodated separately, in `keyboard_layout`, as a named and bounded usage
+remap selected from the USB descriptor the backend already reports.
+
+The rules are deliberately narrow:
+
+- an unrecognised keyboard always gets `STANDARD`, which remaps nothing, so the
+  default path is unchanged and fail-safe;
+- a device only gets a remap if its vendor and product identifiers match a
+  recorded entry, and every entry carries the measured evidence behind it;
+- remapping applies at translation only. Held keys, press and release tracking,
+  and repeat ownership all keep the raw usage the keyboard sent, so a remap can
+  never desynchronise a release from its press;
+- no layout may redefine a FINISH usage, Caps Lock, or an editing key;
+- a misspelled layout name fails closed at construction, not mid-run.
 
 ## Responsibility boundaries
 
@@ -208,6 +233,30 @@ Initial policy:
 - preserve OLD/NEW differential state by avoiding panel power-off during an active writing session.
 
 The production full-refresh interval remains configurable and must be based on later wear testing.
+
+### Adaptive send pacing
+
+*When* the Fruit Jam transmits a viewport is decided in one place,
+`fruitjam/magwrite_transport/pacing.py`. It is the single home for every display
+timing constant, so no two code paths can disagree about a send interval. It
+decides only *when*; coalescing to the newest state, revision numbering,
+hashing, acknowledgement, and the fail-closed ceilings stay where they are.
+
+Three gates apply to the newest pending viewport, in order:
+
+1. **busy** — never transmit while the MagTag has an unfinished refresh. At
+   most one viewport is in flight, so a refresh is never started while the panel
+   is working, and what goes out next is the newest state at the moment the
+   panel came free rather than something queued while it was busy;
+2. **coalescing** — a pending change must have existed for a short window
+   before it may be sent, so a single keypress can never earn its own frame;
+3. **interval** — the floor depends on what the writer is doing. Onset sends as
+   soon as coalescing allows; a writer who has paused gets a short floor of
+   roughly one partial refresh; a writer still typing gets the longer sustained
+   floor that fits the authorised refresh budget.
+
+The values are derived from measured panel behaviour, recorded in the module
+alongside the constants they justify.
 
 ## Storage model
 
