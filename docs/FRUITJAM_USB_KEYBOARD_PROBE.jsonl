@@ -191,7 +191,7 @@
 {"nonzero":79,"elapsed":30.0,"reports":102,"remaining":["a","shift_a","enter","backspace"],"event":"probe_waiting"}
 {"nonzero":96,"elapsed":40.0,"reports":135,"remaining":["a","shift_a","backspace"],"event":"probe_waiting"}
 {"reports":135,"stop_reason":"timeout","event":"probe_summary","duplicate_reports":10,"elapsed":50.0,"unsupported_usages":21,"result":"PASS","error_reports":0,"identity":{"interface_protocol":1,"max_packet_size":8,"interval":1,"vendor_id":"36B0","hid_interfaces":3,"serial_number":null,"interface_subclass":1,"endpoint":129,"speed":2,"interface_class":3,"protocol":"boot_keyboard","manufacturer":"RDMCTMZT","interface":0,"product_id":"304E","product":"EPOMAKER TH40"},"release_reports":29,"nonzero_reports":96,"zero_reports":29,"idle_polls":24478,"seen":{"left":true,"enter":true,"shift_a":false,"a":false,"backspace":false}}
-{"event":"probe_capture","run":"wired_keyboard_home_end_delete_45s","note":"EPOMAKER TH40. 45 s probe for Home, End and Delete. Zero reports of any kind were observed; the operator does not know the TH40 layer mapping for these keys, so they are recorded as not exercised."}
+{"event":"probe_capture","run":"wired_keyboard_home_end_delete_45s","note":"EPOMAKER TH40. 45 s probe for Home, End and Delete. Zero reports of any kind were observed across 22,228 polls while the keyboard stayed enumerated and claimed. Later runs showed this is the keyboard leaving USB mode on an Fn combination, not the keys being unmapped. Home, End and Delete remain not exercised."}
 {"seconds":45,"writes_files":false,"creates_guards":false,"event":"probe_start","touches_display":false}
 {"event":"probe_enumeration","device_count":1}
 {"event":"probe_device","serial_number":null,"speed":2,"index":0,"product_id":"304E","vendor_id":"36B0","product":"EPOMAKER TH40","manufacturer":"RDMCTMZT"}
@@ -209,3 +209,335 @@
 {"nonzero":0,"elapsed":30.0,"reports":0,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
 {"nonzero":0,"elapsed":40.0,"reports":0,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
 {"reports":0,"stop_reason":"timeout","event":"probe_summary","duplicate_reports":0,"elapsed":45.0,"unsupported_usages":0,"result":"FAIL","error_reports":0,"identity":{"interface_protocol":1,"max_packet_size":8,"interval":1,"vendor_id":"36B0","hid_interfaces":3,"serial_number":null,"interface_subclass":1,"endpoint":129,"speed":2,"interface_class":3,"protocol":"boot_keyboard","manufacturer":"RDMCTMZT","interface":0,"product_id":"304E","product":"EPOMAKER TH40"},"release_reports":0,"nonzero_reports":0,"zero_reports":0,"idle_polls":22228,"seen":{"left":false,"enter":false,"shift_a":false,"a":false,"backspace":false}}
+{"event":"probe_capture","run":"wired_keyboard_caps_lock_45s","note":"EPOMAKER TH40. 45 s probe. Caps Lock confirmed as usage 0x39 with nine clean press/release pairs. Escape was not observed."}
+{"seconds":45,"writes_files":false,"creates_guards":false,"event":"probe_start","touches_display":false}
+{"event":"probe_enumeration","device_count":1}
+{"event":"probe_device","serial_number":null,"speed":2,"index":0,"product_id":"304E","vendor_id":"36B0","product":"EPOMAKER TH40","manufacturer":"RDMCTMZT"}
+{"hex":"09025B00030100A0FA09040000010301010009211101000122440007058103080001090401000203000000092111010001222200070582032000010705030320000109040200010300000009211101000122B60007058403200001","length":91,"event":"probe_configuration_descriptor","index":0}
+{"detail":{"interface":0,"protocol":1,"endpoints":[{"max_packet_size":8,"interval":1,"attributes":3,"address":129}],"class":3,"subclass":1,"alternate":0},"event":"probe_interface","index":0}
+{"detail":{"interface":1,"protocol":0,"endpoints":[{"max_packet_size":32,"interval":1,"attributes":3,"address":130},{"max_packet_size":32,"interval":1,"attributes":3,"address":3}],"class":3,"subclass":0,"alternate":0},"event":"probe_interface","index":0}
+{"detail":{"interface":2,"protocol":0,"endpoints":[{"max_packet_size":32,"interval":1,"attributes":3,"address":132}],"class":3,"subclass":0,"alternate":0},"event":"probe_interface","index":0}
+{"max_packet_size":8,"interface_protocol":1,"interface":0,"interface_class":3,"index":0,"interface_subclass":1,"endpoint":"0x81","interval":1,"event":"probe_selected"}
+{"interface":0,"event":"probe_kernel_driver","active":true,"phase":"before_claim","index":0}
+{"event":"probe_claimed","identity":{"interface_protocol":1,"max_packet_size":8,"interval":1,"vendor_id":"36B0","hid_interfaces":3,"serial_number":null,"interface_subclass":1,"endpoint":129,"speed":2,"interface_class":3,"protocol":"boot_keyboard","manufacturer":"RDMCTMZT","interface":0,"product_id":"304E","product":"EPOMAKER TH40"}}
+{"interface":0,"active":false,"phase":"after_claim","event":"probe_kernel_driver"}
+{"message":"Type continuously: A, Shift+A, Enter, Backspace, Left arrow","event":"probe_type_now"}
+{"raw":"0000390000000000","modifier":"0x00","index":1,"keys":[{"kind":"CONTROL","usage":"0x39","action":"CAPS_LOCK"}],"shift":false,"event":"probe_report","elapsed":7.45}
+{"raw":"0000000000000000","modifier":"0x00","index":2,"keys":[],"shift":false,"event":"probe_report","elapsed":7.52}
+{"raw":"0000390000000000","modifier":"0x00","index":3,"keys":[{"kind":"CONTROL","usage":"0x39","action":"CAPS_LOCK"}],"shift":false,"event":"probe_report","elapsed":7.61}
+{"raw":"0000000000000000","modifier":"0x00","index":4,"keys":[],"shift":false,"event":"probe_report","elapsed":7.68}
+{"raw":"0000390000000000","modifier":"0x00","index":5,"keys":[{"kind":"CONTROL","usage":"0x39","action":"CAPS_LOCK"}],"shift":false,"event":"probe_report","elapsed":7.76}
+{"raw":"0000000000000000","modifier":"0x00","index":6,"keys":[],"shift":false,"event":"probe_report","elapsed":7.83}
+{"raw":"0000390000000000","modifier":"0x00","index":7,"keys":[{"kind":"CONTROL","usage":"0x39","action":"CAPS_LOCK"}],"shift":false,"event":"probe_report","elapsed":7.93}
+{"raw":"0000000000000000","modifier":"0x00","index":9,"keys":[],"shift":false,"event":"probe_report","elapsed":8.16}
+{"raw":"0000390000000000","modifier":"0x00","index":10,"keys":[{"kind":"CONTROL","usage":"0x39","action":"CAPS_LOCK"}],"shift":false,"event":"probe_report","elapsed":8.25}
+{"raw":"0000000000000000","modifier":"0x00","index":11,"keys":[],"shift":false,"event":"probe_report","elapsed":8.32}
+{"raw":"0000390000000000","modifier":"0x00","index":12,"keys":[{"kind":"CONTROL","usage":"0x39","action":"CAPS_LOCK"}],"shift":false,"event":"probe_report","elapsed":8.41}
+{"raw":"0000000000000000","modifier":"0x00","index":13,"keys":[],"shift":false,"event":"probe_report","elapsed":8.47}
+{"raw":"0000390000000000","modifier":"0x00","index":14,"keys":[{"kind":"CONTROL","usage":"0x39","action":"CAPS_LOCK"}],"shift":false,"event":"probe_report","elapsed":8.57}
+{"raw":"0000000000000000","modifier":"0x00","index":15,"keys":[],"shift":false,"event":"probe_report","elapsed":8.63}
+{"raw":"0000390000000000","modifier":"0x00","index":16,"keys":[{"kind":"CONTROL","usage":"0x39","action":"CAPS_LOCK"}],"shift":false,"event":"probe_report","elapsed":8.73}
+{"raw":"0000000000000000","modifier":"0x00","index":17,"keys":[],"shift":false,"event":"probe_report","elapsed":8.79}
+{"raw":"0000390000000000","modifier":"0x00","index":18,"keys":[{"kind":"CONTROL","usage":"0x39","action":"CAPS_LOCK"}],"shift":false,"event":"probe_report","elapsed":8.89}
+{"raw":"0000000000000000","modifier":"0x00","index":19,"keys":[],"shift":false,"event":"probe_report","elapsed":8.96}
+{"raw":"0000040000000000","modifier":"0x00","index":20,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":9.89}
+{"raw":"0000041600000000","modifier":"0x00","index":21,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"}],"shift":false,"event":"probe_report","elapsed":9.91}
+{"raw":"0000041607000000","modifier":"0x00","index":22,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":9.94}
+{"raw":"00000416070E0000","modifier":"0x00","index":23,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0E","value":"k"}],"shift":false,"event":"probe_report","elapsed":10.0}
+{"nonzero":13,"elapsed":10.0,"reports":23,"remaining":["shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"raw":"00000416070E0D00","modifier":"0x00","index":24,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"}],"shift":false,"event":"probe_report","elapsed":10.0}
+{"raw":"00000416070E0D09","modifier":"0x00","index":25,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":10.01}
+{"raw":"000016070E0D0900","modifier":"0x00","index":27,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":10.02}
+{"raw":"0000070E0D090000","modifier":"0x00","index":28,"keys":[{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":10.05}
+{"raw":"00000E0D09000000","modifier":"0x00","index":29,"keys":[{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":10.09}
+{"raw":"00000D0900000000","modifier":"0x00","index":30,"keys":[{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":10.09}
+{"raw":"0000090000000000","modifier":"0x00","index":31,"keys":[{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":10.11}
+{"raw":"0000000000000000","modifier":"0x00","index":32,"keys":[],"shift":false,"event":"probe_report","elapsed":10.12}
+{"raw":"0000160000000000","modifier":"0x00","index":34,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"}],"shift":false,"event":"probe_report","elapsed":10.22}
+{"raw":"0000160700000000","modifier":"0x00","index":35,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":10.24}
+{"raw":"0000160704000000","modifier":"0x00","index":36,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":10.25}
+{"raw":"00001607040D0000","modifier":"0x00","index":37,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x0D","value":"j"}],"shift":false,"event":"probe_report","elapsed":10.29}
+{"raw":"00001607040D0E00","modifier":"0x00","index":38,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0E","value":"k"}],"shift":false,"event":"probe_report","elapsed":10.29}
+{"raw":"00001607040D0E0B","modifier":"0x00","index":39,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0B","value":"h"}],"shift":false,"event":"probe_report","elapsed":10.3}
+{"raw":"000016070D0E0B00","modifier":"0x00","index":40,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0B","value":"h"}],"shift":false,"event":"probe_report","elapsed":10.31}
+{"raw":"000016070D0E0B09","modifier":"0x00","index":41,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":10.31}
+{"raw":"0000070D0E0B0900","modifier":"0x00","index":42,"keys":[{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":10.34}
+{"raw":"00000D0E0B090000","modifier":"0x00","index":43,"keys":[{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":10.35}
+{"raw":"00000D0B09000000","modifier":"0x00","index":44,"keys":[{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":10.38}
+{"raw":"00000B0900000000","modifier":"0x00","index":45,"keys":[{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":10.4}
+{"raw":"00000B0000000000","modifier":"0x00","index":46,"keys":[{"kind":"CHAR","usage":"0x0B","value":"h"}],"shift":false,"event":"probe_report","elapsed":10.41}
+{"raw":"0000000000000000","modifier":"0x00","index":47,"keys":[],"shift":false,"event":"probe_report","elapsed":10.44}
+{"raw":"0000040000000000","modifier":"0x00","index":48,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":10.49}
+{"raw":"0000041600000000","modifier":"0x00","index":49,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"}],"shift":false,"event":"probe_report","elapsed":10.51}
+{"raw":"0000041607000000","modifier":"0x00","index":50,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":10.56}
+{"raw":"00000416070E0000","modifier":"0x00","index":51,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0E","value":"k"}],"shift":false,"event":"probe_report","elapsed":10.58}
+{"raw":"00000416070E0D00","modifier":"0x00","index":52,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"}],"shift":false,"event":"probe_report","elapsed":10.59}
+{"raw":"00000416070E0D09","modifier":"0x00","index":53,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":10.59}
+{"raw":"000016070E0D0900","modifier":"0x00","index":55,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":10.6}
+{"raw":"000016070E0D090A","modifier":"0x00","index":56,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x09","value":"f"},{"kind":"CHAR","usage":"0x0A","value":"g"}],"shift":false,"event":"probe_report","elapsed":10.63}
+{"raw":"0000070E0D090A00","modifier":"0x00","index":57,"keys":[{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x09","value":"f"},{"kind":"CHAR","usage":"0x0A","value":"g"}],"shift":false,"event":"probe_report","elapsed":10.64}
+{"raw":"00000E0D090A0000","modifier":"0x00","index":58,"keys":[{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x09","value":"f"},{"kind":"CHAR","usage":"0x0A","value":"g"}],"shift":false,"event":"probe_report","elapsed":10.66}
+{"raw":"00000D090A000000","modifier":"0x00","index":59,"keys":[{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x09","value":"f"},{"kind":"CHAR","usage":"0x0A","value":"g"}],"shift":false,"event":"probe_report","elapsed":10.69}
+{"raw":"00000A0000000000","modifier":"0x00","index":60,"keys":[{"kind":"CHAR","usage":"0x0A","value":"g"}],"shift":false,"event":"probe_report","elapsed":10.71}
+{"raw":"0000000000000000","modifier":"0x00","index":61,"keys":[],"shift":false,"event":"probe_report","elapsed":10.74}
+{"raw":"0000040000000000","modifier":"0x00","index":63,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":10.79}
+{"raw":"0000041600000000","modifier":"0x00","index":64,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"}],"shift":false,"event":"probe_report","elapsed":10.82}
+{"raw":"0000041607000000","modifier":"0x00","index":65,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":10.85}
+{"nonzero":70,"elapsed":20.0,"reports":95,"remaining":["shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":70,"elapsed":30.0,"reports":95,"remaining":["shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":70,"elapsed":40.0,"reports":95,"remaining":["shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"reports":95,"stop_reason":"timeout","event":"probe_summary","duplicate_reports":11,"elapsed":45.0,"unsupported_usages":0,"result":"PASS","error_reports":0,"identity":{"interface_protocol":1,"max_packet_size":8,"interval":1,"vendor_id":"36B0","hid_interfaces":3,"serial_number":null,"interface_subclass":1,"endpoint":129,"speed":2,"interface_class":3,"protocol":"boot_keyboard","manufacturer":"RDMCTMZT","interface":0,"product_id":"304E","product":"EPOMAKER TH40"},"release_reports":14,"nonzero_reports":70,"zero_reports":14,"idle_polls":22004,"seen":{"left":false,"enter":false,"shift_a":false,"a":true,"backspace":false}}
+{"event":"probe_capture","run":"wired_keyboard_escape_hunt_60s","note":"EPOMAKER TH40. 60 s probe hunting for Escape with Fn combinations. Zero reports across 29,632 polls: the keyboard had left USB mode."}
+{"seconds":60,"writes_files":false,"creates_guards":false,"event":"probe_start","touches_display":false}
+{"event":"probe_enumeration","device_count":1}
+{"event":"probe_device","serial_number":null,"speed":2,"index":0,"product_id":"304E","vendor_id":"36B0","product":"EPOMAKER TH40","manufacturer":"RDMCTMZT"}
+{"hex":"09025B00030100A0FA09040000010301010009211101000122440007058103080001090401000203000000092111010001222200070582032000010705030320000109040200010300000009211101000122B60007058403200001","length":91,"event":"probe_configuration_descriptor","index":0}
+{"detail":{"interface":0,"protocol":1,"endpoints":[{"max_packet_size":8,"interval":1,"attributes":3,"address":129}],"class":3,"subclass":1,"alternate":0},"event":"probe_interface","index":0}
+{"detail":{"interface":1,"protocol":0,"endpoints":[{"max_packet_size":32,"interval":1,"attributes":3,"address":130},{"max_packet_size":32,"interval":1,"attributes":3,"address":3}],"class":3,"subclass":0,"alternate":0},"event":"probe_interface","index":0}
+{"detail":{"interface":2,"protocol":0,"endpoints":[{"max_packet_size":32,"interval":1,"attributes":3,"address":132}],"class":3,"subclass":0,"alternate":0},"event":"probe_interface","index":0}
+{"max_packet_size":8,"interface_protocol":1,"interface":0,"interface_class":3,"index":0,"interface_subclass":1,"endpoint":"0x81","interval":1,"event":"probe_selected"}
+{"interface":0,"event":"probe_kernel_driver","active":false,"phase":"before_claim","index":0}
+{"event":"probe_claimed","identity":{"interface_protocol":1,"max_packet_size":8,"interval":1,"vendor_id":"36B0","hid_interfaces":3,"serial_number":null,"interface_subclass":1,"endpoint":129,"speed":2,"interface_class":3,"protocol":"boot_keyboard","manufacturer":"RDMCTMZT","interface":0,"product_id":"304E","product":"EPOMAKER TH40"}}
+{"interface":0,"active":false,"phase":"after_claim","event":"probe_kernel_driver"}
+{"message":"Type continuously: A, Shift+A, Enter, Backspace, Left arrow","event":"probe_type_now"}
+{"nonzero":0,"elapsed":10.0,"reports":0,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":0,"elapsed":20.0,"reports":0,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":0,"elapsed":30.0,"reports":0,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":0,"elapsed":40.0,"reports":0,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":0,"elapsed":50.0,"reports":0,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"reports":0,"stop_reason":"timeout","event":"probe_summary","duplicate_reports":0,"elapsed":60.0,"unsupported_usages":0,"result":"FAIL","error_reports":0,"identity":{"interface_protocol":1,"max_packet_size":8,"interval":1,"vendor_id":"36B0","hid_interfaces":3,"serial_number":null,"interface_subclass":1,"endpoint":129,"speed":2,"interface_class":3,"protocol":"boot_keyboard","manufacturer":"RDMCTMZT","interface":0,"product_id":"304E","product":"EPOMAKER TH40"},"release_reports":0,"nonzero_reports":0,"zero_reports":0,"idle_polls":29632,"seen":{"left":false,"enter":false,"shift_a":false,"a":false,"backspace":false}}
+{"event":"probe_capture","run":"wired_keyboard_escape_retry_60s","note":"EPOMAKER TH40. 60 s probe. Still zero reports across 29,632 polls, including ordinary letters, confirming the keyboard was transmitting on its radio rather than over USB."}
+{"seconds":60,"writes_files":false,"creates_guards":false,"event":"probe_start","touches_display":false}
+{"event":"probe_enumeration","device_count":1}
+{"event":"probe_device","serial_number":null,"speed":2,"index":0,"product_id":"304E","vendor_id":"36B0","product":"EPOMAKER TH40","manufacturer":"RDMCTMZT"}
+{"hex":"09025B00030100A0FA09040000010301010009211101000122440007058103080001090401000203000000092111010001222200070582032000010705030320000109040200010300000009211101000122B60007058403200001","length":91,"event":"probe_configuration_descriptor","index":0}
+{"detail":{"interface":0,"protocol":1,"endpoints":[{"max_packet_size":8,"interval":1,"attributes":3,"address":129}],"class":3,"subclass":1,"alternate":0},"event":"probe_interface","index":0}
+{"detail":{"interface":1,"protocol":0,"endpoints":[{"max_packet_size":32,"interval":1,"attributes":3,"address":130},{"max_packet_size":32,"interval":1,"attributes":3,"address":3}],"class":3,"subclass":0,"alternate":0},"event":"probe_interface","index":0}
+{"detail":{"interface":2,"protocol":0,"endpoints":[{"max_packet_size":32,"interval":1,"attributes":3,"address":132}],"class":3,"subclass":0,"alternate":0},"event":"probe_interface","index":0}
+{"max_packet_size":8,"interface_protocol":1,"interface":0,"interface_class":3,"index":0,"interface_subclass":1,"endpoint":"0x81","interval":1,"event":"probe_selected"}
+{"interface":0,"event":"probe_kernel_driver","active":true,"phase":"before_claim","index":0}
+{"event":"probe_claimed","identity":{"interface_protocol":1,"max_packet_size":8,"interval":1,"vendor_id":"36B0","hid_interfaces":3,"serial_number":null,"interface_subclass":1,"endpoint":129,"speed":2,"interface_class":3,"protocol":"boot_keyboard","manufacturer":"RDMCTMZT","interface":0,"product_id":"304E","product":"EPOMAKER TH40"}}
+{"interface":0,"active":false,"phase":"after_claim","event":"probe_kernel_driver"}
+{"message":"Type continuously: A, Shift+A, Enter, Backspace, Left arrow","event":"probe_type_now"}
+{"nonzero":0,"elapsed":10.0,"reports":0,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":0,"elapsed":20.0,"reports":0,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":0,"elapsed":30.0,"reports":0,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":0,"elapsed":40.0,"reports":0,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":0,"elapsed":50.0,"reports":0,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"reports":0,"stop_reason":"timeout","event":"probe_summary","duplicate_reports":0,"elapsed":60.0,"unsupported_usages":0,"result":"FAIL","error_reports":0,"identity":{"interface_protocol":1,"max_packet_size":8,"interval":1,"vendor_id":"36B0","hid_interfaces":3,"serial_number":null,"interface_subclass":1,"endpoint":129,"speed":2,"interface_class":3,"protocol":"boot_keyboard","manufacturer":"RDMCTMZT","interface":0,"product_id":"304E","product":"EPOMAKER TH40"},"release_reports":0,"nonzero_reports":0,"zero_reports":0,"idle_polls":29632,"seen":{"left":false,"enter":false,"shift_a":false,"a":false,"backspace":false}}
+{"event":"probe_capture","run":"wired_keyboard_usb_mode_restored_55s","note":"EPOMAKER TH40 after the operator restored USB mode. 294 non-zero reports. Output stopped dead at about 20 s when the operator pressed their Fn-layer Escape binding, which switches the keyboard out of USB mode."}
+{"seconds":55,"writes_files":false,"creates_guards":false,"event":"probe_start","touches_display":false}
+{"event":"probe_enumeration","device_count":1}
+{"event":"probe_device","serial_number":null,"speed":2,"index":0,"product_id":"304E","vendor_id":"36B0","product":"EPOMAKER TH40","manufacturer":"RDMCTMZT"}
+{"hex":"09025B00030100A0FA09040000010301010009211101000122440007058103080001090401000203000000092111010001222200070582032000010705030320000109040200010300000009211101000122B60007058403200001","length":91,"event":"probe_configuration_descriptor","index":0}
+{"detail":{"interface":0,"protocol":1,"endpoints":[{"max_packet_size":8,"interval":1,"attributes":3,"address":129}],"class":3,"subclass":1,"alternate":0},"event":"probe_interface","index":0}
+{"detail":{"interface":1,"protocol":0,"endpoints":[{"max_packet_size":32,"interval":1,"attributes":3,"address":130},{"max_packet_size":32,"interval":1,"attributes":3,"address":3}],"class":3,"subclass":0,"alternate":0},"event":"probe_interface","index":0}
+{"detail":{"interface":2,"protocol":0,"endpoints":[{"max_packet_size":32,"interval":1,"attributes":3,"address":132}],"class":3,"subclass":0,"alternate":0},"event":"probe_interface","index":0}
+{"max_packet_size":8,"interface_protocol":1,"interface":0,"interface_class":3,"index":0,"interface_subclass":1,"endpoint":"0x81","interval":1,"event":"probe_selected"}
+{"interface":0,"event":"probe_kernel_driver","active":true,"phase":"before_claim","index":0}
+{"event":"probe_claimed","identity":{"interface_protocol":1,"max_packet_size":8,"interval":1,"vendor_id":"36B0","hid_interfaces":3,"serial_number":null,"interface_subclass":1,"endpoint":129,"speed":2,"interface_class":3,"protocol":"boot_keyboard","manufacturer":"RDMCTMZT","interface":0,"product_id":"304E","product":"EPOMAKER TH40"}}
+{"interface":0,"active":false,"phase":"after_claim","event":"probe_kernel_driver"}
+{"message":"Type continuously: A, Shift+A, Enter, Backspace, Left arrow","event":"probe_type_now"}
+{"raw":"00000E0000000000","modifier":"0x00","index":1,"keys":[{"kind":"CHAR","usage":"0x0E","value":"k"}],"shift":false,"event":"probe_report","elapsed":1.57}
+{"raw":"00000E0400000000","modifier":"0x00","index":2,"keys":[{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":1.58}
+{"raw":"00000E040D000000","modifier":"0x00","index":3,"keys":[{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x0D","value":"j"}],"shift":false,"event":"probe_report","elapsed":1.61}
+{"raw":"00000E040D0F0000","modifier":"0x00","index":4,"keys":[{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0F","value":"l"}],"shift":false,"event":"probe_report","elapsed":1.62}
+{"raw":"00000E040D0F1600","modifier":"0x00","index":5,"keys":[{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0F","value":"l"},{"kind":"CHAR","usage":"0x16","value":"s"}],"shift":false,"event":"probe_report","elapsed":1.66}
+{"raw":"00000E040D0F1607","modifier":"0x00","index":6,"keys":[{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0F","value":"l"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":1.69}
+{"raw":"00000E040D160700","modifier":"0x00","index":7,"keys":[{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":1.7}
+{"raw":"0000040D16070000","modifier":"0x00","index":8,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":1.72}
+{"raw":"0000040D16070B00","modifier":"0x00","index":9,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0B","value":"h"}],"shift":false,"event":"probe_report","elapsed":1.72}
+{"raw":"00000416070B0000","modifier":"0x00","index":10,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0B","value":"h"}],"shift":false,"event":"probe_report","elapsed":1.78}
+{"raw":"000016070B000000","modifier":"0x00","index":11,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0B","value":"h"}],"shift":false,"event":"probe_report","elapsed":1.81}
+{"raw":"0000070B00000000","modifier":"0x00","index":12,"keys":[{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0B","value":"h"}],"shift":false,"event":"probe_report","elapsed":1.82}
+{"raw":"00000B0000000000","modifier":"0x00","index":13,"keys":[{"kind":"CHAR","usage":"0x0B","value":"h"}],"shift":false,"event":"probe_report","elapsed":1.83}
+{"raw":"0000000000000000","modifier":"0x00","index":14,"keys":[],"shift":false,"event":"probe_report","elapsed":1.83}
+{"raw":"0000160000000000","modifier":"0x00","index":15,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"}],"shift":false,"event":"probe_report","elapsed":2.01}
+{"raw":"0000160B00000000","modifier":"0x00","index":16,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0B","value":"h"}],"shift":false,"event":"probe_report","elapsed":2.12}
+{"raw":"0000160B0D000000","modifier":"0x00","index":17,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x0D","value":"j"}],"shift":false,"event":"probe_report","elapsed":2.13}
+{"raw":"0000160B0D0A0000","modifier":"0x00","index":18,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0A","value":"g"}],"shift":false,"event":"probe_report","elapsed":2.15}
+{"raw":"0000160B0D0A0900","modifier":"0x00","index":19,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0A","value":"g"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":2.15}
+{"raw":"0000160B0D0A0907","modifier":"0x00","index":20,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0A","value":"g"},{"kind":"CHAR","usage":"0x09","value":"f"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":2.17}
+{"raw":"0000160B0A090700","modifier":"0x00","index":22,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x0A","value":"g"},{"kind":"CHAR","usage":"0x09","value":"f"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":2.21}
+{"raw":"0000160A09070000","modifier":"0x00","index":23,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0A","value":"g"},{"kind":"CHAR","usage":"0x09","value":"f"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":2.24}
+{"raw":"0000160A09000000","modifier":"0x00","index":24,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0A","value":"g"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":2.25}
+{"raw":"00000A0900000000","modifier":"0x00","index":25,"keys":[{"kind":"CHAR","usage":"0x0A","value":"g"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":2.26}
+{"raw":"0000090000000000","modifier":"0x00","index":27,"keys":[{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":2.29}
+{"raw":"0000000000000000","modifier":"0x00","index":28,"keys":[],"shift":false,"event":"probe_report","elapsed":2.33}
+{"raw":"0000040000000000","modifier":"0x00","index":29,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":2.39}
+{"raw":"0000000000000000","modifier":"0x00","index":30,"keys":[],"shift":false,"event":"probe_report","elapsed":2.54}
+{"raw":"0000090000000000","modifier":"0x00","index":31,"keys":[{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":2.58}
+{"raw":"0000000000000000","modifier":"0x00","index":32,"keys":[],"shift":false,"event":"probe_report","elapsed":2.79}
+{"raw":"0000040000000000","modifier":"0x00","index":33,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":3.0}
+{"raw":"0000041600000000","modifier":"0x00","index":34,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"}],"shift":false,"event":"probe_report","elapsed":3.01}
+{"raw":"000004160E000000","modifier":"0x00","index":35,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0E","value":"k"}],"shift":false,"event":"probe_report","elapsed":3.04}
+{"raw":"000004160E0D0000","modifier":"0x00","index":36,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"}],"shift":false,"event":"probe_report","elapsed":3.06}
+{"raw":"000004160E0D0F00","modifier":"0x00","index":37,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0F","value":"l"}],"shift":false,"event":"probe_report","elapsed":3.08}
+{"raw":"000004160E0D0F07","modifier":"0x00","index":38,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0F","value":"l"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":3.09}
+{"raw":"0000160E0D0F0700","modifier":"0x00","index":39,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0F","value":"l"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":3.15}
+{"raw":"0000160E0D070000","modifier":"0x00","index":40,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":3.16}
+{"raw":"0000160E0D070B00","modifier":"0x00","index":41,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0B","value":"h"}],"shift":false,"event":"probe_report","elapsed":3.17}
+{"raw":"0000160E0D070B09","modifier":"0x00","index":42,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":3.2}
+{"raw":"0000160D070B0900","modifier":"0x00","index":43,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":3.22}
+{"raw":"00000D070B090000","modifier":"0x00","index":44,"keys":[{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":3.22}
+{"raw":"00000D0B09000000","modifier":"0x00","index":45,"keys":[{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":3.24}
+{"raw":"00000B0900000000","modifier":"0x00","index":46,"keys":[{"kind":"CHAR","usage":"0x0B","value":"h"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":3.25}
+{"raw":"0000090000000000","modifier":"0x00","index":47,"keys":[{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":3.27}
+{"raw":"0000000000000000","modifier":"0x00","index":48,"keys":[],"shift":false,"event":"probe_report","elapsed":3.3}
+{"raw":"0000160000000000","modifier":"0x00","index":49,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"}],"shift":false,"event":"probe_report","elapsed":3.44}
+{"raw":"0000160E00000000","modifier":"0x00","index":50,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0E","value":"k"}],"shift":false,"event":"probe_report","elapsed":3.45}
+{"raw":"0000160E0D000000","modifier":"0x00","index":51,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"}],"shift":false,"event":"probe_report","elapsed":3.48}
+{"raw":"0000160E0D0F0000","modifier":"0x00","index":52,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0F","value":"l"}],"shift":false,"event":"probe_report","elapsed":3.48}
+{"raw":"0000160E0D0F0900","modifier":"0x00","index":53,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0F","value":"l"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":3.51}
+{"raw":"0000160E0D0F0904","modifier":"0x00","index":54,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0E","value":"k"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0F","value":"l"},{"kind":"CHAR","usage":"0x09","value":"f"},{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":3.53}
+{"raw":"0000160D0F090400","modifier":"0x00","index":57,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0F","value":"l"},{"kind":"CHAR","usage":"0x09","value":"f"},{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":3.64}
+{"raw":"0000160D0F090000","modifier":"0x00","index":58,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x0F","value":"l"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":3.65}
+{"raw":"0000160D09000000","modifier":"0x00","index":59,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":3.66}
+{"raw":"00000D0900000000","modifier":"0x00","index":62,"keys":[{"kind":"CHAR","usage":"0x0D","value":"j"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":3.66}
+{"raw":"0000090000000000","modifier":"0x00","index":63,"keys":[{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":3.67}
+{"raw":"0000000000000000","modifier":"0x00","index":64,"keys":[],"shift":false,"event":"probe_report","elapsed":3.68}
+{"raw":"0000040000000000","modifier":"0x00","index":65,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":3.83}
+{"raw":"0000040E00000000","modifier":"0x00","index":66,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x0E","value":"k"}],"shift":false,"event":"probe_report","elapsed":3.88}
+{"nonzero":199,"elapsed":10.0,"reports":265,"remaining":["shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":293,"elapsed":20.0,"reports":409,"remaining":["shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":294,"elapsed":30.0,"reports":411,"remaining":["shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":294,"elapsed":40.0,"reports":411,"remaining":["shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":294,"elapsed":50.0,"reports":411,"remaining":["shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"reports":411,"stop_reason":"timeout","event":"probe_summary","duplicate_reports":74,"elapsed":55.0,"unsupported_usages":0,"result":"PASS","error_reports":0,"identity":{"interface_protocol":1,"max_packet_size":8,"interval":1,"vendor_id":"36B0","hid_interfaces":3,"serial_number":null,"interface_subclass":1,"endpoint":129,"speed":2,"interface_class":3,"protocol":"boot_keyboard","manufacturer":"RDMCTMZT","interface":0,"product_id":"304E","product":"EPOMAKER TH40"},"release_reports":43,"nonzero_reports":294,"zero_reports":43,"idle_polls":26594,"seen":{"left":false,"enter":false,"shift_a":false,"a":true,"backspace":false}}
+{"event":"probe_capture","run":"wired_keyboard_remapped_key_50s","note":"EPOMAKER TH40 with a standalone key remapped by the operator. The key sends usage 0x65 (Keyboard Application), not 0x29: 21 presses, 21 clean release pairs, no mode switch. At this point 0x65 was still reported UNSUPPORTED."}
+{"seconds":50,"writes_files":false,"creates_guards":false,"event":"probe_start","touches_display":false}
+{"event":"probe_enumeration","device_count":1}
+{"event":"probe_device","serial_number":null,"speed":2,"index":0,"product_id":"304E","vendor_id":"36B0","product":"EPOMAKER TH40","manufacturer":"RDMCTMZT"}
+{"hex":"09025B00030100A0FA09040000010301010009211101000122440007058103080001090401000203000000092111010001222200070582032000010705030320000109040200010300000009211101000122B60007058403200001","length":91,"event":"probe_configuration_descriptor","index":0}
+{"detail":{"interface":0,"protocol":1,"endpoints":[{"max_packet_size":8,"interval":1,"attributes":3,"address":129}],"class":3,"subclass":1,"alternate":0},"event":"probe_interface","index":0}
+{"detail":{"interface":1,"protocol":0,"endpoints":[{"max_packet_size":32,"interval":1,"attributes":3,"address":130},{"max_packet_size":32,"interval":1,"attributes":3,"address":3}],"class":3,"subclass":0,"alternate":0},"event":"probe_interface","index":0}
+{"detail":{"interface":2,"protocol":0,"endpoints":[{"max_packet_size":32,"interval":1,"attributes":3,"address":132}],"class":3,"subclass":0,"alternate":0},"event":"probe_interface","index":0}
+{"max_packet_size":8,"interface_protocol":1,"interface":0,"interface_class":3,"index":0,"interface_subclass":1,"endpoint":"0x81","interval":1,"event":"probe_selected"}
+{"interface":0,"event":"probe_kernel_driver","active":true,"phase":"before_claim","index":0}
+{"event":"probe_claimed","identity":{"interface_protocol":1,"max_packet_size":8,"interval":1,"vendor_id":"36B0","hid_interfaces":3,"serial_number":null,"interface_subclass":1,"endpoint":129,"speed":2,"interface_class":3,"protocol":"boot_keyboard","manufacturer":"RDMCTMZT","interface":0,"product_id":"304E","product":"EPOMAKER TH40"}}
+{"interface":0,"active":false,"phase":"after_claim","event":"probe_kernel_driver"}
+{"message":"Type continuously: A, Shift+A, Enter, Backspace, Left arrow","event":"probe_type_now"}
+{"raw":"0000650000000000","modifier":"0x00","index":1,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":0.15}
+{"raw":"0000000000000000","modifier":"0x00","index":2,"keys":[],"shift":false,"event":"probe_report","elapsed":0.21}
+{"raw":"0000650000000000","modifier":"0x00","index":3,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":0.31}
+{"raw":"0000000000000000","modifier":"0x00","index":4,"keys":[],"shift":false,"event":"probe_report","elapsed":0.37}
+{"raw":"0000650000000000","modifier":"0x00","index":5,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":0.48}
+{"raw":"0000000000000000","modifier":"0x00","index":6,"keys":[],"shift":false,"event":"probe_report","elapsed":0.54}
+{"raw":"0000650000000000","modifier":"0x00","index":7,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":0.84}
+{"raw":"0000000000000000","modifier":"0x00","index":8,"keys":[],"shift":false,"event":"probe_report","elapsed":0.9}
+{"raw":"0000650000000000","modifier":"0x00","index":9,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":1.01}
+{"raw":"0000000000000000","modifier":"0x00","index":10,"keys":[],"shift":false,"event":"probe_report","elapsed":1.08}
+{"raw":"0000650000000000","modifier":"0x00","index":11,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":1.19}
+{"raw":"0000000000000000","modifier":"0x00","index":12,"keys":[],"shift":false,"event":"probe_report","elapsed":1.27}
+{"raw":"0000650000000000","modifier":"0x00","index":13,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":1.55}
+{"raw":"0000000000000000","modifier":"0x00","index":14,"keys":[],"shift":false,"event":"probe_report","elapsed":1.62}
+{"raw":"0000650000000000","modifier":"0x00","index":15,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":1.92}
+{"raw":"0000000000000000","modifier":"0x00","index":16,"keys":[],"shift":false,"event":"probe_report","elapsed":2.01}
+{"raw":"0000650000000000","modifier":"0x00","index":17,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":2.27}
+{"raw":"0000000000000000","modifier":"0x00","index":19,"keys":[],"shift":false,"event":"probe_report","elapsed":2.52}
+{"raw":"0000650000000000","modifier":"0x00","index":20,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":2.63}
+{"raw":"0000000000000000","modifier":"0x00","index":21,"keys":[],"shift":false,"event":"probe_report","elapsed":2.7}
+{"raw":"0000650000000000","modifier":"0x00","index":22,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":3.0}
+{"raw":"0000000000000000","modifier":"0x00","index":23,"keys":[],"shift":false,"event":"probe_report","elapsed":3.08}
+{"raw":"0000650000000000","modifier":"0x00","index":24,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":3.39}
+{"raw":"0000000000000000","modifier":"0x00","index":25,"keys":[],"shift":false,"event":"probe_report","elapsed":3.46}
+{"raw":"0000650000000000","modifier":"0x00","index":26,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":3.74}
+{"raw":"0000000000000000","modifier":"0x00","index":27,"keys":[],"shift":false,"event":"probe_report","elapsed":3.81}
+{"raw":"0000650000000000","modifier":"0x00","index":28,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":3.93}
+{"raw":"0000000000000000","modifier":"0x00","index":29,"keys":[],"shift":false,"event":"probe_report","elapsed":3.99}
+{"raw":"0000650000000000","modifier":"0x00","index":30,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":4.1}
+{"raw":"0000000000000000","modifier":"0x00","index":31,"keys":[],"shift":false,"event":"probe_report","elapsed":4.17}
+{"raw":"0000650000000000","modifier":"0x00","index":32,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":4.46}
+{"raw":"0000000000000000","modifier":"0x00","index":33,"keys":[],"shift":false,"event":"probe_report","elapsed":4.52}
+{"raw":"0000650000000000","modifier":"0x00","index":34,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":4.65}
+{"raw":"0000000000000000","modifier":"0x00","index":35,"keys":[],"shift":false,"event":"probe_report","elapsed":4.71}
+{"raw":"0000650000000000","modifier":"0x00","index":36,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":4.82}
+{"raw":"0000000000000000","modifier":"0x00","index":37,"keys":[],"shift":false,"event":"probe_report","elapsed":4.89}
+{"raw":"0000650000000000","modifier":"0x00","index":38,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":5.01}
+{"raw":"0000000000000000","modifier":"0x00","index":39,"keys":[],"shift":false,"event":"probe_report","elapsed":5.08}
+{"raw":"0000650000000000","modifier":"0x00","index":40,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":5.36}
+{"raw":"0000000000000000","modifier":"0x00","index":41,"keys":[],"shift":false,"event":"probe_report","elapsed":5.42}
+{"raw":"0000650000000000","modifier":"0x00","index":42,"keys":[{"kind":"UNSUPPORTED","usage":"0x65"}],"shift":false,"event":"probe_report","elapsed":5.56}
+{"raw":"0000000000000000","modifier":"0x00","index":43,"keys":[],"shift":false,"event":"probe_report","elapsed":5.64}
+{"nonzero":21,"elapsed":10.0,"reports":43,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":21,"elapsed":20.0,"reports":43,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":21,"elapsed":30.0,"reports":43,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":21,"elapsed":40.0,"reports":43,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"reports":43,"stop_reason":"timeout","event":"probe_summary","duplicate_reports":1,"elapsed":50.0,"unsupported_usages":21,"result":"PASS","error_reports":0,"identity":{"interface_protocol":1,"max_packet_size":8,"interval":1,"vendor_id":"36B0","hid_interfaces":3,"serial_number":null,"interface_subclass":1,"endpoint":129,"speed":2,"interface_class":3,"protocol":"boot_keyboard","manufacturer":"RDMCTMZT","interface":0,"product_id":"304E","product":"EPOMAKER TH40"},"release_reports":21,"nonzero_reports":21,"zero_reports":21,"idle_polls":24671,"seen":{"left":false,"enter":false,"shift_a":false,"a":false,"backspace":false}}
+{"event":"probe_capture","run":"wired_keyboard_finish_confirmed_45s","note":"EPOMAKER TH40 after commit 83ac72f adopted 0x65 as a second FINISH control. Usage 0x65 now decodes as CONTROL/FINISH with nine clean press/release pairs, zero unsupported usages, and letters interleaved throughout confirming the keyboard stayed in USB mode."}
+{"seconds":45,"writes_files":false,"creates_guards":false,"event":"probe_start","touches_display":false}
+{"event":"probe_enumeration","device_count":1}
+{"event":"probe_device","serial_number":null,"speed":2,"index":0,"product_id":"304E","vendor_id":"36B0","product":"EPOMAKER TH40","manufacturer":"RDMCTMZT"}
+{"hex":"09025B00030100A0FA09040000010301010009211101000122440007058103080001090401000203000000092111010001222200070582032000010705030320000109040200010300000009211101000122B60007058403200001","length":91,"event":"probe_configuration_descriptor","index":0}
+{"detail":{"interface":0,"protocol":1,"endpoints":[{"max_packet_size":8,"interval":1,"attributes":3,"address":129}],"class":3,"subclass":1,"alternate":0},"event":"probe_interface","index":0}
+{"detail":{"interface":1,"protocol":0,"endpoints":[{"max_packet_size":32,"interval":1,"attributes":3,"address":130},{"max_packet_size":32,"interval":1,"attributes":3,"address":3}],"class":3,"subclass":0,"alternate":0},"event":"probe_interface","index":0}
+{"detail":{"interface":2,"protocol":0,"endpoints":[{"max_packet_size":32,"interval":1,"attributes":3,"address":132}],"class":3,"subclass":0,"alternate":0},"event":"probe_interface","index":0}
+{"max_packet_size":8,"interface_protocol":1,"interface":0,"interface_class":3,"index":0,"interface_subclass":1,"endpoint":"0x81","interval":1,"event":"probe_selected"}
+{"interface":0,"event":"probe_kernel_driver","active":false,"phase":"before_claim","index":0}
+{"event":"probe_claimed","identity":{"interface_protocol":1,"max_packet_size":8,"interval":1,"vendor_id":"36B0","hid_interfaces":3,"serial_number":null,"interface_subclass":1,"endpoint":129,"speed":2,"interface_class":3,"protocol":"boot_keyboard","manufacturer":"RDMCTMZT","interface":0,"product_id":"304E","product":"EPOMAKER TH40"}}
+{"interface":0,"active":false,"phase":"after_claim","event":"probe_kernel_driver"}
+{"message":"Type continuously: A, Shift+A, Enter, Backspace, Left arrow","event":"probe_type_now"}
+{"nonzero":0,"elapsed":10.0,"reports":0,"remaining":["a","shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"raw":"0000650000000000","modifier":"0x00","index":1,"keys":[{"kind":"CONTROL","usage":"0x65","action":"FINISH"}],"shift":false,"event":"probe_report","elapsed":15.48}
+{"raw":"0000000000000000","modifier":"0x00","index":2,"keys":[],"shift":false,"event":"probe_report","elapsed":15.58}
+{"raw":"0000650000000000","modifier":"0x00","index":3,"keys":[{"kind":"CONTROL","usage":"0x65","action":"FINISH"}],"shift":false,"event":"probe_report","elapsed":15.66}
+{"raw":"0000000000000000","modifier":"0x00","index":4,"keys":[],"shift":false,"event":"probe_report","elapsed":15.73}
+{"raw":"0000650000000000","modifier":"0x00","index":5,"keys":[{"kind":"CONTROL","usage":"0x65","action":"FINISH"}],"shift":false,"event":"probe_report","elapsed":15.82}
+{"raw":"0000000000000000","modifier":"0x00","index":6,"keys":[],"shift":false,"event":"probe_report","elapsed":15.89}
+{"raw":"0000650000000000","modifier":"0x00","index":7,"keys":[{"kind":"CONTROL","usage":"0x65","action":"FINISH"}],"shift":false,"event":"probe_report","elapsed":15.97}
+{"raw":"0000000000000000","modifier":"0x00","index":8,"keys":[],"shift":false,"event":"probe_report","elapsed":16.06}
+{"raw":"0000040000000000","modifier":"0x00","index":9,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":16.17}
+{"raw":"0000041600000000","modifier":"0x00","index":10,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"}],"shift":false,"event":"probe_report","elapsed":16.23}
+{"raw":"0000041607000000","modifier":"0x00","index":11,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":16.26}
+{"raw":"0000160700000000","modifier":"0x00","index":12,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":16.31}
+{"raw":"0000160709000000","modifier":"0x00","index":13,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":16.34}
+{"raw":"0000070900000000","modifier":"0x00","index":14,"keys":[{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":16.35}
+{"raw":"0000090000000000","modifier":"0x00","index":15,"keys":[{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":16.37}
+{"raw":"0000000000000000","modifier":"0x00","index":16,"keys":[],"shift":false,"event":"probe_report","elapsed":16.45}
+{"raw":"0000040000000000","modifier":"0x00","index":17,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":16.46}
+{"raw":"0000041600000000","modifier":"0x00","index":18,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"}],"shift":false,"event":"probe_report","elapsed":16.48}
+{"raw":"0000041607000000","modifier":"0x00","index":19,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":16.58}
+{"raw":"0000041607090000","modifier":"0x00","index":20,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":16.59}
+{"raw":"0000160709000000","modifier":"0x00","index":21,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":16.6}
+{"raw":"0000070900000000","modifier":"0x00","index":22,"keys":[{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":16.62}
+{"raw":"0000090000000000","modifier":"0x00","index":23,"keys":[{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":16.64}
+{"raw":"0000000000000000","modifier":"0x00","index":24,"keys":[],"shift":false,"event":"probe_report","elapsed":16.69}
+{"raw":"0000040000000000","modifier":"0x00","index":25,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":16.73}
+{"raw":"0000041600000000","modifier":"0x00","index":26,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"}],"shift":false,"event":"probe_report","elapsed":16.75}
+{"raw":"0000041607000000","modifier":"0x00","index":27,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":16.8}
+{"raw":"0000041607090000","modifier":"0x00","index":28,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":16.83}
+{"raw":"0000160709000000","modifier":"0x00","index":29,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":16.84}
+{"raw":"0000090000000000","modifier":"0x00","index":30,"keys":[{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":16.9}
+{"raw":"0000000000000000","modifier":"0x00","index":31,"keys":[],"shift":false,"event":"probe_report","elapsed":16.96}
+{"raw":"0000040000000000","modifier":"0x00","index":32,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":16.98}
+{"raw":"0000000000000000","modifier":"0x00","index":33,"keys":[],"shift":false,"event":"probe_report","elapsed":17.04}
+{"raw":"0000650000000000","modifier":"0x00","index":34,"keys":[{"kind":"CONTROL","usage":"0x65","action":"FINISH"}],"shift":false,"event":"probe_report","elapsed":17.15}
+{"raw":"0000000000000000","modifier":"0x00","index":35,"keys":[],"shift":false,"event":"probe_report","elapsed":17.23}
+{"raw":"0000650000000000","modifier":"0x00","index":36,"keys":[{"kind":"CONTROL","usage":"0x65","action":"FINISH"}],"shift":false,"event":"probe_report","elapsed":17.32}
+{"raw":"0000000000000000","modifier":"0x00","index":37,"keys":[],"shift":false,"event":"probe_report","elapsed":17.39}
+{"raw":"0000650000000000","modifier":"0x00","index":38,"keys":[{"kind":"CONTROL","usage":"0x65","action":"FINISH"}],"shift":false,"event":"probe_report","elapsed":17.48}
+{"raw":"0000000000000000","modifier":"0x00","index":39,"keys":[],"shift":false,"event":"probe_report","elapsed":17.54}
+{"raw":"0000650000000000","modifier":"0x00","index":40,"keys":[{"kind":"CONTROL","usage":"0x65","action":"FINISH"}],"shift":false,"event":"probe_report","elapsed":17.67}
+{"raw":"0000000000000000","modifier":"0x00","index":41,"keys":[],"shift":false,"event":"probe_report","elapsed":17.74}
+{"raw":"0000650000000000","modifier":"0x00","index":42,"keys":[{"kind":"CONTROL","usage":"0x65","action":"FINISH"}],"shift":false,"event":"probe_report","elapsed":17.83}
+{"raw":"0000000000000000","modifier":"0x00","index":43,"keys":[],"shift":false,"event":"probe_report","elapsed":17.92}
+{"raw":"0000040000000000","modifier":"0x00","index":44,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":18.06}
+{"raw":"0000041600000000","modifier":"0x00","index":45,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"}],"shift":false,"event":"probe_report","elapsed":18.11}
+{"raw":"0000041607000000","modifier":"0x00","index":46,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":18.14}
+{"raw":"0000041607090000","modifier":"0x00","index":47,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":18.17}
+{"raw":"0000160709000000","modifier":"0x00","index":48,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":18.2}
+{"raw":"0000070900000000","modifier":"0x00","index":49,"keys":[{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":18.21}
+{"raw":"0000090000000000","modifier":"0x00","index":50,"keys":[{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":18.24}
+{"raw":"0000000000000000","modifier":"0x00","index":51,"keys":[],"shift":false,"event":"probe_report","elapsed":18.28}
+{"raw":"0000040000000000","modifier":"0x00","index":52,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"}],"shift":false,"event":"probe_report","elapsed":18.31}
+{"raw":"0000041600000000","modifier":"0x00","index":53,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"}],"shift":false,"event":"probe_report","elapsed":18.33}
+{"raw":"0000041607000000","modifier":"0x00","index":54,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"}],"shift":false,"event":"probe_report","elapsed":18.36}
+{"raw":"0000041607090000","modifier":"0x00","index":55,"keys":[{"kind":"CHAR","usage":"0x04","value":"a"},{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":18.42}
+{"raw":"0000160709000000","modifier":"0x00","index":56,"keys":[{"kind":"CHAR","usage":"0x16","value":"s"},{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":18.43}
+{"raw":"0000070900000000","modifier":"0x00","index":57,"keys":[{"kind":"CHAR","usage":"0x07","value":"d"},{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":18.44}
+{"raw":"0000090000000000","modifier":"0x00","index":58,"keys":[{"kind":"CHAR","usage":"0x09","value":"f"}],"shift":false,"event":"probe_report","elapsed":18.48}
+{"raw":"0000000000000000","modifier":"0x00","index":59,"keys":[],"shift":false,"event":"probe_report","elapsed":18.53}
+{"nonzero":44,"elapsed":20.0,"reports":59,"remaining":["shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":44,"elapsed":30.0,"reports":59,"remaining":["shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"nonzero":44,"elapsed":40.0,"reports":59,"remaining":["shift_a","enter","backspace","left"],"event":"probe_waiting"}
+{"reports":59,"stop_reason":"timeout","event":"probe_summary","duplicate_reports":0,"elapsed":45.0,"unsupported_usages":0,"result":"PASS","error_reports":0,"identity":{"interface_protocol":1,"max_packet_size":8,"interval":1,"vendor_id":"36B0","hid_interfaces":3,"serial_number":null,"interface_subclass":1,"endpoint":129,"speed":2,"interface_class":3,"protocol":"boot_keyboard","manufacturer":"RDMCTMZT","interface":0,"product_id":"304E","product":"EPOMAKER TH40"},"release_reports":15,"nonzero_reports":44,"zero_reports":15,"idle_polls":21975,"seen":{"left":false,"enter":false,"shift_a":false,"a":true,"backspace":false}}

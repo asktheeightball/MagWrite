@@ -441,6 +441,11 @@ class EvidenceTest(unittest.TestCase):
         self.assertIn('"product":"EPOMAKER TH40"', probe)
         self.assertIn('"nonzero_reports":735', probe)
 
+    def test_the_probe_capture_confirms_the_finish_control_on_hardware(self):
+        """0x65 must be shown finishing on the real keyboard, not just in tests."""
+        probe = read(*self.PROBE_CAPTURE)
+        self.assertIn('"usage":"0x65","action":"FINISH"', probe)
+
     def test_the_probe_capture_retains_the_receiver_failure(self):
         """Re-testing the receiver must not erase that it failed again."""
         probe = read(*self.PROBE_CAPTURE)
