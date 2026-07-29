@@ -171,8 +171,18 @@ class ViewportTests(unittest.TestCase):
             ViewportMessage(1, 1, "", ("X" * 29,), 0, 0, "")
 
     def test_line_count_bound(self):
+        # The ceiling rose from three to five lines for the multiline editor.
+        # Four- and five-line frames are now valid; six is still refused.
+        ViewportMessage(1, 1, "", ("A", "B", "C", "D"), 0, 0, "")
+        ViewportMessage(1, 1, "", ("A", "B", "C", "D", "E"), 0, 0, "")
         with self.assertRaises(ValueError):
-            ViewportMessage(1, 1, "", ("A", "B", "C", "D"), 0, 0, "")
+            ViewportMessage(1, 1, "", ("A", "B", "C", "D", "E", "F"), 0, 0, "")
+
+    def test_maximum_viewport_frame_fits_the_protocol_payload(self):
+        message = ViewportMessage(
+            1, 1, "T" * 20, ("W" * 28,) * 5, 0, 28, "S" * 20
+        )
+        self.assertLessEqual(len(message.encode()), MAX_PAYLOAD_SIZE)
 
     def test_cursor_row_bound(self):
         with self.assertRaises(ValueError):

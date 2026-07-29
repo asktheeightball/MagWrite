@@ -13,3 +13,10 @@ elif (
         == "FRUITJAM_UART_ACK_TX"
 ):
     storage.remount("/", readonly=False)
+elif (
+    config
+    and getattr(config, "ENABLE_EDITOR_INTEGRATION_TEST", False)
+    and getattr(config, "EDITOR_INTEGRATION_TEST_MODE", "DISABLED")
+        == "FRUITJAM_EDITOR_INTEGRATION"
+):
+    storage.remount("/", readonly=False)

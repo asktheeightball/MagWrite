@@ -30,6 +30,46 @@ persists their text. This harness has no return channel, acknowledgement,
 keyboard, Wi-Fi, or storage role. The physical one-way boundary passed on
 2026-07-28; it does not imply bidirectional or acknowledged transport.
 
+## Editor prototype boundary (current)
+
+The first usable writing prototype inverts the long-term ownership above for
+the wired harness only. While the LOLIN32 bridge and MagTag application do not
+exist yet, the Fruit Jam is the authoritative device:
+
+```text
+deterministic input source
+        |
+        v
+InputAdapter boundary (normalized InputEvent)
+        |
+        v
+bounded event queue, explicit overflow
+        |
+        v
+Fruit Jam authoritative multiline editor
+        +-- document text and line structure
+        +-- cursor row/column, preferred visual column
+        +-- document_revision
+        |
+        v
+layout and viewport builder (wrap, hard wrap, vertical scroll)
+        +-- viewport_revision
+        |
+        v
+bidirectional UART transport
+        |
+        v
+MagTag display-only terminal
+        +-- frame acceptance, refresh state, displayed revision, errors
+```
+
+The MagTag performs no editing, wrapping, scrolling, persistence, or document
+interpretation in this harness. The `InputEvent` boundary is the seam the
+LOLIN32 Bluetooth bridge will implement next, so swapping the deterministic
+source for real key events will not touch the editor, layout, viewport, or
+acknowledgement code. Whether the document ultimately lives on the Fruit Jam or
+migrates to the MagTag application described below is an open decision.
+
 ## Responsibility boundaries
 
 ### Keyboard bridge

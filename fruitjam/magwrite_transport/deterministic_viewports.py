@@ -4,11 +4,19 @@ from magwrite_transport.protocol import END_OF_SCENARIO, END_OF_TEST, HELLO, VIE
 
 MAX_TOTAL_FRAMES = 50
 MAX_VIEWPORT_FRAMES = 40
+# Raised from three to five so a multiline editor fits a usable writing window.
+# Worst case payload is 4 + 20 title + 1 + 20 status + 1 + 5 * (1 + 28) = 191
+# bytes, still inside the fixed 192-byte protocol maximum. Three-line frames
+# from the earlier proven runs remain valid.
+MAX_VIEWPORT_LINES = 5
 
 
 def encode_viewport(scenario, title, lines, row, column, status):
     fields = [title.encode("ascii"), status.encode("ascii")]
-    if len(fields[0]) > 20 or len(fields[1]) > 20 or not (1 <= len(lines) <= 3):
+    if (
+        len(fields[0]) > 20 or len(fields[1]) > 20
+        or not (1 <= len(lines) <= MAX_VIEWPORT_LINES)
+    ):
         raise ValueError("viewport bounds")
     out = bytearray((scenario, row, column, len(fields[0])))
     out.extend(fields[0])

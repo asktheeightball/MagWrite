@@ -8,6 +8,15 @@ if (
     config.ENABLE_PHYSICAL_DISPLAY
     and getattr(config, "ENABLE_UART_RECEIVER", False)
     and getattr(config, "ENABLE_UART_STATUS_TX", False)
+    and config.PHYSICAL_TEST_MODE == "MAGTAG_EDITOR_DISPLAY"
+    and getattr(config, "EDITOR_DISPLAY_TEST_MODE", "DISABLED")
+        == "MAGTAG_EDITOR_DISPLAY"
+):
+    import hardware_editor_display_test
+elif (
+    config.ENABLE_PHYSICAL_DISPLAY
+    and getattr(config, "ENABLE_UART_RECEIVER", False)
+    and getattr(config, "ENABLE_UART_STATUS_TX", False)
     and config.PHYSICAL_TEST_MODE == "MAGTAG_UART_ACK_RX"
     and getattr(config, "UART_TEST_MODE", "DISABLED") == "MAGTAG_UART_ACK_RX"
     and getattr(config, "BIDIRECTIONAL_UART_TEST_MODE", "DISABLED") == "MAGTAG_UART_ACK_RX"

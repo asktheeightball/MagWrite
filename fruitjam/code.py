@@ -3,6 +3,12 @@ import time
 import config
 
 if (
+    getattr(config, "ENABLE_EDITOR_INTEGRATION_TEST", False)
+    and getattr(config, "EDITOR_INTEGRATION_TEST_MODE", "DISABLED")
+        == "FRUITJAM_EDITOR_INTEGRATION"
+):
+    import hardware_editor_test
+elif (
     getattr(config, "ENABLE_BIDIRECTIONAL_UART_TEST", False)
     and getattr(config, "BIDIRECTIONAL_UART_TEST_MODE", "DISABLED")
         == "FRUITJAM_UART_ACK_TX"

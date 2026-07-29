@@ -55,7 +55,17 @@ class AckTracker:
         started_timeout=REFRESH_STARTED_TIMEOUT,
         completed_timeout=REFRESH_COMPLETED_TIMEOUT,
         caught_up_timeout=DISPLAY_CAUGHT_UP_TIMEOUT,
+        allow_intermediate_catch_up=False,
     ):
+        # The proven lock-step acknowledgement harness sends one viewport at a
+        # time, so any catch-up below the latest transmitted revision is an
+        # error. An editor keeps typing while the panel is busy, so it may
+        # legitimately transmit a newer revision before an older catch-up
+        # arrives. That is only permitted when explicitly opted in, and a
+        # catch-up may still never claim a revision that was never sent, nor
+        # mark any other revision displayed.
+        self.allow_intermediate_catch_up = allow_intermediate_catch_up
+        self.intermediate_catch_ups = 0
         self.capacity = capacity
         self.states = []
         self.started_at = start_time
@@ -78,7 +88,11 @@ class AckTracker:
         if self.find(revision) is not None:
             raise AckError("duplicate sent revision")
         if len(self.states) >= self.capacity:
-            removable = next((state for state in self.states if state.displayed), None)
+            removable = next(
+                (state for state in self.states
+                 if state.displayed or state.superseded),
+                None,
+            )
             if removable is None:
                 raise AckTrackerOverflow("ack tracker capacity exceeded")
             self.states.remove(removable)
@@ -169,8 +183,14 @@ class AckTracker:
         elif frame.message_type == DISPLAY_CAUGHT_UP:
             displayed = fields["displayed_revision"]
             latest = fields["latest_received_revision"]
-            if displayed != latest or displayed != self.latest_sent_revision:
+            if displayed > self.latest_sent_revision:
+                raise AckError("displayed revision exceeds transmitted revision")
+            if displayed != latest:
                 raise AckError("stale or impossible caught-up revision")
+            if displayed != self.latest_sent_revision:
+                if not self.allow_intermediate_catch_up:
+                    raise AckError("stale or impossible caught-up revision")
+                self.intermediate_catch_ups += 1
             if fields["viewport_hash"] != state.viewport_hash:
                 raise AckError("caught-up hash mismatch")
             if not state.refresh_completed:

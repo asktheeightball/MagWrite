@@ -41,11 +41,17 @@ Size  Field
 N     title
 1     status length (0..20)
 N     status
-1     visible line count (1..3)
+1     visible line count (1..5)
 repeat line count:
   1   line length (0..28)
   N   line
 ```
+
+The visible line ceiling was three for the one-way and acknowledgement runs and
+was raised to five for the multiline editor. Worst case payload is
+`4 + 20 + 1 + 20 + 1 + 5 * (1 + 28) = 191` bytes, still inside the unchanged
+192-byte maximum, so the frame format, CRC, and parser bounds are untouched and
+earlier three-line frames remain valid.
 
 The cursor column may equal the selected line length (the insertion cell after
 the final character). Oversized or malformed payloads are rejected; they are
@@ -102,6 +108,19 @@ The acknowledgement run is eight input frames: HELLO, six VIEWPORTs
 (revisions 1..6), and END_OF_TEST. Revisions 2..5 form the supersession burst.
 Ceilings are 50 viewports, 100 frames per direction, one initial full refresh,
 and 30 partial refreshes.
+
+### Multiline editor integration (implemented, host verified; physical NOT RUN)
+
+The integrated editor run reuses this protocol unchanged apart from the
+five-line viewport ceiling above. The Fruit Jam sends HELLO, one VIEWPORT per
+transmitted editor state, and one END_OF_TEST; the MagTag returns the same
+status set. Because the editor keeps typing while the panel is busy, the Fruit
+Jam may transmit a newer revision before an older catch-up arrives. The
+acknowledgement tracker therefore accepts an intermediate `DISPLAY_CAUGHT_UP`
+only under an explicit opt-in, and still refuses any catch-up above the latest
+transmitted revision, any catch-up before refresh completion, and any hash
+mismatch. Ceilings are 75 viewports, 150 frames per direction, one initial full
+refresh, and 40 partial refreshes.
 
 ## Status
 

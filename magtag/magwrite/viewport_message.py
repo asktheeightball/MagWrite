@@ -4,7 +4,10 @@ from magwrite.uart_protocol import crc32
 
 MAX_TITLE = 20
 MAX_STATUS = 20
-MAX_LINES = 3
+# Raised from three to five for the multiline editor. Worst case payload is
+# 4 + 20 + 1 + 20 + 1 + 5 * (1 + 28) = 191 bytes, inside the fixed 192-byte
+# protocol maximum. Earlier three-line frames remain valid.
+MAX_LINES = 5
 MAX_LINE_CHARS = 28
 
 
