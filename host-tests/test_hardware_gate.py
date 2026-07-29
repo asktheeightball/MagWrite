@@ -1,12 +1,15 @@
+import ast
 import os
 import sys
 import types
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "magtag"))
+MAGTAG = os.path.join(os.path.dirname(__file__), "..", "magtag")
+sys.path.insert(0, MAGTAG)
 
 from hardware_gate import validate
 from hardware_identity import DECISION, parse_decision
+from magwrite.display_adapter import APPROVED_TEST_MODES
 
 
 class HardwareGateTests(unittest.TestCase):
@@ -51,6 +54,43 @@ class HardwareGateTests(unittest.TestCase):
         self.assertFalse(config.ENABLE_PHYSICAL_DISPLAY)
         with self.assertRaises(RuntimeError):
             validate(config)
+
+
+class BootRemountGateTests(unittest.TestCase):
+    """``hardware_test_boot.py`` ships as the MagTag ``/boot.py``.
+
+    It cannot be imported on the host because it calls ``storage.remount``, so
+    the armed mode tuple is read statically. A mode approved by the display
+    adapter but missing here boots read-only, and the harness then dies writing
+    its ``.started`` guard before it ever reaches the panel.
+    """
+
+    def boot_modes(self):
+        path = os.path.join(MAGTAG, "hardware_test_boot.py")
+        with open(path) as handle:
+            tree = ast.parse(handle.read())
+        found = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Compare) and any(
+                isinstance(op, ast.In) for op in node.ops
+            ):
+                for comparator in node.comparators:
+                    if isinstance(comparator, ast.Tuple):
+                        found.append(
+                            tuple(
+                                element.value
+                                for element in comparator.elts
+                                if isinstance(element, ast.Constant)
+                            )
+                        )
+        self.assertEqual(len(found), 1, "expected exactly one armed mode tuple")
+        return found[0]
+
+    def test_boot_gate_covers_every_approved_mode(self):
+        self.assertEqual(sorted(self.boot_modes()), sorted(APPROVED_TEST_MODES))
+
+    def test_boot_gate_arms_the_editor_display_mode(self):
+        self.assertIn("MAGTAG_EDITOR_DISPLAY", self.boot_modes())
 
 
 if __name__ == "__main__":

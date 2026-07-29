@@ -17,6 +17,7 @@ if (
         "SINGLE_LINE_TYPING",
         "MAGTAG_UART_VIEWPORT_RX",
         "MAGTAG_UART_ACK_RX",
+        "MAGTAG_EDITOR_DISPLAY",
     )
 ):
     # Required only so the one-time guard can be persisted by CircuitPython.
