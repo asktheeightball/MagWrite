@@ -30,10 +30,11 @@ from magwrite_transport.editor import (
     SequenceTracker,
 )
 from magwrite_transport.editor_viewport import EditorViewport
+from magwrite_transport.latency import LatencyRecorder
 from magwrite_transport.pacing import (
     CAUGHT_UP_MIN_SEND_SECONDS, COALESCE_SECONDS, MAX_VISIBLE_LAG_SECONDS,
-    QUIET_SECONDS, SEND_WINDOW, SENDING_REASONS, SUSTAINED_MIN_SEND_SECONDS,
-    DisplayPacer,
+    QUIET_SECONDS, REASON_CAUGHT_UP, SEND_WINDOW, SENDING_REASONS,
+    SUSTAINED_MIN_SEND_SECONDS, DisplayPacer,
 )
 from magwrite_transport.protocol import (
     END_OF_TEST, HELLO, VIEWPORT, FrameParser, crc32, encode_frame,
@@ -92,7 +93,7 @@ class LiveTypingSession:
         tracker_capacity=ACK_TRACKER_CAPACITY, send_window=SEND_WINDOW,
         idle_timeout_seconds=IDLE_TIMEOUT_SECONDS,
         session_timeout_seconds=SESSION_TIMEOUT_SECONDS,
-        viewport=None, tracker=None, editor=None, pacer=None,
+        viewport=None, tracker=None, editor=None, pacer=None, latency=None,
     ):
         self.monotonic = monotonic
         self.log = log
@@ -107,6 +108,8 @@ class LiveTypingSession:
         self.adapter = adapter if adapter is not None else adapter_factory(self.queue)
         self.send_window = send_window
         self.pacer = pacer or DisplayPacer()
+        # Passive measurement only. It observes and never decides.
+        self.latency = latency if latency is not None else LatencyRecorder()
         self.idle_timeout_seconds = idle_timeout_seconds
         self.session_timeout_seconds = session_timeout_seconds
         self.phase = PHASE_HELLO
@@ -203,8 +206,12 @@ class LiveTypingSession:
             applied += 1
             self.last_activity_at = now
             # Pacing needs to know the writer is still typing, so it can tell a
-            # sustained burst from a pause it should catch up after.
+            # sustained burst from a pause it should catch up after. The same
+            # fact is handed to the passive latency recorder, which additionally
+            # wants to know whether this keystroke *ended* a pause.
+            was_quiet = self.pacer.quiet(now)
             self.pacer.note_input(now)
+            self.latency.note_input(now, quiet_before=was_quiet)
             self.log({
                 "event": "live_event_processed", "sequence": event.sequence,
                 "kind": event.kind, "value": event.value,
@@ -234,6 +241,7 @@ class LiveTypingSession:
             self.status_counts[frame.message_type] = (
                 self.status_counts.get(frame.message_type, 0) + 1
             )
+            self.latency.note_status(now, frame.message_type, frame.revision)
             self.log({
                 "event": "live_status_received",
                 "message_type": frame.message_type, "sequence": frame.sequence,
@@ -299,6 +307,9 @@ class LiveTypingSession:
         self.last_send_at = now
         self.built_revision = None
         self.pacer.note_sent(now, None if force else reason)
+        self.latency.note_sent(now, revision, None if force else reason)
+        if reason == REASON_CAUGHT_UP and not force:
+            self.latency.note_frame_after_pause()
         self.log({
             "event": "live_viewport_sent", "sequence": self.frame_sequence,
             "revision": revision,
@@ -439,5 +450,6 @@ class LiveTypingSession:
             ),
         }
         record.update(self.pacer.summary())
+        record.update(self.latency.summary())
         record.update(self.adapter.summary())
         return record

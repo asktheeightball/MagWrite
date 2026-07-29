@@ -41,6 +41,15 @@ USB_KEYBOARD_SUSTAINED_MIN_SEND_SECONDS = 2.6
 # "AUTO" identifies the keyboard from its USB descriptor and applies a recorded
 # device layout if one matches; anything unrecognised gets standard HID.
 USB_KEYBOARD_LAYOUT = "AUTO"
+# V1 phase 1 responsiveness verification. An independent activation pair and an
+# independent guard family: the completed USB-keyboard milestone's guards are
+# never read, written, or required to be absent by this phase.
+ENABLE_V1_RESPONSIVENESS_TEST = False
+V1_RESPONSIVENESS_TEST_MODE = "DISABLED"
+# The run is scenario-driven and operator-paced, so it reuses the live session's
+# bounds rather than inventing new ones.
+V1_RESPONSIVENESS_IDLE_TIMEOUT_SECONDS = 600
+V1_RESPONSIVENESS_SESSION_TIMEOUT_SECONDS = 2700
 # A live run is operator-paced, so it is abandoned only after a long silence.
 USB_KEYBOARD_IDLE_TIMEOUT_SECONDS = 600
 USB_KEYBOARD_SESSION_TIMEOUT_SECONDS = 2700

@@ -291,8 +291,30 @@ remain explicitly and boundedly reported.
 attempt at its Fn layer switched the keyboard out of USB mode, so no report was
 ever captured. No mapping was invented for them.
 
-**Exit:** a physical run on the two boards confirming the display keeps up with
-live typing and that each listed key behaves as the host tests predict.
+### Physical verification — prepared, not yet run
+
+The bounded physical plan is `docs/MAGWRITE_V1_RESPONSIVENESS_TEST.md`. It has
+its own activation modes, its own guard family, its own entry points, and its
+own evidence files, so the completed USB-keyboard milestone's four guards and
+evidence stay byte-identical and untouched.
+
+| Device | Started | Complete |
+| --- | --- | --- |
+| Fruit Jam | `/magwrite_v1_responsiveness.started` | `/magwrite_v1_responsiveness.complete` |
+| MagTag | `/magwrite_v1_responsiveness_display.started` | `/magwrite_v1_responsiveness_display.complete` |
+
+The run must measure keypress to frame transmission, to refresh start and to
+refresh completion; pause to catch-up transmission; maximum visible lag during
+sustained typing; and frame count under several short pauses. Home, End and
+Delete are **not** attempted, because the TH40 cannot emit them without leaving
+USB mode; they stay host-verified and physically untested.
+
+The improvement may not be claimed from the operator's visual impression alone.
+Measured timing and visual assessment are recorded separately.
+
+**Exit:** an authorised physical run on the two boards producing those
+measurements, with every pass criterion in the plan met and every prior guard
+verified byte-identical.
 
 ## Priority 4 — Single-document persistence and recovery — V1.2
 
