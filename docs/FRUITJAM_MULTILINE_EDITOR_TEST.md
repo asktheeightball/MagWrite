@@ -357,7 +357,7 @@ its own separate bound; covered by `host-tests/test_run_clock.py`.
 | Status queue maximum depth | 2 of 32 |
 | Timeouts | 1 |
 | Bytes sent / received | Fruit Jam 1408 / 1821; MagTag 1762 / 5674 |
-| Visual observations | NOT RECORDED — see note below |
+| Visual observations | Operator reported the panel holding `MAGWRITE CAPTURE_` after the run. Reconciles exactly with displayed revision 175 — see note below. |
 | Photograph filename or explicit no-photo statement | **No photograph was taken.** |
 | Fruit Jam guard states | `/magwrite_editor_integration.started` present (1267 bytes, holds failure summary); `.complete` absent |
 | MagTag guard states | `/magwrite_editor_display.started` present; `.complete` absent |
@@ -379,9 +379,33 @@ but it remains uncharacterized and is worth instrumenting.
 
 #### Note on visual observations
 
-No visual evidence was recorded for attempt 1. The run aborted 39 s in, during
-scenario 3, so the final expected screen was never produced; the panel was left
-holding viewport revision 175, a single partial line of the `fast_typing` text.
+The run aborted 39 s in, during scenario 3, so the final expected screen was
+never produced and no photograph was taken. The operator did read the panel
+after the run and reported it holding:
+
+```text
+MAGWRITE CAPTURE_
+```
+
+That reconciles exactly with the logs, and is the one piece of independent
+physical confirmation attempt 1 produced:
+
+- viewport revision 175 is the event that typed the `E` of `CAPTURE`, at
+  authoritative cursor column 16, document revision 142;
+- `MAGWRITE CAPTURE` is exactly 16 characters, and the trailing `_` is the
+  cursor at column 16;
+- that frame's `text_hash` is `76871CA5`, identical to the recorded
+  `final_hash`;
+- the Fruit Jam had already advanced to viewport revision 195 and 36
+  characters, so the panel was a genuine 20-revision behind — the MagTag
+  rendered exactly revision 175, reported exactly 175, and never claimed a
+  revision it had not drawn.
+
+So single-line rendering, cursor placement, authoritative-revision reporting,
+and stale-frame coalescing are all physically confirmed. What the observation
+does **not** cover: the substring contains no punctuation, so the seven new
+glyphs are unverified, as is anything multi-row.
+
 Scenario 4 (`scrolling`) never ran, so **vertical scrolling and cursor
 visibility remain physically unverified**, as do the scenario 5 journal view and
 the five-line adjacent-row readability check.
