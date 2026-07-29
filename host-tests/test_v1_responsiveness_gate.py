@@ -302,6 +302,23 @@ class ActivationDefaultTest(unittest.TestCase):
         self.assertIn('"%s"' % MAGTAG_MODE, source)
         self.assertIn("storage.remount", source)
 
+    def test_the_fruitjam_boot_gate_also_arms_this_phases_mode(self):
+        """Without it the filesystem stays read-only and the guard cannot be
+        written, which fails the run after the harness has already started."""
+        source = read("fruitjam", "boot.py")
+        self.assertIn("ENABLE_V1_RESPONSIVENESS_TEST", source)
+        self.assertIn('== "%s"' % FRUITJAM_MODE, source)
+        remount_branches = source.count("storage.remount")
+        self.assertGreaterEqual(remount_branches, 5)
+
+    def test_every_armed_fruitjam_mode_gets_a_writable_filesystem(self):
+        """Each dispatcher branch must have a matching boot remount branch."""
+        boot = read("fruitjam", "boot.py")
+        code = read("fruitjam", "code.py")
+        for mode in ("FRUITJAM_V1_RESPONSIVENESS", "FRUITJAM_USB_KEYBOARD"):
+            self.assertIn(mode, code, mode)
+            self.assertIn(mode, boot, mode)
+
     def test_the_boot_gate_lists_exactly_the_approved_modes(self):
         source = read("magtag", "hardware_test_boot.py")
         listed = set(re.findall(r'"([A-Z0-9_]+)"', source))
