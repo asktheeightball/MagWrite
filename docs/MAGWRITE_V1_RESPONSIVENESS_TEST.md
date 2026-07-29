@@ -320,15 +320,27 @@ gap between them is not evidence of silence.
 | --- | --- | --- |
 | Fruit Jam | `/magwrite_v1_responsiveness.started` | **never created** |
 | Fruit Jam | `/magwrite_v1_responsiveness.complete` | never created |
-| MagTag | `/magwrite_v1_responsiveness_display.started` | **created and consumed**, 8 bytes, contents `claimed` |
+| MagTag | `/magwrite_v1_responsiveness_display.started` | **created and consumed**, 716 bytes, holding the full FAIL summary |
 | MagTag | `/magwrite_v1_responsiveness_display.complete` | never created |
 
-The MagTag guard holds only its initial claim. The FAIL summary that should
-have replaced its contents was never written, because by then the filesystem was
-visible to the USB host and the board could not write to it; the board logged
-`filesystem_remount_warning` with detail `Cannot remount '/' when visible via
-USB`. The summary therefore survives only in the serial capture, which is why
-it is reproduced in full below.
+**This paragraph was corrected on 2026-07-29, during the board recovery that
+followed.** It previously recorded the MagTag guard as holding only an 8-byte
+`claimed` marker, and the FAIL summary as surviving solely in the serial capture.
+Both statements were wrong. The guard on the board is 716 bytes and holds the
+complete FAIL summary; its JSON is semantically identical to the summary
+reproduced below, and its SHA-256 is
+`28A88027578B709A595F5C1F4B5A80F51CD8F66075DFC441D155CDE6BA25A60A`. The board did
+replace the guard's contents with its own summary.
+
+The `filesystem_remount_warning` with detail `Cannot remount '/' when visible via
+USB` was genuinely logged, but it belongs to the *subsequent* read-only remount,
+which runs only after the summary has already been written — not to the summary
+write. The original entry conflated the two operations and drew the wrong
+conclusion from the warning.
+
+The summary below is therefore corroborated by the on-board guard as well as by
+the serial capture. Nothing else in this record changes: no frame was received,
+no measurement was produced, and the attempt remains a FAIL.
 
 Every one of the twenty-four guards from earlier milestones was verified present
 and unchanged in size afterwards, on both boards. None was read, written,
