@@ -1,0 +1,50 @@
+{"host_time": "2026-07-30T14:56:15.218883-04:00", "capture_event": "capture_start", "port": "COM10", "label": "magtag-dongle-hub", "baud": 115200}
+{"host_time": "2026-07-30T14:56:15.235510-04:00", "capture_event": "connected", "port": "COM10", "label": "magtag-dongle-hub"}
+{"host_time": "2026-07-30T14:56:15.450834-04:00", "monotonic": 0.234, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | code.py | 9.1.1\u001b\\"}
+{"host_time": "2026-07-30T15:01:53.405057-04:00", "monotonic": 338.187, "line": "{\"guard_written\":false,\"filesystem_remounted\":false,\"restartable\":true,\"event\":\"dev_display_stopped\",\"buttons\":true,\"button_detail\":null,\"button_presses\":0,\"button_bounces_rejected\":0,\"detail\":\"duplicate or reversed input sequence\",\"button_repeats_suppressed\":0,\"sessions_served\":0}"}
+{"host_time": "2026-07-30T15:01:53.407055-04:00", "monotonic": 338.187, "line": "{\"event\":\"dev_display_exited\",\"restartable\":true}"}
+{"host_time": "2026-07-30T15:01:58.113355-04:00", "capture_event": "disconnected", "port": "COM10", "label": "magtag-dongle-hub", "detail": "ClearCommError failed (PermissionError(13, 'The device does not recognize the command.', None, 22))"}
+{"host_time": "2026-07-30T15:02:01.132337-04:00", "capture_event": "connected", "port": "COM10", "label": "magtag-dongle-hub"}
+{"host_time": "2026-07-30T15:02:01.566562-04:00", "monotonic": 346.343, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | code.py | 9.1.1\u001b\\"}
+{"host_time": "2026-07-30T15:02:17.444994-04:00", "monotonic": 362.234, "line": "{\"actions\":[\"MENU\",\"UP\",\"DOWN\",\"SELECT\"],\"event\":\"dev_display_buttons_ready\",\"aliases\":[\"BUTTON_A\",\"BUTTON_B\",\"BUTTON_C\",\"BUTTON_D\"],\"debounce_seconds\":0.025,\"minimum_interval_seconds\":0.25}"}
+{"host_time": "2026-07-30T15:02:17.446000-04:00", "monotonic": 362.234, "line": "{\"button_detail\":null,\"baud\":115200,\"rx_alias\":\"D10\",\"event\":\"dev_display_ready\",\"tx_alias\":\"A1\",\"buttons\":true}"}
+{"host_time": "2026-07-30T15:02:25.681347-04:00", "capture_event": "disconnected", "port": "COM10", "label": "magtag-dongle-hub", "detail": "ClearCommError failed (PermissionError(13, 'The device does not recognize the command.', None, 22))"}
+{"host_time": "2026-07-30T15:02:29.202769-04:00", "capture_event": "connected", "port": "COM10", "label": "magtag-dongle-hub"}
+{"host_time": "2026-07-30T15:02:29.531618-04:00", "monotonic": 374.312, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | code.py | 9.1.1\u001b\\"}
+{"host_time": "2026-07-30T15:02:45.150764-04:00", "monotonic": 389.937, "line": "{\"actions\":[\"MENU\",\"UP\",\"DOWN\",\"SELECT\"],\"event\":\"dev_display_buttons_ready\",\"aliases\":[\"BUTTON_A\",\"BUTTON_B\",\"BUTTON_C\",\"BUTTON_D\"],\"debounce_seconds\":0.025,\"minimum_interval_seconds\":0.25}"}
+{"host_time": "2026-07-30T15:02:45.152311-04:00", "monotonic": 389.937, "line": "{\"button_detail\":null,\"baud\":115200,\"rx_alias\":\"D10\",\"event\":\"dev_display_ready\",\"tx_alias\":\"A1\",\"buttons\":true}"}
+{"host_time": "2026-07-30T15:04:39.828159-04:00", "monotonic": 504.609, "line": "{\"revision\":0,\"event\":\"dev_display_status_sent\",\"message_type\":5,\"sequence\":1}"}
+{"host_time": "2026-07-30T15:04:40.254183-04:00", "monotonic": 505.031, "line": "{\"revision\":3,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":2}"}
+{"host_time": "2026-07-30T15:04:40.267798-04:00", "monotonic": 505.046, "line": "{\"revision\":3,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":3}"}
+{"host_time": "2026-07-30T15:04:43.843268-04:00", "monotonic": 508.625, "line": "{\"revision\":3,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":4}"}
+{"host_time": "2026-07-30T15:04:43.848880-04:00", "monotonic": 508.625, "line": "{\"revision\":3,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":5}"}
+{"host_time": "2026-07-30T15:07:29.391772-04:00", "capture_event": "disconnected", "port": "COM10", "label": "magtag-dongle-hub", "detail": "ClearCommError failed (PermissionError(13, 'The device does not recognize the command.', None, 22))"}
+{"host_time": "2026-07-30T15:07:32.415688-04:00", "capture_event": "connected", "port": "COM10", "label": "magtag-dongle-hub"}
+{"host_time": "2026-07-30T15:07:32.780425-04:00", "monotonic": 677.562, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | code.py | 9.1.1\u001b\\"}
+{"host_time": "2026-07-30T15:07:48.765302-04:00", "monotonic": 693.546, "line": "{\"actions\":[\"MENU\",\"UP\",\"DOWN\",\"SELECT\"],\"event\":\"dev_display_buttons_ready\",\"aliases\":[\"BUTTON_A\",\"BUTTON_B\",\"BUTTON_C\",\"BUTTON_D\"],\"debounce_seconds\":0.025,\"minimum_interval_seconds\":0.25}"}
+{"host_time": "2026-07-30T15:07:48.766308-04:00", "monotonic": 693.546, "line": "{\"button_detail\":null,\"baud\":115200,\"rx_alias\":\"D10\",\"event\":\"dev_display_ready\",\"tx_alias\":\"A1\",\"buttons\":true}"}
+{"host_time": "2026-07-30T15:08:15.097420-04:00", "monotonic": 719.875, "line": "{\"revision\":0,\"event\":\"dev_display_status_sent\",\"message_type\":5,\"sequence\":1}"}
+{"host_time": "2026-07-30T15:08:15.506280-04:00", "monotonic": 720.296, "line": "{\"revision\":3,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":2}"}
+{"host_time": "2026-07-30T15:08:15.531603-04:00", "monotonic": 720.312, "line": "{\"revision\":3,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":3}"}
+{"host_time": "2026-07-30T15:08:19.105995-04:00", "monotonic": 723.89, "line": "{\"revision\":3,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":4}"}
+{"host_time": "2026-07-30T15:08:19.111077-04:00", "monotonic": 723.89, "line": "{\"revision\":3,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":5}"}
+{"host_time": "2026-07-30T15:08:19.908214-04:00", "monotonic": 724.687, "line": "{\"revision\":5,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":6}"}
+{"host_time": "2026-07-30T15:08:19.932818-04:00", "monotonic": 724.718, "line": "{\"revision\":5,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":7}"}
+{"host_time": "2026-07-30T15:08:20.885965-04:00", "monotonic": 725.671, "line": "{\"revision\":5,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":8}"}
+{"host_time": "2026-07-30T15:08:20.891012-04:00", "monotonic": 725.671, "line": "{\"revision\":5,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":9}"}
+{"host_time": "2026-07-30T15:08:22.087164-04:00", "monotonic": 726.875, "line": "{\"revision\":11,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":10}"}
+{"host_time": "2026-07-30T15:08:22.102397-04:00", "monotonic": 726.89, "line": "{\"revision\":11,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":11}"}
+{"host_time": "2026-07-30T15:08:23.076318-04:00", "monotonic": 727.859, "line": "{\"revision\":11,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":12}"}
+{"host_time": "2026-07-30T15:08:23.080704-04:00", "monotonic": 727.859, "line": "{\"revision\":11,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":13}"}
+{"host_time": "2026-07-30T15:08:24.387001-04:00", "monotonic": 729.171, "line": "{\"revision\":20,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":14}"}
+{"host_time": "2026-07-30T15:08:24.401439-04:00", "monotonic": 729.187, "line": "{\"revision\":20,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":15}"}
+{"host_time": "2026-07-30T15:08:25.398800-04:00", "monotonic": 730.187, "line": "{\"revision\":20,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":16}"}
+{"host_time": "2026-07-30T15:08:25.404432-04:00", "monotonic": 730.187, "line": "{\"revision\":20,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":17}"}
+{"host_time": "2026-07-30T15:08:25.702394-04:00", "monotonic": 730.484, "line": "{\"revision\":21,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":18}"}
+{"host_time": "2026-07-30T15:08:25.718125-04:00", "monotonic": 730.5, "line": "{\"revision\":21,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":19}"}
+{"host_time": "2026-07-30T15:08:26.724403-04:00", "monotonic": 731.5, "line": "{\"revision\":21,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":20}"}
+{"host_time": "2026-07-30T15:08:26.728931-04:00", "monotonic": 731.515, "line": "{\"revision\":21,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":21}"}
+{"host_time": "2026-07-30T15:10:09.986245-04:00", "monotonic": 834.765, "line": "{\"revision\":22,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":22}"}
+{"host_time": "2026-07-30T15:10:10.010674-04:00", "monotonic": 834.796, "line": "{\"revision\":22,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":23}"}
+{"host_time": "2026-07-30T15:10:10.997033-04:00", "monotonic": 835.781, "line": "{\"revision\":22,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":24}"}
+{"host_time": "2026-07-30T15:10:11.001716-04:00", "monotonic": 835.781, "line": "{\"revision\":22,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":25}"}

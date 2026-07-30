@@ -1084,6 +1084,94 @@ Recorded, not chased:
   the keyboard delivered. The dongle phase is the natural place to learn whether
   it is the keyboard or our HID handling.
 
+## USB dongle keyboard compatibility — STARTED 2026-07-30, BLOCKED ON HARDWARE
+
+`README.md` has named "wireless keyboard with a USB receiver" as a supported
+input path since the beginning. This phase set out to test it. It did not get
+far, and the reason is worth recording precisely, because the useful result is a
+narrow one.
+
+### The receiver that was available was the wrong one
+
+The only 2.4 GHz receiver on the bench is the **EPOMAKER TH40's own dongle**,
+`36B0:3002`. That is not a fresh test: attempts 1 and 2 under Priority 3 already
+recorded it as enumerating correctly and forwarding no key data, and that section
+already concluded "the receiver is not supported and remains out of scope."
+`PRIORITY.md` claimed the dongle path was untested; that was wrong, and it is
+corrected here.
+
+Attempt 3 was run anyway, because the earlier attempts pre-date the shell, the
+adaptive pacing, the layout seam, and the current diagnostics, and because a
+failure worth trusting should be reproducible on demand.
+
+### Attempt 3 — 2026-07-30 — FAIL, and the same failure
+
+Evidence: `docs/FRUITJAM_DONGLE_PROBE_SERIAL.jsonl` and
+`docs/MAGTAG_DONGLE_SERIAL.jsonl`. Nothing was changed to run it: both
+boards kept the V1.5 configuration and the V1.5 build, no guard was claimed, and
+no file was written to either board.
+
+Across **three boots**, every one of them identical:
+
+```json
+{"event":"usb_keyboard_state","from":"ENUMERATING","to":"READY","open_attempts":1}
+{"event":"usb_keyboard_connected","product":"Wireless 2.4G Dongle","vendor_id":"36B0","product_id":"3002","protocol":"boot_keyboard","interface":0,"endpoint":129,"hid_interfaces":3,"serial_number":"19971217"}
+{"event":"usb_keyboard_layout_selected","selection":"AUTO","layout":"STANDARD"}
+```
+
+- it **enumerates**, on the first open attempt, every time;
+- it **stays connected** — no disconnect, no re-enumeration, no flapping for the
+  life of a session;
+- it sends **zero HID reports**, across four deliberate typing windows inside
+  live sessions, one of them typed while the session was confirmed live to the
+  second;
+- nothing reached the serial console either, so CircuitPython's built-in host
+  keyboard driver is not quietly taking the keystrokes to stdin.
+
+The `AUTO` layout seam behaved exactly as designed: `36B0:3002` is not the wired
+TH40's `36B0:304E`, so it received `STANDARD` HID rather than a remap built for a
+different device.
+
+**Two controls make the negative narrow.**
+
+1. *The keyboard and receiver are fine.* Moved to the host PC, the same pair
+   types normally. So this is not pairing, not the keyboard's mode switch, and
+   not a flat battery.
+2. *The Fruit Jam is fine.* With the **wired** TH40 cable in the same host port,
+   the same build, and the same session: `hid_report_received: 22`,
+   `live_event_processed: 11`, characters into the document, and the V1.5 note
+   recovered intact at 85 characters and revision 350. So the host port delivers
+   HID, our adapter reads it, and nothing about the V1.5 build regressed.
+
+**Recorded as: the TH40 receiver is incompatible with the Fruit Jam host port.**
+Per the operator's instruction, no further time goes to this receiver.
+
+### What is still unknown, and deliberately so
+
+**Whether USB power is the cause was not settled.** The powered-hub test — the
+experiment that would separate "the port cannot run a 2.4 GHz radio" from "this
+receiver is simply incompatible" — was proposed and **declined** on practical
+grounds, so `HARDWARE.md`'s current-supply question stays open exactly as it was.
+The wired control does *not* answer it: a wired keyboard and a receiver's radio
+are not comparable loads.
+
+That matters for sequencing rather than for this phase. If power is the cause,
+the phase that fixes it is **one-cable bench power**, which is already next in
+the order, and the dongle question is worth re-asking after it rather than before.
+
+### Blocked, and on what
+
+**No second wireless keyboard or receiver is available on the bench.** The next
+step this phase needs is one *ordinary* wireless keyboard receiver — any vendor,
+not this keyboard's own — to answer the only question that still matters: whether
+the wireless path works at all, or is specific to this dongle. Nothing in the
+repository can answer that, and no amount of further work on `36B0:3002` will.
+
+Until then the phase is **blocked on hardware**, not on software. Nothing here
+asks for a code change: the adapter, the `AUTO` seam, the state machine, and the
+diagnostics all did their jobs, and the one thing they could not do was invent a
+device that sends reports.
+
 ## Priority 5 — Minimum standalone workflow — V1.6
 
 Add the smallest complete on-device workflow:

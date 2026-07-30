@@ -23,35 +23,55 @@ Do not create new certification harnesses, evidence packages, compatibility inve
    buttons the primary shell controls.~~ Implemented, host-verified.
 9. ~~Run the smallest physical bench check of the shell UX.~~ Done 2026-07-30,
    passed with zero faults.
-10. Integrate USB dongle keyboard compatibility, resumed straight after. **<- next**
-11. Bring the bench to one-cable power.
+10. ~~Integrate USB dongle keyboard compatibility.~~ Started 2026-07-30 and
+    **blocked on hardware**: the only receiver on the bench is incompatible and
+    closed, and no other exists here.
+11. Bring the bench to one-cable power. **<- next**
 12. Complete the minimum standalone workflow.
 13. Defer keyboard edge cases, battery, enclosure, and hardening until their roadmap phase.
 
 ## Active product task
 
-**USB dongle keyboard compatibility — RESUMED 2026-07-30**, immediately after the
-V1.5 bench check passed.
+**USB dongle keyboard compatibility — STARTED AND BLOCKED ON HARDWARE
+2026-07-30.** Evidence `docs/FRUITJAM_DONGLE_PROBE_SERIAL.jsonl`; the account is
+in `ROADMAP.md`.
 
-The wired EPOMAKER TH40 is proven on the USB host port across five physical
-milestones. The next keyboard question is a wireless keyboard with a USB
-receiver, which `README.md` has named as a supported input path since the
-beginning and which nothing has yet tested.
+The only receiver on the bench is the **TH40's own dongle**, `36B0:3002`, which
+Priority 3 had already recorded as unsupported. Three further boots reproduced
+that exactly: it enumerates on the first attempt, holds the connection, and sends
+**zero HID reports** — while the **wired** TH40 in the same port and the same
+session delivered 22 reports and typed into the document. The keyboard and
+receiver type normally on a host PC. So the failure is the receiver, not the
+port, not the adapter, and not the V1.5 build.
 
-Then, in order: **one-cable bench power**, and then **V1.6, the minimum
-standalone workflow**.
+**Recorded as incompatible, and closed.** No further time goes to this receiver.
 
-Carry these into the dongle work, from the V1.4 and V1.5 runs:
+**What unblocks this:** one *ordinary* wireless keyboard with a USB receiver, any
+vendor. Nothing in the repository can substitute for it, and no further work on
+`36B0:3002` will answer whether the wireless path works at all.
+
+**What was deliberately not settled:** whether USB power is the cause. The
+powered-hub test was declined on practical grounds, so `HARDWARE.md`'s
+current-supply question stays open. If power is the answer, **one-cable bench
+power** — already the next phase — is what changes it, so the dongle question is
+worth re-asking after that rather than before.
+
+Carry forward, from V1.4 and V1.5:
 
 - the TH40 character mis-mappings are still unexplained and still in the backlog.
   V1.4 saw `this` → `tgus` and `is` → `us`; V1.5 saw `v15` arrive as `v 12`. A
-  second keyboard is the cheapest experiment that separates "this keyboard" from
-  "our HID handling", so the dongle phase is the natural place to learn something
-  about it — without turning into the keyboard-mapping investigation the backlog
-  defers;
-- `usb_keyboard_layout_selected` already carries an `AUTO` path keyed on vendor
-  and product id, so an unrecognised receiver gets standard HID rather than a
-  wrong layout. That seam is where a dongle's descriptor will land.
+  second keyboard remains the cheapest experiment that separates "this keyboard"
+  from "our HID handling", and is now blocked on the same missing hardware;
+- `usb_keyboard_layout_selected` carries an `AUTO` path keyed on vendor and
+  product id, and it behaved correctly under test: `36B0:3002` got `STANDARD` HID
+  rather than the wired TH40's remap. That seam needs no change for a dongle.
+
+## Next product task
+
+**One-cable bench power**, then **V1.6, the minimum standalone workflow**. Bench
+power moves ahead of the dongle work by necessity rather than by preference: the
+dongle phase cannot proceed without hardware that is not here, and power is the
+one phase that could plausibly change the dongle result.
 
 ## Completed product tasks
 

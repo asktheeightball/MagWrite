@@ -1,0 +1,42 @@
+]0;🐍Wi-Fi: off | code.py | 9.1.1\
+{"guard_written":false,"filesystem_remounted":false,"restartable":true,"event":"dev_display_stopped","buttons":true,"button_detail":null,"button_presses":0,"button_bounces_rejected":0,"detail":"duplicate or reversed input sequence","button_repeats_suppressed":0,"sessions_served":0}
+{"event":"dev_display_exited","restartable":true}
+]0;🐍Wi-Fi: off | code.py | 9.1.1\
+{"actions":["MENU","UP","DOWN","SELECT"],"event":"dev_display_buttons_ready","aliases":["BUTTON_A","BUTTON_B","BUTTON_C","BUTTON_D"],"debounce_seconds":0.025,"minimum_interval_seconds":0.25}
+{"button_detail":null,"baud":115200,"rx_alias":"D10","event":"dev_display_ready","tx_alias":"A1","buttons":true}
+]0;🐍Wi-Fi: off | code.py | 9.1.1\
+{"actions":["MENU","UP","DOWN","SELECT"],"event":"dev_display_buttons_ready","aliases":["BUTTON_A","BUTTON_B","BUTTON_C","BUTTON_D"],"debounce_seconds":0.025,"minimum_interval_seconds":0.25}
+{"button_detail":null,"baud":115200,"rx_alias":"D10","event":"dev_display_ready","tx_alias":"A1","buttons":true}
+{"revision":0,"event":"dev_display_status_sent","message_type":5,"sequence":1}
+{"revision":3,"event":"dev_display_status_sent","message_type":6,"sequence":2}
+{"revision":3,"event":"dev_display_status_sent","message_type":7,"sequence":3}
+{"revision":3,"event":"dev_display_status_sent","message_type":8,"sequence":4}
+{"revision":3,"event":"dev_display_status_sent","message_type":9,"sequence":5}
+]0;🐍Wi-Fi: off | code.py | 9.1.1\
+{"actions":["MENU","UP","DOWN","SELECT"],"event":"dev_display_buttons_ready","aliases":["BUTTON_A","BUTTON_B","BUTTON_C","BUTTON_D"],"debounce_seconds":0.025,"minimum_interval_seconds":0.25}
+{"button_detail":null,"baud":115200,"rx_alias":"D10","event":"dev_display_ready","tx_alias":"A1","buttons":true}
+{"revision":0,"event":"dev_display_status_sent","message_type":5,"sequence":1}
+{"revision":3,"event":"dev_display_status_sent","message_type":6,"sequence":2}
+{"revision":3,"event":"dev_display_status_sent","message_type":7,"sequence":3}
+{"revision":3,"event":"dev_display_status_sent","message_type":8,"sequence":4}
+{"revision":3,"event":"dev_display_status_sent","message_type":9,"sequence":5}
+{"revision":5,"event":"dev_display_status_sent","message_type":6,"sequence":6}
+{"revision":5,"event":"dev_display_status_sent","message_type":7,"sequence":7}
+{"revision":5,"event":"dev_display_status_sent","message_type":8,"sequence":8}
+{"revision":5,"event":"dev_display_status_sent","message_type":9,"sequence":9}
+{"revision":11,"event":"dev_display_status_sent","message_type":6,"sequence":10}
+{"revision":11,"event":"dev_display_status_sent","message_type":7,"sequence":11}
+{"revision":11,"event":"dev_display_status_sent","message_type":8,"sequence":12}
+{"revision":11,"event":"dev_display_status_sent","message_type":9,"sequence":13}
+{"revision":20,"event":"dev_display_status_sent","message_type":6,"sequence":14}
+{"revision":20,"event":"dev_display_status_sent","message_type":7,"sequence":15}
+{"revision":20,"event":"dev_display_status_sent","message_type":8,"sequence":16}
+{"revision":20,"event":"dev_display_status_sent","message_type":9,"sequence":17}
+{"revision":21,"event":"dev_display_status_sent","message_type":6,"sequence":18}
+{"revision":21,"event":"dev_display_status_sent","message_type":7,"sequence":19}
+{"revision":21,"event":"dev_display_status_sent","message_type":8,"sequence":20}
+{"revision":21,"event":"dev_display_status_sent","message_type":9,"sequence":21}
+{"revision":22,"event":"dev_display_status_sent","message_type":6,"sequence":22}
+{"revision":22,"event":"dev_display_status_sent","message_type":7,"sequence":23}
+{"revision":22,"event":"dev_display_status_sent","message_type":8,"sequence":24}
+{"revision":22,"event":"dev_display_status_sent","message_type":9,"sequence":25}

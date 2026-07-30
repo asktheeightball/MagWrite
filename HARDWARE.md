@@ -210,13 +210,26 @@ Do not connect one battery simultaneously to the independent charger circuits on
 - [x] Implement MagTag button events over return UART. Physically verified
       2026-07-30 — all four buttons claimed, 9 presses delivered and applied
       exactly once each, none reaching the document. Recorded in `ROADMAP.md`.
-- [ ] Verify one known USB HID keyboard on the Fruit Jam. Enumeration, interface
-      selection, and boot-report reading are verified; **live typing is not** —
-      two attempts failed because the keyboard sent no HID data to its receiver
-      while that receiver was in the Fruit Jam host port. See
-      `docs/FRUITJAM_USB_KEYBOARD_TEST.md`.
+- [x] Verify one known USB HID keyboard on the Fruit Jam. Done with the **wired**
+      EPOMAKER TH40, across V1.2 through V1.5 and re-confirmed as a control on
+      2026-07-30: enumeration, interface selection, boot-report reading, and live
+      typing into the document. The two early failures were the **wireless
+      receiver**, not the keyboard. See `docs/FRUITJAM_USB_KEYBOARD_TEST.md`.
+- [ ] **The TH40's own 2.4 GHz receiver (`36B0:3002`) is incompatible** with the
+      Fruit Jam host port. Three further boots on 2026-07-30 reproduced the
+      original failure exactly: enumerates on the first attempt, holds the
+      connection, sends zero HID reports, with the wired cable working in the
+      same port and session as a control. Not to be pursued further. Evidence
+      `docs/FRUITJAM_DONGLE_PROBE_SERIAL.jsonl`; the account is in `ROADMAP.md`.
 - [ ] Determine whether the Fruit Jam host port supplies enough current for a
-      2.4 GHz receiver's radio, or retry with a wired USB keyboard.
+      2.4 GHz receiver's radio. **Still open.** The powered-hub test that would
+      settle it was declined on 2026-07-30; the wired control does not answer it,
+      because a wired keyboard and a radio are not comparable loads. Worth
+      re-asking after one-cable bench power.
+- [ ] Obtain **one ordinary wireless keyboard with a USB receiver** — any vendor,
+      not the TH40's own dongle. This is the only thing that can say whether the
+      wireless path works at all or fails only with this receiver, and the dongle
+      phase is blocked on it.
 - [ ] Verify keyboard reconnect, modifiers, hold, and repeat.
 - [x] Read the microSD pin aliases off the board and set them in
       `fruitjam/config.py`. Done 2026-07-30 with `tools/fruitjam_sd_probe.py`;

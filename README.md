@@ -5,7 +5,8 @@ MagWrite is a focused, portable writing terminal inspired by BYOK-style drafting
 ## Current prototype
 
 ```text
-Wired USB keyboard or wireless keyboard with USB receiver
+Wired USB keyboard (proven); wireless keyboard with USB receiver (intended, not
+yet working on any receiver tested)
         |
         v
 Adafruit Fruit Jam
@@ -65,8 +66,9 @@ The project has physically verified:
 3. ~~Add microSD autosave, forced-power-loss recovery, and the four writing modes.~~
 4. ~~Add MagTag button events over the existing return UART link, and remove the
    Save/Status interruption.~~ Physically verified 2026-07-30.
-5. Support a wireless keyboard with a USB receiver. **<- current**
-6. Bring the bench to one-cable power.
+5. Support a wireless keyboard with a USB receiver. **Blocked on hardware** —
+   the one receiver available is incompatible; see `ROADMAP.md`.
+6. Bring the bench to one-cable power. **<- current**
 7. Build the minimum standalone writing workflow.
 8. Integrate one rechargeable battery and one charging port.
 9. Complete enclosure and product hardening.
