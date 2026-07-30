@@ -105,7 +105,7 @@ no pending viewport, and displayed revision equal to latest accepted revision.
 Status queues and acknowledgement histories are bounded; overflow is fatal and
 the physical harness never retries automatically.
 
-### BUTTON_EVENT (implemented, host verified; physical NOT RUN)
+### BUTTON_EVENT (implemented, host verified; PHYSICALLY VERIFIED 2026-07-30)
 
 Added in V1.5, and deliberately not given a channel of its own. It is the same
 version-1 frame, the same CRC-32, and the same MagTag-to-Fruit Jam sequence
@@ -137,6 +137,12 @@ Rules:
 - the Fruit Jam's inbox is bounded and drops the **oldest** on overflow, because
   a backlog is stale intention;
 - an unrecognised action code is refused and counted, never guessed.
+
+Verified on hardware 2026-07-30: 9 presses produced 9 frames and 9 applied
+actions, with no bounce rejected, no repeat suppressed, no frame dropped, no
+duplicate ordinal, and no unknown action code — while the acknowledgement stream
+sharing the outbox reconciled all 16 viewports without a CRC failure. See
+`ROADMAP.md`, V1.5.
 
 The acknowledgement run is eight input frames: HELLO, six VIEWPORTs
 (revisions 1..6), and END_OF_TEST. Revisions 2..5 form the supersession burst.

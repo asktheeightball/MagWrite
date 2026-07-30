@@ -21,17 +21,63 @@ Do not create new certification harnesses, evidence packages, compatibility inve
 7. ~~Run one physical two-mode session on the bench.~~ Done 2026-07-30.
 8. ~~Fix the shell UX: remove the Save/Status interruption and make the MagTag
    buttons the primary shell controls.~~ Implemented, host-verified.
-9. Run the smallest physical bench check of the shell UX. **<- next**
-10. Integrate USB dongle keyboard compatibility, resumed straight after.
+9. ~~Run the smallest physical bench check of the shell UX.~~ Done 2026-07-30,
+   passed with zero faults.
+10. Integrate USB dongle keyboard compatibility, resumed straight after. **<- next**
 11. Bring the bench to one-cable power.
 12. Complete the minimum standalone workflow.
 13. Defer keyboard edge cases, battery, enclosure, and hardening until their roadmap phase.
 
 ## Active product task
 
-**V1.5 shell UX — HOST-VERIFIED, PHYSICAL CHECK NOT YET RUN.**
+**USB dongle keyboard compatibility — RESUMED 2026-07-30**, immediately after the
+V1.5 bench check passed.
 
-Two defects, both in the shell and neither in the editor, storage, or transport.
+The wired EPOMAKER TH40 is proven on the USB host port across five physical
+milestones. The next keyboard question is a wireless keyboard with a USB
+receiver, which `README.md` has named as a supported input path since the
+beginning and which nothing has yet tested.
+
+Then, in order: **one-cable bench power**, and then **V1.6, the minimum
+standalone workflow**.
+
+Carry these into the dongle work, from the V1.4 and V1.5 runs:
+
+- the TH40 character mis-mappings are still unexplained and still in the backlog.
+  V1.4 saw `this` → `tgus` and `is` → `us`; V1.5 saw `v15` arrive as `v 12`. A
+  second keyboard is the cheapest experiment that separates "this keyboard" from
+  "our HID handling", so the dongle phase is the natural place to learn something
+  about it — without turning into the keyboard-mapping investigation the backlog
+  defers;
+- `usb_keyboard_layout_selected` already carries an `AUTO` path keyed on vendor
+  and product id, so an unrecognised receiver gets standard HID rather than a
+  wrong layout. That seam is where a dongle's descriptor will land.
+
+## Completed product tasks
+
+**V1.5 — shell UX and MagTag buttons — PHYSICALLY VERIFIED 2026-07-30.**
+Evidence: `docs/FRUITJAM_V15_BENCH_SERIAL.jsonl` and
+`docs/MAGTAG_V15_BENCH_SERIAL.jsonl`; the full account is in `ROADMAP.md` and
+`docs/SHELL.md`.
+
+The smallest check that settles it, run on a document **recovered from the V1.4
+session** rather than a fresh one. All six steps passed with zero faults:
+
+1. Escape produced one silent checkpoint and one transition straight to the main
+   menu — no save screen, no second keypress, `save_failures: 0`;
+2. the buttons moved the selection up and down, one item per press;
+3. `SELECT` opened a mode; `MENU` returned, checkpointing silently on the way;
+4. 9 presses → 9 frames → 9 accepted → 9 applied, with zero duplicates, drops,
+   bounces, suppressed repeats, or unknown actions;
+5. the three presses made inside the editor were ignored by the document —
+   `shell_buttons_ignored: 3`, no editor event, character count unmoved;
+6. the typed line survived leaving and reopening the editor exactly.
+
+Neither board was remounted, both CIRCUITPY volumes were host-writable after the
+run, and **no guard file was created**.
+
+What it fixed — two defects, both in the shell and neither in the editor,
+storage, or transport.
 
 1. **The Save/Status interruption is removed.** Escape from the editor
    checkpointed the document *and* then drew a screen the writer had no decision
@@ -54,42 +100,8 @@ The keyboard keeps every shell key as a fallback, persistence formats are
 untouched, keyboard mappings were not revisited, and no certification framework
 was created.
 
-**The smallest bench check that settles it**, in `ROADMAP.md` and
-`docs/SHELL.md`: type; press Escape and confirm it saves and returns directly to
-the menu; move through the menu with the buttons; open a mode with a button;
-return to the menu with a button; confirm no text is lost. Fix only blockers.
-
-**The build is deployed to both boards and the check is NOT RUN.** Both boards
-ignored autoreload — only a status bar on each console, no `boot` record across
-repeated file writes — so they need the reset button; and every step of the check
-is a physical button press or a keystroke either way. No part of V1.5 is claimed
-as physically verified.
-
-## Next product task
-
-**USB dongle keyboard compatibility — PAUSED, resumes immediately after the V1.5
-bench check.**
-
-The wired EPOMAKER TH40 is proven on the USB host port across four physical
-milestones. The next keyboard question is a wireless keyboard with a USB
-receiver, which `README.md` has named as a supported input path since the
-beginning and which nothing has yet tested.
-
-Then, in order: **one-cable bench power**, and then **V1.5, the minimum
-standalone workflow**.
-
-Carry these into the dongle work, from the V1.4 run:
-
-- the TH40 character mis-mappings (`this` → `tgus`, `is` → `us`) are still
-  unexplained and still in the backlog. A second keyboard is the cheapest
-  experiment that separates "this keyboard" from "our HID handling", so the
-  dongle phase is the natural place to learn something about it — without
-  turning into the keyboard-mapping investigation the backlog defers;
-- `usb_keyboard_layout_selected` already carries an `AUTO` path keyed on vendor
-  and product id, so an unrecognised receiver gets standard HID rather than a
-  wrong layout. That seam is where a dongle's descriptor will land.
-
-## Completed product tasks
+Both boards needed the **reset button**, exactly as the deployment note
+predicted, and the MagTag went first.
 
 **V1.4 — Journal, Quick Note, Drafts, and Recent — PHYSICALLY VERIFIED
 2026-07-30.** Evidence: `docs/FRUITJAM_V14_BENCH_SERIAL.jsonl`,
@@ -184,10 +196,13 @@ The following are explicitly non-blocking unless they prevent normal writing:
   means every test that passes that option is pacing at half the rate it reads
   as. Fixing it would perturb the timing of several proven tests, so it is
   recorded rather than changed mid-phase;
-- character mis-mappings seen in the V1.2 physical run (`this` typed as `tgus`,
-  `is` as `us`) on the EPOMAKER TH40. Persistence stored and recovered exactly
-  what the editor accepted, so this is a keyboard-mapping question, not a
-  storage one;
+- character mis-mappings on the EPOMAKER TH40, seen in the V1.2 physical run
+  (`this` typed as `tgus`, `is` as `us`) and again in V1.5, where `v15` reached
+  the editor as `v 12`. Persistence stored and recovered exactly what the editor
+  accepted, and the shell passed it through untouched, so this is a
+  keyboard-mapping question rather than a storage or shell one. The dongle phase
+  is where a second keyboard will say whether it is this keyboard or our HID
+  handling;
 - apostrophe and unusual keyboard mappings;
 - Home, End, Delete, Caps Lock, and key-repeat refinement;
 - formal responsiveness measurement;

@@ -207,8 +207,9 @@ Do not connect one battery simultaneously to the independent charger circuits on
 - [x] Verify bidirectional UART acknowledgements using A0→D10 and A1→A1.
 - [x] Confirm no inter-board power conductor during verified UART bench tests.
 - [x] Physically verify the integrated multiline editor and five-line layout.
-- [x] Implement MagTag button events over return UART. Host-verified in V1.5;
-      physical bench check recorded in `ROADMAP.md`.
+- [x] Implement MagTag button events over return UART. Physically verified
+      2026-07-30 — all four buttons claimed, 9 presses delivered and applied
+      exactly once each, none reaching the document. Recorded in `ROADMAP.md`.
 - [ ] Verify one known USB HID keyboard on the Fruit Jam. Enumeration, interface
       selection, and boot-report reading are verified; **live typing is not** —
       two attempts failed because the keyboard sent no HID data to its receiver

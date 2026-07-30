@@ -36,7 +36,7 @@ this list wins.
 | 2 | microSD persistence and forced-power-loss recovery | Priority 4 | PHYSICALLY VERIFIED 2026-07-30 |
 | 3 | MagWrite Shell | V1.3 | PHYSICALLY VERIFIED 2026-07-30 |
 | 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | PHYSICALLY VERIFIED 2026-07-30 |
-| 5 | Shell UX: one-gesture exit, and MagTag buttons | V1.5 | Host-verified; physical run not yet performed |
+| 5 | Shell UX: one-gesture exit, and MagTag buttons | V1.5 | PHYSICALLY VERIFIED 2026-07-30 |
 | 6 | Standalone workflow | Priority 5 | Not started |
 | 7 | Battery, enclosure, and hardening | Priorities 6 and 7 | Not started |
 
@@ -174,7 +174,7 @@ Initial product mapping should prioritize:
 
 Exact mappings remain configurable and should be validated against the real workflow.
 
-**Exit:** every physical button event reaches the Fruit Jam exactly once, produces the intended Fruit Jam-owned action, and does not interfere with display acknowledgements. Host-verified in V1.5; the bench check is the one recorded in that section.
+**Exit:** every physical button event reaches the Fruit Jam exactly once, produces the intended Fruit Jam-owned action, and does not interfere with display acknowledgements. **Met on hardware 2026-07-30** — 9 presses, 9 frames sent, 9 accepted, 9 applied, zero duplicates and zero drops, with the display acknowledgement stream and viewport reconciliation unaffected. See **V1.5**.
 
 ## Priority 3 — Direct USB HID keyboard on Fruit Jam — PHYSICALLY VERIFIED
 
@@ -856,7 +856,7 @@ met by it:
 - the character mis-mappings in the recovered text (`tgus` for `this`, `us` for
   `is`) are the known TH40 keyboard-mapping item, untouched by this phase.
 
-## V1.5 — Shell UX: one-gesture exit and MagTag buttons — HOST-VERIFIED
+## V1.5 — Shell UX: one-gesture exit and MagTag buttons — PHYSICALLY VERIFIED
 
 The V1.4 bench run produced a working device that was tiring to use. Two things
 stood between the writer and the product, and both were in the shell rather than
@@ -1011,18 +1011,78 @@ Not a certification harness. The ordinary development runtime, per
 
 Record the outcome here and in `PRIORITY.md` whichever way it goes.
 
-**Status: deployed, NOT RUN.** On 2026-07-30 the V1.5 build was copied to both
-boards — `magwrite/buttons.py` and `dev_display_runtime.py` to the MagTag,
-`magwrite_transport/` and `dev_runtime.py` to the Fruit Jam — and the MagTag
-`config.py` gained the `ENABLE_MAGTAG_BUTTONS` block, appended rather than
-overwritten so the existing enable flags survived. Neither board restarted on
-autoreload: both consoles emitted only their status bar and no `boot` record
-across repeated file writes, so both are sitting in a terminal sleep loop from an
-earlier session and need the **reset button**.
+### Physical verification — 2026-07-30, commit `b176e5d` — PASSED
 
-Every step of the check then needs a person at the bench regardless: it is four
-physical button presses and a keyboard. Nothing here is claimed as verified, and
-the six steps above stand exactly as written for whoever runs them.
+Ran on the bench from the deployed build, which was byte-compared against the
+repository first: `dev_runtime.py`, `code.py`, `magwrite_transport/`,
+`dev_display_runtime.py`, and `magtag/magwrite/` all matched, and the two
+`config.py` files differed only in the enable flags each board is meant to carry.
+
+Evidence: `docs/FRUITJAM_V15_BENCH_SERIAL.jsonl` and
+`docs/MAGTAG_V15_BENCH_SERIAL.jsonl`, both captured read-only from before the
+first reset. Both boards needed the **reset button**, as predicted; the MagTag
+went first.
+
+Bring-up:
+
+```json
+{"event":"dev_display_buttons_ready","actions":["MENU","UP","DOWN","SELECT"],"aliases":["BUTTON_A","BUTTON_B","BUTTON_C","BUTTON_D"]}
+{"event":"dev_display_ready","buttons":true,"button_detail":null}
+{"event":"dev_runtime_ready","storage_status":"MOUNTED","shell_state":"EDITOR","buttons":"MAGTAG_MENU_UP_DOWN_SELECT","stop_from":"MAIN_MENU"}
+```
+
+The V1.4 Quick Note was recovered and the shell opened straight into it —
+`live_document_restored`, 68 characters, 41 lines, revision 332 — so the run
+began on a real document with real prior work in it, which is the harder case.
+
+All six checks passed, with **zero faults**:
+
+1. **Typed.** 17 characters accepted, `events_processed: 17`, autosaved at
+   `document_journaled` revision 349, 85 characters.
+2. **Escape saved silently and landed on the menu in one gesture.** One
+   checkpoint, one transition, and nothing in between:
+
+   ```json
+   {"event":"document_checkpointed","revision":349,"characters":85,"save_state":"SAVED"}
+   {"event":"shell_left_editor","save_action":"CHECKPOINTED","save_state":"SAVED"}
+   {"event":"shell_transition","from":"EDITOR","to":"MAIN_MENU","reason":"left the editor"}
+   ```
+
+   No `SAVE_STATUS` state, no save screen on the panel, and no second keypress.
+   `save_failures: 0` and `editor_exit_save_failures: 0` for the session.
+3. **The buttons moved the menu.** Up to `JOURNAL`, down to `QUICK NOTE`, then
+   down twice to `DRAFTS` and `RECENT`, one `shell_selection_moved` per press.
+4. **A button opened a mode.** `SELECT` entered `RECENT` and reopened `NOTE 1`.
+5. **A button returned to the menu**, checkpointing on the way out at 85
+   characters — again silently.
+6. **No text was lost.** `final_document_text` ends `line forty onev 12 button
+   check`, the typed line intact at the cursor it was typed at, after leaving the
+   editor and reopening it.
+
+The button path was exact end to end. The MagTag counted 9 presses and sent 9
+frames with `button_bounces_rejected: 0`, `button_repeats_suppressed: 0`, and
+`button_frames_dropped: 0`; the Fruit Jam received 9, accepted 9, and applied 9,
+with `button_events_duplicate: 0`, `_dropped: 0`, and `_unknown: 0`. Not one
+duplicate at any of the three suppression points.
+
+**No button reached the document.** The three presses made inside the editor were
+applied `from: EDITOR` `to: EDITOR`, counted as `shell_buttons_ignored: 3`, and
+produced no editor event: `events_processed` stayed at the 17 typed characters
+and the character count never moved. Button A at the main menu did not end the
+session; the session ended on Escape, `result: COMPLETE`.
+
+Neither board was remounted and **no guard was created**: every `.started` file
+on both volumes still carries its original pre-run date, and both CIRCUITPY
+volumes were confirmed host-writable after the run.
+
+Recorded, not chased:
+
+- the keyboard delivered `v15` to the editor as `v 12` — the `1` and `5` arriving
+  as ` 1 2`. This is a further instance of the known **TH40 character
+  mis-mapping** already in the backlog (`this` → `tgus`), not a shell defect: the
+  editor, the checkpoint, and the recovery all stored and returned exactly what
+  the keyboard delivered. The dongle phase is the natural place to learn whether
+  it is the keyboard or our HID handling.
 
 ## Priority 5 — Minimum standalone workflow — V1.6
 

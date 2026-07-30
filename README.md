@@ -54,10 +54,9 @@ The project has physically verified:
 - one wired USB HID keyboard directly on the Fruit Jam;
 - microSD autosave and forced-power-loss recovery;
 - the MagWrite Shell;
-- the four writing modes, over an append-only document catalogue.
-
-Host-verified and awaiting a bench check: the one-gesture exit from a document,
-and the four MagTag buttons as the primary shell controls.
+- the four writing modes, over an append-only document catalogue;
+- the one-gesture exit from a document, and the four MagTag buttons as the
+  primary shell controls.
 
 ## Current milestone order
 
@@ -65,7 +64,7 @@ and the four MagTag buttons as the primary shell controls.
 2. ~~Integrate one known USB HID keyboard directly on the Fruit Jam.~~
 3. ~~Add microSD autosave, forced-power-loss recovery, and the four writing modes.~~
 4. ~~Add MagTag button events over the existing return UART link, and remove the
-   Save/Status interruption.~~
+   Save/Status interruption.~~ Physically verified 2026-07-30.
 5. Support a wireless keyboard with a USB receiver. **<- current**
 6. Bring the bench to one-cable power.
 7. Build the minimum standalone writing workflow.

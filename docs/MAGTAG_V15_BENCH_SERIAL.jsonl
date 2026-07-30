@@ -1,0 +1,102 @@
+]0;🐍Wi-Fi: off | code.py | 9.1.1\
+]0;🐍Wi-Fi: off | code.py | 9.1.1\
+]0;🐍Wi-Fi: off | Done | 9.1.1\
+Code stopped by auto-reload. Reloading soon.
+soft reboot
+[2K[0GAuto-reload is on. Simply save files over USB to run them or enter REPL to disable.
+[2K[0Gcode.py output:
+]0;🐍Wi-Fi: off | code.py | 9.1.1\{"event":"boot","circuitpython":"9.1.1"}
+{"actions":["MENU","UP","DOWN","SELECT"],"event":"dev_display_buttons_ready","aliases":["BUTTON_A","BUTTON_B","BUTTON_C","BUTTON_D"],"debounce_seconds":0.025,"minimum_interval_seconds":0.25}
+{"button_detail":null,"baud":115200,"rx_alias":"D10","event":"dev_display_ready","tx_alias":"A1","buttons":true}
+{"revision":0,"event":"dev_display_status_sent","message_type":5,"sequence":1}
+{"revision":3,"event":"dev_display_status_sent","message_type":6,"sequence":2}
+{"revision":3,"event":"dev_display_status_sent","message_type":7,"sequence":3}
+{"revision":3,"event":"dev_display_status_sent","message_type":8,"sequence":4}
+{"revision":3,"event":"dev_display_status_sent","message_type":9,"sequence":5}
+{"revision":7,"event":"dev_display_status_sent","message_type":6,"sequence":6}
+{"revision":7,"event":"dev_display_status_sent","message_type":7,"sequence":7}
+{"revision":7,"event":"dev_display_status_sent","message_type":8,"sequence":8}
+{"revision":7,"event":"dev_display_status_sent","message_type":9,"sequence":9}
+{"revision":8,"event":"dev_display_status_sent","message_type":6,"sequence":10}
+{"revision":8,"event":"dev_display_status_sent","message_type":7,"sequence":11}
+{"revision":8,"event":"dev_display_status_sent","message_type":8,"sequence":12}
+{"revision":8,"event":"dev_display_status_sent","message_type":9,"sequence":13}
+{"revision":11,"event":"dev_display_status_sent","message_type":6,"sequence":14}
+{"revision":11,"event":"dev_display_status_sent","message_type":7,"sequence":15}
+{"revision":11,"event":"dev_display_status_sent","message_type":8,"sequence":16}
+{"revision":11,"event":"dev_display_status_sent","message_type":9,"sequence":17}
+{"revision":13,"event":"dev_display_status_sent","message_type":6,"sequence":18}
+{"revision":13,"event":"dev_display_status_sent","message_type":7,"sequence":19}
+{"revision":13,"event":"dev_display_status_sent","message_type":8,"sequence":20}
+{"revision":13,"event":"dev_display_status_sent","message_type":9,"sequence":21}
+{"revision":28,"event":"dev_display_status_sent","message_type":6,"sequence":22}
+{"revision":28,"event":"dev_display_status_sent","message_type":7,"sequence":23}
+{"revision":28,"event":"dev_display_status_sent","message_type":8,"sequence":24}
+{"revision":28,"event":"dev_display_status_sent","message_type":9,"sequence":25}
+{"revision":29,"event":"dev_display_status_sent","message_type":6,"sequence":26}
+{"revision":29,"event":"dev_display_status_sent","message_type":7,"sequence":27}
+{"revision":29,"event":"dev_display_status_sent","message_type":8,"sequence":28}
+{"revision":29,"event":"dev_display_status_sent","message_type":9,"sequence":29}
+{"revision":30,"event":"dev_display_status_sent","message_type":6,"sequence":30}
+{"revision":30,"event":"dev_display_status_sent","message_type":7,"sequence":31}
+{"revision":30,"event":"dev_display_status_sent","message_type":8,"sequence":32}
+{"revision":30,"event":"dev_display_status_sent","message_type":9,"sequence":33}
+{"revision":31,"event":"dev_display_status_sent","message_type":6,"sequence":34}
+{"revision":31,"event":"dev_display_status_sent","message_type":7,"sequence":35}
+{"revision":31,"event":"dev_display_status_sent","message_type":8,"sequence":36}
+{"revision":31,"event":"dev_display_status_sent","message_type":9,"sequence":37}
+{"event":"dev_display_button_pressed","action":"UP","ordinal":1}
+{"revision":31,"event":"dev_display_status_sent","message_type":13,"sequence":38}
+{"revision":32,"event":"dev_display_status_sent","message_type":6,"sequence":39}
+{"revision":32,"event":"dev_display_status_sent","message_type":7,"sequence":40}
+{"revision":32,"event":"dev_display_status_sent","message_type":8,"sequence":41}
+{"revision":32,"event":"dev_display_status_sent","message_type":9,"sequence":42}
+{"event":"dev_display_button_pressed","action":"DOWN","ordinal":2}
+{"revision":32,"event":"dev_display_status_sent","message_type":13,"sequence":43}
+{"revision":33,"event":"dev_display_status_sent","message_type":6,"sequence":44}
+{"revision":33,"event":"dev_display_status_sent","message_type":7,"sequence":45}
+{"revision":33,"event":"dev_display_status_sent","message_type":8,"sequence":46}
+{"revision":33,"event":"dev_display_status_sent","message_type":9,"sequence":47}
+{"event":"dev_display_button_pressed","action":"DOWN","ordinal":3}
+{"revision":33,"event":"dev_display_status_sent","message_type":13,"sequence":48}
+{"revision":34,"event":"dev_display_status_sent","message_type":6,"sequence":49}
+{"revision":34,"event":"dev_display_status_sent","message_type":7,"sequence":50}
+{"event":"dev_display_button_pressed","action":"DOWN","ordinal":4}
+{"revision":33,"event":"dev_display_status_sent","message_type":13,"sequence":51}
+{"revision":34,"event":"dev_display_status_sent","message_type":8,"sequence":52}
+{"revision":34,"event":"dev_display_status_sent","message_type":9,"sequence":53}
+{"revision":35,"event":"dev_display_status_sent","message_type":6,"sequence":54}
+{"revision":35,"event":"dev_display_status_sent","message_type":7,"sequence":55}
+{"revision":35,"event":"dev_display_status_sent","message_type":8,"sequence":56}
+{"revision":35,"event":"dev_display_status_sent","message_type":9,"sequence":57}
+{"event":"dev_display_button_pressed","action":"SELECT","ordinal":5}
+{"revision":35,"event":"dev_display_status_sent","message_type":13,"sequence":58}
+{"revision":38,"event":"dev_display_status_sent","message_type":6,"sequence":59}
+{"revision":38,"event":"dev_display_status_sent","message_type":7,"sequence":60}
+{"revision":38,"event":"dev_display_status_sent","message_type":8,"sequence":61}
+{"revision":38,"event":"dev_display_status_sent","message_type":9,"sequence":62}
+{"event":"dev_display_button_pressed","action":"UP","ordinal":6}
+{"revision":38,"event":"dev_display_status_sent","message_type":13,"sequence":63}
+{"event":"dev_display_button_pressed","action":"DOWN","ordinal":7}
+{"revision":38,"event":"dev_display_status_sent","message_type":13,"sequence":64}
+{"event":"dev_display_button_pressed","action":"SELECT","ordinal":8}
+{"revision":38,"event":"dev_display_status_sent","message_type":13,"sequence":65}
+{"event":"dev_display_button_pressed","action":"MENU","ordinal":9}
+{"revision":38,"event":"dev_display_status_sent","message_type":13,"sequence":66}
+{"revision":40,"event":"dev_display_status_sent","message_type":6,"sequence":67}
+{"revision":40,"event":"dev_display_status_sent","message_type":7,"sequence":68}
+{"revision":40,"event":"dev_display_status_sent","message_type":8,"sequence":69}
+{"revision":40,"event":"dev_display_status_sent","message_type":9,"sequence":70}
+{"revision":41,"event":"dev_display_status_sent","message_type":6,"sequence":71}
+{"revision":41,"event":"dev_display_status_sent","message_type":7,"sequence":72}
+{"revision":41,"event":"dev_display_status_sent","message_type":8,"sequence":73}
+{"revision":41,"event":"dev_display_status_sent","message_type":9,"sequence":74}
+{"revision":41,"event":"dev_display_status_sent","message_type":12,"sequence":75}
+{"displayed_revision":41,"resynchronization_events":33,"parser_rejections":0,"viewport_frames_rendered":16,"bytes_received":5298,"partial_refresh_minimum_ms":890,"refreshes":16,"session":1,"partial_refresh_mean_ms":928.333,"button_ordinal":9,"button_bounces_rejected":0,"partial_refreshes":15,"partial_refresh_maximum_ms":958,"button_repeats_suppressed":0,"button_frames_dropped":0,"latest_received_revision":41,"viewport_frames_superseded":0,"full_refreshes":1,"bytes_sent":2226,"maximum_discarded_prefix":120,"button_frames_sent":9,"stale_renders":0,"discarded_prefix_bytes":3886,"status_frames_sent":75,"status_queue_maximum_depth":2,"viewport_frames_received":16,"button_presses":9,"crc_failures":0,"event":"dev_display_session_summary"}
+{"sessions_served":1,"event":"dev_display_awaiting_next_session"}
+]0;🐍Wi-Fi: off | Done | 9.1.1\
+Code stopped by auto-reload. Reloading soon.
+soft reboot
+[2K[0GAuto-reload is on. Simply save files over USB to run them or enter REPL to disable.
+[2K[0Gcode.py output:
+]0;🐍Wi-Fi: off | code.py | 9.1.1\{"event":"boot","circuitpython":"9.1.1"}

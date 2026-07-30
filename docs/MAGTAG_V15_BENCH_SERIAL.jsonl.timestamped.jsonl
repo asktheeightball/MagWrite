@@ -1,0 +1,106 @@
+{"host_time": "2026-07-30T14:14:51.461714-04:00", "capture_event": "capture_start", "port": "COM10", "label": "magtag-v15", "baud": 115200}
+{"host_time": "2026-07-30T14:14:51.477594-04:00", "capture_event": "connected", "port": "COM10", "label": "magtag-v15"}
+{"host_time": "2026-07-30T14:14:51.689261-04:00", "monotonic": 0.218, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | code.py | 9.1.1\u001b\\"}
+{"host_time": "2026-07-30T14:27:22.874903-04:00", "capture_event": "disconnected", "port": "COM10", "label": "magtag-v15", "detail": "ClearCommError failed (PermissionError(13, 'The device does not recognize the command.', None, 22))"}
+{"host_time": "2026-07-30T14:27:25.897220-04:00", "capture_event": "connected", "port": "COM10", "label": "magtag-v15"}
+{"host_time": "2026-07-30T14:27:26.382112-04:00", "monotonic": 754.921, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | code.py | 9.1.1\u001b\\"}
+{"host_time": "2026-07-30T14:27:26.825996-04:00", "monotonic": 755.359, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | Done | 9.1.1\u001b\\"}
+{"host_time": "2026-07-30T14:27:26.827001-04:00", "monotonic": 755.359, "line": "Code stopped by auto-reload. Reloading soon."}
+{"host_time": "2026-07-30T14:27:27.243957-04:00", "monotonic": 755.781, "line": "soft reboot"}
+{"host_time": "2026-07-30T14:27:27.246654-04:00", "monotonic": 755.781, "line": "\u001b[2K\u001b[0GAuto-reload is on. Simply save files over USB to run them or enter REPL to disable."}
+{"host_time": "2026-07-30T14:27:27.251016-04:00", "monotonic": 755.781, "line": "\u001b[2K\u001b[0Gcode.py output:"}
+{"host_time": "2026-07-30T14:27:27.307971-04:00", "monotonic": 755.843, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | code.py | 9.1.1\u001b\\{\"event\":\"boot\",\"circuitpython\":\"9.1.1\"}"}
+{"host_time": "2026-07-30T14:27:43.820454-04:00", "monotonic": 772.359, "line": "{\"actions\":[\"MENU\",\"UP\",\"DOWN\",\"SELECT\"],\"event\":\"dev_display_buttons_ready\",\"aliases\":[\"BUTTON_A\",\"BUTTON_B\",\"BUTTON_C\",\"BUTTON_D\"],\"debounce_seconds\":0.025,\"minimum_interval_seconds\":0.25}"}
+{"host_time": "2026-07-30T14:27:43.821459-04:00", "monotonic": 772.359, "line": "{\"button_detail\":null,\"baud\":115200,\"rx_alias\":\"D10\",\"event\":\"dev_display_ready\",\"tx_alias\":\"A1\",\"buttons\":true}"}
+{"host_time": "2026-07-30T14:28:58.632908-04:00", "monotonic": 847.171, "line": "{\"revision\":0,\"event\":\"dev_display_status_sent\",\"message_type\":5,\"sequence\":1}"}
+{"host_time": "2026-07-30T14:28:59.025634-04:00", "monotonic": 847.562, "line": "{\"revision\":3,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":2}"}
+{"host_time": "2026-07-30T14:28:59.042262-04:00", "monotonic": 847.578, "line": "{\"revision\":3,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":3}"}
+{"host_time": "2026-07-30T14:29:02.562231-04:00", "monotonic": 851.093, "line": "{\"revision\":3,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":4}"}
+{"host_time": "2026-07-30T14:29:02.566373-04:00", "monotonic": 851.093, "line": "{\"revision\":3,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":5}"}
+{"host_time": "2026-07-30T14:29:29.484995-04:00", "monotonic": 878.015, "line": "{\"revision\":7,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":6}"}
+{"host_time": "2026-07-30T14:29:29.500083-04:00", "monotonic": 878.031, "line": "{\"revision\":7,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":7}"}
+{"host_time": "2026-07-30T14:29:30.426025-04:00", "monotonic": 878.953, "line": "{\"revision\":7,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":8}"}
+{"host_time": "2026-07-30T14:29:30.430553-04:00", "monotonic": 878.968, "line": "{\"revision\":7,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":9}"}
+{"host_time": "2026-07-30T14:29:30.783179-04:00", "monotonic": 879.312, "line": "{\"revision\":8,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":10}"}
+{"host_time": "2026-07-30T14:29:30.799267-04:00", "monotonic": 879.328, "line": "{\"revision\":8,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":11}"}
+{"host_time": "2026-07-30T14:29:31.726217-04:00", "monotonic": 880.265, "line": "{\"revision\":8,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":12}"}
+{"host_time": "2026-07-30T14:29:31.731363-04:00", "monotonic": 880.265, "line": "{\"revision\":8,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":13}"}
+{"host_time": "2026-07-30T14:29:32.115255-04:00", "monotonic": 880.64, "line": "{\"revision\":11,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":14}"}
+{"host_time": "2026-07-30T14:29:32.130384-04:00", "monotonic": 880.656, "line": "{\"revision\":11,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":15}"}
+{"host_time": "2026-07-30T14:29:33.054050-04:00", "monotonic": 881.593, "line": "{\"revision\":11,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":16}"}
+{"host_time": "2026-07-30T14:29:33.058059-04:00", "monotonic": 881.593, "line": "{\"revision\":11,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":17}"}
+{"host_time": "2026-07-30T14:29:33.439356-04:00", "monotonic": 881.968, "line": "{\"revision\":13,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":18}"}
+{"host_time": "2026-07-30T14:29:33.464008-04:00", "monotonic": 882.0, "line": "{\"revision\":13,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":19}"}
+{"host_time": "2026-07-30T14:29:34.377414-04:00", "monotonic": 882.906, "line": "{\"revision\":13,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":20}"}
+{"host_time": "2026-07-30T14:29:34.382616-04:00", "monotonic": 882.921, "line": "{\"revision\":13,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":21}"}
+{"host_time": "2026-07-30T14:29:35.886005-04:00", "monotonic": 884.421, "line": "{\"revision\":28,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":22}"}
+{"host_time": "2026-07-30T14:29:35.901488-04:00", "monotonic": 884.437, "line": "{\"revision\":28,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":23}"}
+{"host_time": "2026-07-30T14:29:36.866394-04:00", "monotonic": 885.406, "line": "{\"revision\":28,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":24}"}
+{"host_time": "2026-07-30T14:29:36.870796-04:00", "monotonic": 885.406, "line": "{\"revision\":28,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":25}"}
+{"host_time": "2026-07-30T14:29:37.232353-04:00", "monotonic": 885.765, "line": "{\"revision\":29,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":26}"}
+{"host_time": "2026-07-30T14:29:37.248025-04:00", "monotonic": 885.781, "line": "{\"revision\":29,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":27}"}
+{"host_time": "2026-07-30T14:29:38.219537-04:00", "monotonic": 886.75, "line": "{\"revision\":29,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":28}"}
+{"host_time": "2026-07-30T14:29:38.224096-04:00", "monotonic": 886.75, "line": "{\"revision\":29,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":29}"}
+{"host_time": "2026-07-30T14:30:54.040129-04:00", "monotonic": 962.578, "line": "{\"revision\":30,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":30}"}
+{"host_time": "2026-07-30T14:30:54.065895-04:00", "monotonic": 962.593, "line": "{\"revision\":30,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":31}"}
+{"host_time": "2026-07-30T14:30:55.019612-04:00", "monotonic": 963.546, "line": "{\"revision\":30,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":32}"}
+{"host_time": "2026-07-30T14:30:55.023818-04:00", "monotonic": 963.562, "line": "{\"revision\":30,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":33}"}
+{"host_time": "2026-07-30T14:31:46.683309-04:00", "monotonic": 1015.218, "line": "{\"revision\":31,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":34}"}
+{"host_time": "2026-07-30T14:31:46.707853-04:00", "monotonic": 1015.234, "line": "{\"revision\":31,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":35}"}
+{"host_time": "2026-07-30T14:31:47.677265-04:00", "monotonic": 1016.203, "line": "{\"revision\":31,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":36}"}
+{"host_time": "2026-07-30T14:31:47.682937-04:00", "monotonic": 1016.218, "line": "{\"revision\":31,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":37}"}
+{"host_time": "2026-07-30T14:33:31.331149-04:00", "monotonic": 1119.859, "line": "{\"event\":\"dev_display_button_pressed\",\"action\":\"UP\",\"ordinal\":1}"}
+{"host_time": "2026-07-30T14:33:31.336194-04:00", "monotonic": 1119.875, "line": "{\"revision\":31,\"event\":\"dev_display_status_sent\",\"message_type\":13,\"sequence\":38}"}
+{"host_time": "2026-07-30T14:33:31.743406-04:00", "monotonic": 1120.281, "line": "{\"revision\":32,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":39}"}
+{"host_time": "2026-07-30T14:33:31.767379-04:00", "monotonic": 1120.296, "line": "{\"revision\":32,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":40}"}
+{"host_time": "2026-07-30T14:33:32.736752-04:00", "monotonic": 1121.265, "line": "{\"revision\":32,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":41}"}
+{"host_time": "2026-07-30T14:33:32.741796-04:00", "monotonic": 1121.281, "line": "{\"revision\":32,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":42}"}
+{"host_time": "2026-07-30T14:33:32.923356-04:00", "monotonic": 1121.453, "line": "{\"event\":\"dev_display_button_pressed\",\"action\":\"DOWN\",\"ordinal\":2}"}
+{"host_time": "2026-07-30T14:33:32.928570-04:00", "monotonic": 1121.468, "line": "{\"revision\":32,\"event\":\"dev_display_status_sent\",\"message_type\":13,\"sequence\":43}"}
+{"host_time": "2026-07-30T14:33:33.342492-04:00", "monotonic": 1121.875, "line": "{\"revision\":33,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":44}"}
+{"host_time": "2026-07-30T14:33:33.358799-04:00", "monotonic": 1121.89, "line": "{\"revision\":33,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":45}"}
+{"host_time": "2026-07-30T14:33:34.336479-04:00", "monotonic": 1122.875, "line": "{\"revision\":33,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":46}"}
+{"host_time": "2026-07-30T14:33:34.341113-04:00", "monotonic": 1122.875, "line": "{\"revision\":33,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":47}"}
+{"host_time": "2026-07-30T14:33:56.317052-04:00", "monotonic": 1144.843, "line": "{\"event\":\"dev_display_button_pressed\",\"action\":\"DOWN\",\"ordinal\":3}"}
+{"host_time": "2026-07-30T14:33:56.323618-04:00", "monotonic": 1144.859, "line": "{\"revision\":33,\"event\":\"dev_display_status_sent\",\"message_type\":13,\"sequence\":48}"}
+{"host_time": "2026-07-30T14:33:56.718971-04:00", "monotonic": 1145.25, "line": "{\"revision\":34,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":49}"}
+{"host_time": "2026-07-30T14:33:56.744368-04:00", "monotonic": 1145.281, "line": "{\"revision\":34,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":50}"}
+{"host_time": "2026-07-30T14:33:57.425504-04:00", "monotonic": 1145.953, "line": "{\"event\":\"dev_display_button_pressed\",\"action\":\"DOWN\",\"ordinal\":4}"}
+{"host_time": "2026-07-30T14:33:57.430721-04:00", "monotonic": 1145.968, "line": "{\"revision\":33,\"event\":\"dev_display_status_sent\",\"message_type\":13,\"sequence\":51}"}
+{"host_time": "2026-07-30T14:33:57.723370-04:00", "monotonic": 1146.25, "line": "{\"revision\":34,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":52}"}
+{"host_time": "2026-07-30T14:33:57.727388-04:00", "monotonic": 1146.265, "line": "{\"revision\":34,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":53}"}
+{"host_time": "2026-07-30T14:33:58.033053-04:00", "monotonic": 1146.562, "line": "{\"revision\":35,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":54}"}
+{"host_time": "2026-07-30T14:33:58.049129-04:00", "monotonic": 1146.578, "line": "{\"revision\":35,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":55}"}
+{"host_time": "2026-07-30T14:33:59.039018-04:00", "monotonic": 1147.578, "line": "{\"revision\":35,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":56}"}
+{"host_time": "2026-07-30T14:33:59.042570-04:00", "monotonic": 1147.578, "line": "{\"revision\":35,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":57}"}
+{"host_time": "2026-07-30T14:34:18.311059-04:00", "monotonic": 1166.843, "line": "{\"event\":\"dev_display_button_pressed\",\"action\":\"SELECT\",\"ordinal\":5}"}
+{"host_time": "2026-07-30T14:34:18.316592-04:00", "monotonic": 1166.843, "line": "{\"revision\":35,\"event\":\"dev_display_status_sent\",\"message_type\":13,\"sequence\":58}"}
+{"host_time": "2026-07-30T14:34:18.982481-04:00", "monotonic": 1167.515, "line": "{\"revision\":38,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":59}"}
+{"host_time": "2026-07-30T14:34:18.998121-04:00", "monotonic": 1167.531, "line": "{\"revision\":38,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":60}"}
+{"host_time": "2026-07-30T14:34:19.970404-04:00", "monotonic": 1168.5, "line": "{\"revision\":38,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":61}"}
+{"host_time": "2026-07-30T14:34:19.976046-04:00", "monotonic": 1168.515, "line": "{\"revision\":38,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":62}"}
+{"host_time": "2026-07-30T14:34:43.420367-04:00", "monotonic": 1191.953, "line": "{\"event\":\"dev_display_button_pressed\",\"action\":\"UP\",\"ordinal\":6}"}
+{"host_time": "2026-07-30T14:34:43.425634-04:00", "monotonic": 1191.953, "line": "{\"revision\":38,\"event\":\"dev_display_status_sent\",\"message_type\":13,\"sequence\":63}"}
+{"host_time": "2026-07-30T14:34:47.582683-04:00", "monotonic": 1196.109, "line": "{\"event\":\"dev_display_button_pressed\",\"action\":\"DOWN\",\"ordinal\":7}"}
+{"host_time": "2026-07-30T14:34:47.588397-04:00", "monotonic": 1196.125, "line": "{\"revision\":38,\"event\":\"dev_display_status_sent\",\"message_type\":13,\"sequence\":64}"}
+{"host_time": "2026-07-30T14:34:49.220617-04:00", "monotonic": 1197.75, "line": "{\"event\":\"dev_display_button_pressed\",\"action\":\"SELECT\",\"ordinal\":8}"}
+{"host_time": "2026-07-30T14:34:49.226192-04:00", "monotonic": 1197.765, "line": "{\"revision\":38,\"event\":\"dev_display_status_sent\",\"message_type\":13,\"sequence\":65}"}
+{"host_time": "2026-07-30T14:35:43.085711-04:00", "monotonic": 1251.625, "line": "{\"event\":\"dev_display_button_pressed\",\"action\":\"MENU\",\"ordinal\":9}"}
+{"host_time": "2026-07-30T14:35:43.092298-04:00", "monotonic": 1251.625, "line": "{\"revision\":38,\"event\":\"dev_display_status_sent\",\"message_type\":13,\"sequence\":66}"}
+{"host_time": "2026-07-30T14:35:43.608824-04:00", "monotonic": 1252.14, "line": "{\"revision\":40,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":67}"}
+{"host_time": "2026-07-30T14:35:43.625054-04:00", "monotonic": 1252.156, "line": "{\"revision\":40,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":68}"}
+{"host_time": "2026-07-30T14:35:44.605734-04:00", "monotonic": 1253.14, "line": "{\"revision\":40,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":69}"}
+{"host_time": "2026-07-30T14:35:44.610815-04:00", "monotonic": 1253.14, "line": "{\"revision\":40,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":70}"}
+{"host_time": "2026-07-30T14:36:11.781273-04:00", "monotonic": 1280.312, "line": "{\"revision\":41,\"event\":\"dev_display_status_sent\",\"message_type\":6,\"sequence\":71}"}
+{"host_time": "2026-07-30T14:36:11.806469-04:00", "monotonic": 1280.343, "line": "{\"revision\":41,\"event\":\"dev_display_status_sent\",\"message_type\":7,\"sequence\":72}"}
+{"host_time": "2026-07-30T14:36:12.723847-04:00", "monotonic": 1281.25, "line": "{\"revision\":41,\"event\":\"dev_display_status_sent\",\"message_type\":8,\"sequence\":73}"}
+{"host_time": "2026-07-30T14:36:12.728281-04:00", "monotonic": 1281.265, "line": "{\"revision\":41,\"event\":\"dev_display_status_sent\",\"message_type\":9,\"sequence\":74}"}
+{"host_time": "2026-07-30T14:36:12.832854-04:00", "monotonic": 1281.359, "line": "{\"revision\":41,\"event\":\"dev_display_status_sent\",\"message_type\":12,\"sequence\":75}"}
+{"host_time": "2026-07-30T14:36:12.854381-04:00", "monotonic": 1281.39, "line": "{\"displayed_revision\":41,\"resynchronization_events\":33,\"parser_rejections\":0,\"viewport_frames_rendered\":16,\"bytes_received\":5298,\"partial_refresh_minimum_ms\":890,\"refreshes\":16,\"session\":1,\"partial_refresh_mean_ms\":928.333,\"button_ordinal\":9,\"button_bounces_rejected\":0,\"partial_refreshes\":15,\"partial_refresh_maximum_ms\":958,\"button_repeats_suppressed\":0,\"button_frames_dropped\":0,\"latest_received_revision\":41,\"viewport_frames_superseded\":0,\"full_refreshes\":1,\"bytes_sent\":2226,\"maximum_discarded_prefix\":120,\"button_frames_sent\":9,\"stale_renders\":0,\"discarded_prefix_bytes\":3886,\"status_frames_sent\":75,\"status_queue_maximum_depth\":2,\"viewport_frames_received\":16,\"button_presses\":9,\"crc_failures\":0,\"event\":\"dev_display_session_summary\"}"}
+{"host_time": "2026-07-30T14:36:12.855525-04:00", "monotonic": 1281.39, "line": "{\"sessions_served\":1,\"event\":\"dev_display_awaiting_next_session\"}"}
+{"host_time": "2026-07-30T14:37:04.804064-04:00", "monotonic": 1333.343, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | Done | 9.1.1\u001b\\"}
+{"host_time": "2026-07-30T14:37:04.805068-04:00", "monotonic": 1333.343, "line": "Code stopped by auto-reload. Reloading soon."}
+{"host_time": "2026-07-30T14:37:06.098219-04:00", "monotonic": 1334.625, "line": "soft reboot"}
+{"host_time": "2026-07-30T14:37:06.100221-04:00", "monotonic": 1334.64, "line": "\u001b[2K\u001b[0GAuto-reload is on. Simply save files over USB to run them or enter REPL to disable."}
+{"host_time": "2026-07-30T14:37:06.104776-04:00", "monotonic": 1334.64, "line": "\u001b[2K\u001b[0Gcode.py output:"}
+{"host_time": "2026-07-30T14:37:06.161210-04:00", "monotonic": 1334.687, "line": "\u001b]0;\ud83d\udc0dWi-Fi: off | code.py | 9.1.1\u001b\\{\"event\":\"boot\",\"circuitpython\":\"9.1.1\"}"}

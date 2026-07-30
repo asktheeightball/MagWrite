@@ -400,6 +400,32 @@ Record the outcome in `ROADMAP.md` and `PRIORITY.md` whichever way it goes. A
 failed physical run is evidence; a physical claim made from the host suite is
 not.
 
+## Physical bench check of the V1.5 revisions — run 2026-07-30, PASSED
+
+The smallest check that settles the two things V1.5 changed. Six steps, all
+passed, zero faults. Evidence: `docs/FRUITJAM_V15_BENCH_SERIAL.jsonl` and
+`docs/MAGTAG_V15_BENCH_SERIAL.jsonl`; the full account is in `ROADMAP.md`.
+
+1. **The one-gesture exit is real.** Escape from the editor produced one
+   `document_checkpointed`, one `shell_left_editor` carrying
+   `save_action: "CHECKPOINTED"` and `save_state: "SAVED"`, and one
+   `shell_transition` `EDITOR` → `MAIN_MENU`. No screen appeared on the panel
+   between the two, and no second keypress was asked for or given.
+2. **The buttons are the primary controls.** Up, down, select, and back to the
+   menu were each driven from the MagTag: `UP` and `DOWN` moved the selection one
+   item per press, `SELECT` opened `RECENT` into the editor, and `MENU`
+   checkpointed and returned — silently, on the same path Escape takes.
+3. **Nothing arrived twice.** 9 presses, 9 frames sent with no bounce or repeat
+   suppressed at the MagTag, and 9 received, accepted, and applied at the Fruit
+   Jam with no duplicate, drop, or unknown action. All three suppression points
+   were quiet because there was nothing for them to suppress.
+4. **No button reached the document.** The three presses made inside the editor
+   were applied `EDITOR` → `EDITOR`, counted as `shell_buttons_ignored: 3`, and
+   generated no editor event at all; the character count never moved. Button A at
+   the main menu did not end the session.
+5. **No text was lost** across leaving the editor and reopening it, on a document
+   recovered from a previous session rather than a fresh one.
+
 ## Diagnostics
 
 `shell_transition`, `shell_mode_entered`, `shell_selection_moved`,
