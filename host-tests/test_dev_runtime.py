@@ -97,45 +97,72 @@ class DisabledByDefaultTest(unittest.TestCase):
         self.assertIn("ENABLE_DEV_RUNTIME = False", source)
         self.assertIn('DEV_RUNTIME_MODE = "DISABLED"', source)
 
-    def test_the_magtag_activation_ships_disabled(self):
+    def test_the_magtag_development_activation_ships_disabled(self):
+        """The *development* profile is opt-in; the appliance is the default.
+
+        V1.6. ``ENABLE_PHYSICAL_DISPLAY`` and ``PHYSICAL_TEST_MODE`` no longer
+        say "off", because from V1.6 the shipped MagTag config *is* the writing
+        device. What they say instead is the standalone mode, which is not a
+        guarded harness mode and is deliberately absent from the boot remount
+        tuple -- both asserted elsewhere in this file.
+        """
         source = read("magtag", "config.py")
         self.assertIn('DEV_DISPLAY_RUNTIME_MODE = "DISABLED"', source)
-        self.assertIn("ENABLE_PHYSICAL_DISPLAY = False", source)
-        self.assertIn('PHYSICAL_TEST_MODE = "DISABLED"', source)
+        self.assertIn('PHYSICAL_TEST_MODE = "MAGTAG_STANDALONE"', source)
+        self.assertIn("ENABLE_STANDALONE = True", source)
 
-    def test_the_shipped_configs_refuse_the_runtime_as_loaded(self):
+    def test_the_shipped_configs_run_the_appliance_and_not_the_bench(self):
         import config as magtag_config
+        from magwrite.display_adapter import STANDALONE_DISPLAY_MODE
         self.assertEqual(magtag_config.DEV_DISPLAY_RUNTIME_MODE, "DISABLED")
-        self.assertFalse(magtag_config.ENABLE_PHYSICAL_DISPLAY)
-        with self.assertRaises(RuntimeError):
-            validate_physical_test_activation(magtag_config, MAGTAG_MODE)
+        self.assertEqual(
+            magtag_config.PHYSICAL_TEST_MODE, STANDALONE_DISPLAY_MODE)
+        self.assertTrue(magtag_config.ENABLE_STANDALONE)
+        # The standalone mode is activatable; the development mode, as this
+        # config is loaded, is not selected and therefore cannot be entered.
+        self.assertTrue(validate_physical_test_activation(
+            magtag_config, STANDALONE_DISPLAY_MODE))
+        self.assertNotEqual(magtag_config.PHYSICAL_TEST_MODE, MAGTAG_MODE)
 
     def test_both_entry_points_require_their_full_activation_pair(self):
         fruitjam = read(*FRUITJAM_ENTRY)
         self.assertIn("ENABLE_DEV_RUNTIME", fruitjam)
         self.assertIn("DEV_RUNTIME_MODE", fruitjam)
-        self.assertIn("development runtime is not enabled", fruitjam)
+        self.assertIn("ENABLE_STANDALONE", fruitjam)
+        self.assertIn("STANDALONE_MODE", fruitjam)
+        self.assertIn("no Fruit Jam runtime is enabled", fruitjam)
         magtag = read(*MAGTAG_ENTRY)
         self.assertIn("validate_physical_test_activation", magtag)
         self.assertIn("ENABLE_UART_RECEIVER", magtag)
         self.assertIn("ENABLE_UART_STATUS_TX", magtag)
         self.assertIn("DEV_DISPLAY_RUNTIME_MODE", magtag)
-        self.assertIn("development display runtime is not enabled", magtag)
+        self.assertIn("STANDALONE_DISPLAY_MODE", magtag)
+        self.assertIn("no MagTag display runtime is enabled", magtag)
+
+    def test_the_development_profile_has_to_be_asked_for(self):
+        """Standalone is the fall-through, so an armed bench board wins."""
+        for parts in DEV_ENTRIES:
+            source = read(*parts)
+            self.assertLess(
+                source.index("PROFILE_DEVELOPMENT"),
+                source.index("return PROFILE_STANDALONE"),
+                parts[-1],
+            )
 
     def test_every_gate_is_checked_before_any_hardware_is_touched(self):
         fruitjam = read(*FRUITJAM_ENTRY)
         self.assertLess(
-            fruitjam.index("is not enabled"), fruitjam.index("import board")
+            fruitjam.index("runtime is enabled"), fruitjam.index("import board")
         )
         self.assertLess(
-            fruitjam.index("is not enabled"), fruitjam.index("busio.UART")
+            fruitjam.index("runtime is enabled"), fruitjam.index("busio.UART")
         )
         magtag = read(*MAGTAG_ENTRY)
         self.assertLess(
             magtag.index("driver hash mismatch"), magtag.index("import board")
         )
         self.assertLess(
-            magtag.index("is not enabled"), magtag.index("busio.UART")
+            magtag.index("runtime is enabled"), magtag.index("busio.UART")
         )
 
     def test_the_magtag_still_pins_the_verified_display_driver(self):
@@ -571,10 +598,20 @@ class CertificationCeilingTest(unittest.TestCase):
                 session._emit(1, 0, b"x")
 
     def test_the_development_runtime_raises_both_ceilings(self):
+        """V1.6 routes them through the profile block; the values are unchanged.
+
+        The session is now handed ``MAX_VIEWPORT_FRAMES`` and friends, which the
+        development branch of the profile block sets to the same raised constants
+        it always passed directly, and the standalone branch sets to ``None``.
+        """
         source = read(*FRUITJAM_ENTRY)
-        self.assertIn("max_viewport_frames=DEV_MAX_VIEWPORT_FRAMES", source)
-        self.assertIn("max_protocol_frames=DEV_MAX_PROTOCOL_FRAMES", source)
-        self.assertIn("max_events=config.DEV_RUNTIME_MAX_EVENTS", source)
+        self.assertIn("max_viewport_frames=MAX_VIEWPORT_FRAMES", source)
+        self.assertIn("max_protocol_frames=MAX_PROTOCOL_FRAMES", source)
+        self.assertIn("max_events=MAX_EVENTS", source)
+        development = source.split("else:")[-2]
+        self.assertIn("MAX_VIEWPORT_FRAMES = DEV_MAX_VIEWPORT_FRAMES", development)
+        self.assertIn("MAX_PROTOCOL_FRAMES = DEV_MAX_PROTOCOL_FRAMES", development)
+        self.assertIn("MAX_EVENTS = config.DEV_RUNTIME_MAX_EVENTS", development)
 
     def test_the_raised_ceilings_are_bounded_rather_than_absent(self):
         """An unbounded counter on a microcontroller is still a bug."""
@@ -784,7 +821,7 @@ class ShellWiringTest(unittest.TestCase):
     def test_the_shell_is_activated_by_its_own_named_setting(self):
         source = read(*FRUITJAM_ENTRY)
         self.assertIn("ENABLE_SHELL", source)
-        self.assertIn("Shell(log=log)", source)
+        self.assertIn("Shell(log=log, allow_exit=ALLOW_EXIT)", source)
         self.assertIn("shell=shell", source)
 
     def test_the_shipped_config_carries_the_setting_and_its_reasoning(self):
@@ -797,7 +834,8 @@ class ShellWiringTest(unittest.TestCase):
     def test_the_shell_is_constructed_before_the_session_it_is_given_to(self):
         source = read(*FRUITJAM_ENTRY)
         self.assertLess(
-            source.index("Shell(log=log)"), source.index("LiveTypingSession(")
+            source.index("Shell(log=log, allow_exit=ALLOW_EXIT)"),
+            source.index("LiveTypingSession(")
         )
 
     def test_the_opening_state_is_decided_from_what_the_card_returned(self):

@@ -148,6 +148,16 @@ class PersistenceController:
         self.index = None
         self.library = None
         self.document_entry = None
+        # V1.6. Non-``None`` means: this session has a store it may read but must
+        # not write. It is set for exactly one situation -- the stored document
+        # could not be loaded into the editor -- and it exists because of what
+        # would otherwise happen next. The editor would be *empty* at revision 0
+        # while the store still held the writer's real document, and the very
+        # first checkpoint due on age or record count would write that empty
+        # editor over it. Startup trouble must never cost somebody their work, so
+        # the writes stop until a document has actually been opened.
+        self.write_hold = None
+        self.writes_held = 0
 
     # ---------------------------------------------------------------- queries
 
@@ -165,7 +175,34 @@ class PersistenceController:
 
     @property
     def error(self):
+        if self.write_hold is not None:
+            return self.write_hold
         return None if self.store is None else self.store.last_error
+
+    @property
+    def held(self):
+        return self.write_hold is not None
+
+    def hold_writes(self, reason):
+        """Refuse every write for the rest of this session. V1.6.
+
+        Deliberately a latch rather than a check the write paths each make for
+        themselves: there is one reason to stop writing and it is decided once,
+        at bring-up, by the only code that knows the editor does not hold what
+        the store thinks it does.
+        """
+        self.write_hold = str(reason)
+        self._log({"event": "document_writes_held", "reason": self.write_hold})
+        return self.write_hold
+
+    def release_writes(self):
+        """Resume writing, because a document has now actually been opened."""
+        if self.write_hold is None:
+            return False
+        released = self.write_hold
+        self.write_hold = None
+        self._log({"event": "document_writes_released", "was": released})
+        return True
 
     @property
     def state(self):
@@ -230,7 +267,9 @@ class PersistenceController:
         """Run at most one storage operation. Returns the action taken."""
         revision = editor.document_revision
         self.acknowledged_revision = revision
-        if self.store is None:
+        if self.store is None or self.write_hold is not None:
+            if self.write_hold is not None:
+                self.writes_held += 1
             self.last_action = ACTION_NONE
             return ACTION_NONE
 
@@ -250,6 +289,16 @@ class PersistenceController:
         if self.store is None:
             self._log({"event": "manual_save_refused", "reason": "no storage",
                        "detail": self.storage_detail})
+            self.last_action = ACTION_NONE
+            return ACTION_NONE
+        if self.write_hold is not None:
+            # ``NONE`` rather than ``FAILED`` on purpose. Nothing was attempted
+            # and nothing went wrong with the card; this session simply has no
+            # document to save, and reporting a save failure would send the
+            # writer looking for a storage fault that does not exist.
+            self.writes_held += 1
+            self._log({"event": "manual_save_refused", "reason": "writes held",
+                       "detail": self.write_hold})
             self.last_action = ACTION_NONE
             return ACTION_NONE
         return self._checkpoint(now, editor, manual=True)
@@ -314,6 +363,8 @@ class PersistenceController:
             "checkpoints": self.checkpoints,
             "manual_saves": self.manual_saves,
             "save_failures": self.failures,
+            "write_hold": self.write_hold,
+            "writes_held": self.writes_held,
             "save_state": self.state,
             "save_indicator": self.indicator,
         }

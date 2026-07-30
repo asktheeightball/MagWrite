@@ -139,6 +139,14 @@ from magwrite_transport.usb_keyboard_adapter import (
 HELLO_PAYLOAD = b"FRUITJAM-USBKBD/1"
 LIVE_SCENARIO_ID = 6
 
+# V1.6. The one-character token that says no keyboard is claimed, drawn in the
+# status field beside the save indicator and on exactly the same terms: lowercase
+# so it cannot be misread as part of the uppercase revision fields, present in the
+# panel's proven 3x5 glyph table, and shown only when the fact is *bad* -- a
+# working keyboard draws nothing, because a device that is fine should say
+# nothing. The main menu additionally spells it out; see ``shell_viewport``.
+KEYBOARD_ABSENT_INDICATOR = "k"
+
 # Authorised physical ceilings for this phase. The event ceiling is owned by the
 # adapter that enforces it and re-exported here so there is one source of truth.
 # The MagTag entry point declares matching ceilings and a host test asserts the
@@ -200,6 +208,7 @@ class LiveTypingSession:
         max_viewport_frames=MAX_VIEWPORT_FRAMES,
         max_protocol_frames=MAX_PROTOCOL_FRAMES, persistence=None, shell=None,
         library=None, hello_retry_seconds=HELLO_RETRY_SECONDS,
+        show_keyboard_state=False,
     ):
         self.monotonic = monotonic
         self.log = log
@@ -229,6 +238,14 @@ class LiveTypingSession:
         # CRC-32s those runs measured stay exactly reproducible.
         self.persistence = persistence
         self.save_indicator = None if persistence is None else persistence.indicator
+        # V1.6, and ``False`` by default for the same reason ``persistence`` is
+        # optional: with it off no keyboard token is ever drawn, so every viewport
+        # payload and CRC-32 the guarded runs measured stays exactly reproducible.
+        # The standalone and development entry points both turn it on, because on
+        # a device with no console "is the keyboard working" has to be answerable
+        # from the panel.
+        self.show_keyboard_state = show_keyboard_state
+        self.keyboard_indicator = None
         self.save_requests_serviced = 0
         self.manual_saves = 0
         # Optional on exactly the same terms as persistence, and for the same
@@ -246,6 +263,7 @@ class LiveTypingSession:
         self.documents_opened = 0
         self.document_switches = 0
         self.document_open_failures = 0
+        self.restore_failures = 0
         self.finish_requests_serviced = 0
         # V1.5. Constructed unconditionally, and cheap: it is a list and seven
         # counters. A build with no shell still counts what arrived rather than
@@ -277,6 +295,7 @@ class LiveTypingSession:
         self.hello_sent_at = None
         self.handshake_started_at = None
         self.display_wait_seconds = 0.0
+        self.keystrokes_dropped_waiting = 0
         self.phase = PHASE_HELLO
         self.outbound = []
         self.frame_sequence = 0
@@ -317,7 +336,10 @@ class LiveTypingSession:
 
     def _emit(self, message_type, revision, payload):
         self.frame_sequence += 1
-        if self.frame_sequence > self.max_protocol_frames:
+        if (
+            self.max_protocol_frames is not None
+            and self.frame_sequence > self.max_protocol_frames
+        ):
             raise LiveSessionError("input frame limit exceeded")
         frame = encode_frame(message_type, self.frame_sequence, revision, payload)
         self.outbound.append(frame)
@@ -338,9 +360,34 @@ class LiveTypingSession:
 
     def _poll_keyboard(self, now):
         """Stages 1 and 2: bounded USB polling into the bounded input queue."""
+        overflows = self.adapter.queue_overflows
         try:
             produced = self.adapter.poll(now)
         except UsbKeyboardAdapterError as error:
+            if (
+                self.phase == PHASE_HELLO
+                and self.adapter.queue_overflows > overflows
+            ):
+                # V1.6. Typing before the panel has answered. Keystrokes are
+                # polled during the wait but not drained -- there is nowhere to
+                # show them -- so the 64-event queue holds about 32 of them and
+                # a writer who starts a sentence into a device that is still
+                # booting used to fill it and *end the session*. Losing the rest
+                # of a sentence typed at a blank panel is a small cost; a device
+                # that switches itself off because somebody was keen is not.
+                #
+                # The keystrokes already queued are kept and applied the moment
+                # the panel answers. Only the overflow is dropped, and it is
+                # counted and named rather than swallowed.
+                self.keystrokes_dropped_waiting += 1
+                if self.keystrokes_dropped_waiting == 1:
+                    self.log({
+                        "event": "live_input_dropped_waiting_for_display",
+                        "queue_capacity": self.queue.capacity,
+                        "attempt": self.hello_attempts,
+                        "detail": "typed before the panel answered",
+                    })
+                return 0
             raise LiveSessionError("usb keyboard: " + str(error))
         except QueueOverflow:
             self.queue_overflows += 1
@@ -549,7 +596,10 @@ class LiveTypingSession:
         if revision == 0:
             return None
         if self.shell is not None:
-            screen = shell_payload(self.shell, self.editor, self.save_indicator)
+            screen = shell_payload(
+                self.shell, self.editor, self.save_indicator,
+                self.keyboard_indicator,
+            )
             if screen is not None:
                 # A shell screen is a semantic viewport like any other: same
                 # encoder, same bounds, same revision, same pacing. The editor
@@ -558,10 +608,11 @@ class LiveTypingSession:
                 return revision, screen
             return revision, self.viewport.payload(
                 self.editor, LIVE_SCENARIO_ID, self.save_indicator,
-                self.shell.panel_title(),
+                self.shell.panel_title(), self.keyboard_indicator,
             )
         return revision, self.viewport.payload(
-            self.editor, LIVE_SCENARIO_ID, self.save_indicator
+            self.editor, LIVE_SCENARIO_ID, self.save_indicator, None,
+            self.keyboard_indicator,
         )
 
     def _maybe_send_viewport(self, now, force=False):
@@ -595,7 +646,10 @@ class LiveTypingSession:
             return False
         if not force and reason not in SENDING_REASONS:
             return False
-        if self.viewport_frames_sent >= self.max_viewport_frames:
+        if (
+            self.max_viewport_frames is not None
+            and self.viewport_frames_sent >= self.max_viewport_frames
+        ):
             raise LiveSessionError("viewport frame limit exceeded")
         self._emit(VIEWPORT, revision, payload)
         digest = crc32(payload)
@@ -633,10 +687,17 @@ class LiveTypingSession:
         It carries the identity, kind, and title back with the words, which is
         what makes a restored session restore its *mode* as well as its text --
         the gap V1.3 recorded and handed to this phase.
+
+        Returns ``True`` when the document was restored. V1.6: a document the
+        editor refuses is no longer allowed to end the session before it starts.
+        See :meth:`_restore_refused`.
         """
-        self.editor.load(
-            snapshot.text, snapshot.row, snapshot.column, snapshot.revision
-        )
+        try:
+            self.editor.load(
+                snapshot.text, snapshot.row, snapshot.column, snapshot.revision
+            )
+        except EditRejected as error:
+            return self._restore_refused(entry, str(error))
         if self.persistence is not None:
             self.persistence.adopt(self.editor)
             self.save_indicator = self.persistence.indicator
@@ -661,6 +722,48 @@ class LiveTypingSession:
             "kind": None if entry is None else entry.kind,
             "title": None if entry is None else entry.title,
         })
+        return True
+
+    def _restore_refused(self, entry, detail):
+        """The card gave back a document this editor will not hold. V1.6.
+
+        It happens for one reason in practice -- a document written when the
+        bounds were larger, or by a build that is not this one -- and before V1.6
+        it was fatal: the exception left the entry point's construction block, so
+        the board logged one line to a console nobody was watching and then did
+        nothing at all. On a bench that is a puzzle; on an appliance it is a
+        device that does not switch on.
+
+        Three things happen instead, and the order is the safety argument:
+
+        1. **writes are held.** The editor is empty at revision 0 and the store
+           still holds the writer's document, so the next checkpoint due on age
+           would write the empty one over it. Nothing is written to that card
+           again until a document has actually been opened;
+        2. the shell opens at the **menu**, not at an editor holding nothing;
+        3. the reason is put on the recoverable error screen, which SELECT
+           dismisses back to the menu -- from where Drafts can open a different
+           document, and opening one releases the hold.
+
+        Nothing on the card is modified, moved, or rewritten by any of this.
+        """
+        self.restore_failures += 1
+        if self.persistence is not None:
+            self.persistence.hold_writes(detail)
+            self.save_indicator = self.persistence.indicator
+        if self.shell is not None:
+            self.shell.restore(False)
+            self.shell.fault(detail)
+            self.shell_visible_revision = self.shell.visible_revision
+            self.editor.note_visible_change()
+        self.log({
+            "event": "live_document_restore_refused", "detail": detail,
+            "document_id": None if entry is None else entry.document_id,
+            "kind": None if entry is None else entry.kind,
+            "title": None if entry is None else entry.title,
+            "stored_document_modified": False, "writes_held": True,
+        })
+        return False
 
     def _service_persistence(self, now):
         """Stage 5: autosave, checkpoint, and manual save work when due."""
@@ -693,6 +796,39 @@ class LiveTypingSession:
             # acknowledgement tracker would be reconciling two different frames
             # against one revision.
             self.editor.note_visible_change()
+
+    # --------------------------------------------------------- keyboard stage
+
+    def _refresh_keyboard_indicator(self):
+        """Adopt whether a keyboard is claimed as visible state. V1.6.
+
+        The writer has no console, so the panel is the only place this fact can
+        be told. It is told twice, at two levels of detail: a one-character token
+        in the status field of every frame, and a plain line on the main menu,
+        which is where somebody who has just plugged one power cable in is
+        actually looking.
+
+        Cheap enough to run every pass -- it reads one boolean -- and it only
+        advances the viewport revision when the answer *changes*, so a device
+        with no keyboard does not redraw its panel once a millisecond.
+        """
+        if not self.show_keyboard_state:
+            return False
+        ready = bool(self.adapter.ready)
+        if self.shell is not None:
+            # The shell's own screens; it advances its visible revision itself.
+            self.shell.note_keyboard_state(ready)
+        indicator = None if ready else KEYBOARD_ABSENT_INDICATOR
+        if indicator == self.keyboard_indicator:
+            return False
+        self.keyboard_indicator = indicator
+        self.log({"event": "live_keyboard_state", "ready": ready,
+                  "indicator": indicator})
+        # Visible state the editor does not own, advanced through the same single
+        # door the save indicator uses, for the same reason: two payloads must
+        # never go out under one revision number.
+        self.editor.note_visible_change()
+        return True
 
     # ------------------------------------------------------------ shell stage
 
@@ -874,6 +1010,12 @@ class LiveTypingSession:
             self.document_open_failures += 1
             self.shell.fault(str(error))
             return False
+        if self.persistence is not None:
+            # V1.6. The editor now holds a real document again, so the refusal to
+            # write that a failed restore latched has nothing left to protect.
+            # Released here rather than on the error screen's dismissal: reaching
+            # the menu is not the same as having something to save.
+            self.persistence.release_writes()
         self.shell.opened(opening.document_id, opening.kind, opening.title)
         self.documents_opened += 1
         if not opening.created:
@@ -951,6 +1093,10 @@ class LiveTypingSession:
         # Fruit Jam, applied after input and durability and before any frame is
         # built, so the screen that goes out is the one the writer just asked for.
         if self.phase == PHASE_LIVE:
+            # Whether a keyboard is attached is workflow state of exactly this
+            # kind, so it is adopted here, before the shell's redraw check picks
+            # up the menu line it may have just changed.
+            self._refresh_keyboard_indicator()
             self._service_shell(now)
 
         # Stages 7 and 8.
@@ -1012,10 +1158,19 @@ class LiveTypingSession:
         if self.phase == PHASE_HELLO:
             return
         self.tracker.check_timeouts(now)
-        if now - self.started_at > self.session_timeout_seconds:
+        # ``None`` on both is the standalone appliance, where neither bound has a
+        # meaning: a writer who stops typing to think has not failed, and a device
+        # that has been on since Tuesday is not a run that overran. Every bound
+        # that protects *memory* -- the queues, the tracker, the inbox, the poll
+        # budget -- is unchanged and still enforced. See ``docs/STANDALONE.md``.
+        if (
+            self.session_timeout_seconds is not None
+            and now - self.started_at > self.session_timeout_seconds
+        ):
             raise LiveSessionError("live session timeout")
         if (
-            self.phase == PHASE_LIVE
+            self.idle_timeout_seconds is not None
+            and self.phase == PHASE_LIVE
             and now - self.last_activity_at > self.idle_timeout_seconds
         ):
             raise LiveSessionError("live session idle timeout")
@@ -1058,6 +1213,8 @@ class LiveTypingSession:
             "hello_attempts": self.hello_attempts,
             "display_wait_seconds": self.display_wait_seconds,
             "display_handshake_restarts": self.handshake_restarts,
+            "document_restore_failures": self.restore_failures,
+            "keystrokes_dropped_waiting": self.keystrokes_dropped_waiting,
             "input_frames_sent": self.frame_sequence,
             "bytes_sent": self.bytes_sent,
             "bytes_received": self.bytes_received,

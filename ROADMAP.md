@@ -38,7 +38,7 @@ this list wins.
 | 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | PHYSICALLY VERIFIED 2026-07-30 |
 | 5 | Shell UX: one-gesture exit, and MagTag buttons | V1.5 | PHYSICALLY VERIFIED 2026-07-30 |
 | 6 | One-cable bench power | One-cable bench power | PHYSICALLY VERIFIED 2026-07-30 |
-| 7 | Standalone workflow | Priority 5 | Not started |
+| 7 | Minimum standalone workflow | V1.6 | Implemented and host-verified; physical check NOT RUN |
 | 8 | Battery, enclosure, and hardening | Priorities 6 and 7 | Not started |
 
 Writing must feel right before anything is stored, and storage must be
@@ -1343,9 +1343,12 @@ thermocouple, and it is recorded as exactly that.
 It is not a soak test. Two cold boots and a few minutes of writing each is what
 this check is; long-duration behaviour belongs to Priority 7.
 
-## Priority 5 — Minimum standalone workflow — V1.6
+## V1.6 — Minimum standalone workflow — IMPLEMENTED AND HOST-VERIFIED
 
-Add the smallest complete on-device workflow:
+The design is [docs/STANDALONE.md](docs/STANDALONE.md) and the physical check is
+[docs/STANDALONE_CHECK.md](docs/STANDALONE_CHECK.md), which **has not been run**.
+
+### Original requirements
 
 - new document;
 - open recent document;
@@ -1357,6 +1360,163 @@ Add the smallest complete on-device workflow:
 - predictable startup, sleep, wake, and shutdown behavior.
 
 **Exit:** complete a 30-minute writing session without a connected development computer.
+
+### What the phase turned out to be about
+
+Almost everything on that list already existed. New document, open recent, save,
+word count, the save and storage indicators, the keyboard shortcuts, and the
+button actions were all delivered by V1.2 through V1.5 and all physically
+verified. Read literally, V1.6 was a short phase.
+
+Read as its exit criterion — *without a connected development computer* — it was
+not, because **every one of those features had been verified on a bench rig with
+two consoles attached**, and several of them depended on that in ways nobody had
+had reason to notice. The phase's real content was finding those dependencies.
+Each was a device that does not work, and none of them was a failing test.
+
+1. **Neither board started.** Both configs shipped with everything disabled, on
+   the fail-closed rule that anything which can drive hardware must be armed by
+   name. Correct for a harness and wrong for a finished device: the shipped
+   configuration was a board that refuses to run. It is now the appliance, and
+   the fail-closed property is kept where it still means something — every
+   guarded harness still ships disabled, still needs its own mode string, and
+   still wins over the default when armed.
+2. **A board switched on before its keyboard was plugged in never saw that
+   keyboard.** `UsbDeviceState` allowed thirty open attempts at one per second
+   and then latched `ERROR`, permanently, for the life of the session. On a bench
+   the keyboard is always already there. On an appliance, the writer connects
+   power and then goes looking for the cable, and thirty seconds later the device
+   has decided there is no keyboard and will never look again. The attempt
+   *count* is removed for the standalone profile. The rate bound is untouched, so
+   this is not the unbounded reconnect loop the harnesses refuse — it is one
+   bounded USB enumeration per second on a board that has nothing else to do.
+3. **The idle timeout ended the session after half an hour.** Thirty minutes of
+   a writer thinking, or reading, or being interrupted, and the session raised
+   `live session idle timeout`, drained, and stopped — leaving a panel that
+   nothing but the reset button could move. The exit criterion for this very
+   phase asks for a 30-minute session, which the shipped bound made a coin flip.
+
+   This one is not an argument from reading the code. **It is in the one-cable
+   evidence file.** `docs/BENCH_ONECABLE_FRUITJAM_SERIAL.jsonl` gained three
+   further lines after that check was written up, captured at 16:52:41 on
+   2026-07-30 while the rig was still connected and nobody was typing at it:
+
+   ```json
+   {"event":"dev_runtime_session_summary","result":"ERROR","stop_reason":"live session idle timeout","timeouts":1,"save_state":"SAVED","final_document_characters":107}
+   {"event":"dev_runtime_stopped","result":"ERROR","detail":"live session idle timeout"}
+   ```
+
+   The verified device switched itself off, on its own, while left alone — and
+   ended `result: ERROR` for doing what a writing appliance is supposed to do
+   between sentences. The document was `SAVED` and all 107 characters survived,
+   so nothing was lost; what was lost was the device. Both run-length bounds, the
+   keyboard event bound, and both frame bounds are removed for the appliance.
+   Every bound that protects *memory* is unchanged and still enforced.
+4. **Escape at the main menu switched the device off.** It had always been the
+   clean stop, and on a bench it is exactly right. On a device with one power
+   cable it is one keystroke that ends the session and no keystroke that starts
+   it again. The MagTag's menu button has never been able to do this — V1.5 made
+   it idempotent at the root deliberately, reasoning that a thumb on a bezel did
+   not mean it. That reasoning was always about the *device*, not about the
+   bezel; V1.6 finishes it, and the keyboard now agrees. Power is the stop.
+5. **A stored document the editor refused took the whole runtime down**, during
+   construction, before a single line was logged that anybody could read. The
+   panel stayed blank and the console said one thing to nobody. Worse is what
+   would have happened had it not: the empty editor left behind sits at revision
+   0 while the store still holds the writer's real document, and the first
+   checkpoint due on age would have written the empty one over it. Startup
+   trouble must never cost somebody their work, so writes are now **held** for
+   the session, the card is not touched at all, and the shell opens at the menu
+   with the reason on the recoverable error screen. Opening any document from
+   Drafts releases the hold.
+6. **Typing into a device that was still booting ended the session.** Keystrokes
+   are polled during the display wait but not drained — there is nowhere to show
+   them — so the 64-event queue holds about 32 and the next one overflowed it,
+   fatally. V1.1 recorded this as a limitation and it was one; one-cable power
+   made it likely, because the writer now connects a cable and waits nine seconds
+   at a blank panel, and some of them will start typing. The overflow is dropped
+   and counted rather than fatal, and everything already queued is still applied
+   the moment the panel answers.
+
+### The panel had nothing to say, and now says it
+
+A device with no console can only speak on its screen, and for the first several
+seconds of a standalone start the screen belongs to the board that is not
+talking yet. The MagTag therefore draws two screens of its own — `STARTING` as
+soon as the panel is initialised, and `WAITING FOR THE WRITER BOARD` if nothing
+has arrived after 15 s.
+
+This is the narrowest exception the architecture allows and it is worth stating
+exactly. Those screens carry no document, no cursor, no revision, and no state
+the Fruit Jam owns; their revision is 0, which the protocol already reads as
+"nothing has been displayed"; they are never acknowledged to anybody; and they
+are never drawn again once a viewport has arrived. The MagTag is still
+display-only. It is simply allowed to say that it is alive.
+
+Fifteen seconds because the one-cable check measured a 9.05 s cold boot, twice.
+An ordinary start never draws the second screen, which is what makes seeing it
+informative rather than routine.
+
+The display is now constructed **before** the UART, and that reordering is the
+whole of why a wiring fault is visible: a bad pin alias used to be one JSON line
+on a console that, in this configuration, does not exist. It now reaches the
+panel, with `DISCONNECT POWER, RETRY` under it.
+
+On the Fruit Jam, an absent keyboard puts `NO KEYBOARD - PLUG ONE IN` on the
+main menu's spare fifth row — the four items are never displaced — and a `k` in
+the status field of every frame, beside the save indicator and on identical
+terms: one character, lowercase, present in the proven 3x5 glyph table, and drawn
+only when the fact is bad.
+
+### The two profiles
+
+One block in `fruitjam/dev_runtime.py` decides six values, and nothing else in
+either runtime knows which profile it is in. The appliance is not a reduced build
+of the bench rig; it is the same editor, shell, storage, transport, and buttons.
+
+| | Development | Standalone |
+| --- | --- | --- |
+| Idle / session timeout | 1800 s / 7200 s | none |
+| Keyboard event bound | 100,000 | none |
+| Viewport / protocol frames | 100,000 / 200,000 | none |
+| Back at the main menu | the clean stop | nothing |
+
+The entry points keep their names and their diagnostics. `dev_runtime_ready`,
+`dev_display_ready`, and the rest are the vocabulary every physical evidence file
+in this repository is written in, and renaming them would make the record harder
+to read in exchange for a tidier filename. Each now carries `"profile"`.
+
+### Coverage
+
+1,185 host tests, 49 of them new in `host-tests/test_standalone.py`, written
+against the six failures above rather than against the code that fixes them: a
+keyboard plugged in after 120 s of looking; the same adapter with the old bounded
+budget, asserted to miss it; a clock jumped a day forward with no timeout firing;
+five Escapes at the menu leaving the session running and the words intact; a
+refused restore asserted **byte-for-byte** against the card, with the empty
+editor's checkpoint and manual save both refused; a paragraph typed into a device
+whose panel is not powered for nine seconds. The MagTag's startup screens are
+encoded, decoded, and drawn through the real renderer, including a fault screen
+built from an exception message containing characters the panel has no glyph for.
+
+### What is not delivered, and is named rather than hidden
+
+- **rename and archive**, from the original list. A storage feature rather than a
+  standalone one; the append-only catalogue supports both as a single append
+  whenever a phase wants them;
+- **dated journal entries**, unchanged from V1.4: there is no RTC and no network,
+  and a date derived from `time.monotonic` is a fabricated date printed next to
+  somebody's own words;
+- **sleep, wake, and shutdown.** There is no sleep state and no shutdown
+  sequence. The device is on while it has power and off when it is not, and every
+  editor exit checkpoints, so removing power is safe at any moment. Predictable
+  startup was the part of that item this phase owed; power management belongs to
+  V1.7, where there is something to manage;
+- **the 30-minute session.** Removing the run-length bounds makes one possible.
+  It is not evidence that one has been run, and nothing here claims it is;
+- **any physical result at all.** No board has run this build. `docs/STANDALONE_CHECK.md`
+  is the eleven-step check that would settle it, and its result section says
+  NOT YET RUN.
 
 ## Priority 6 — Unified single-battery power — V1.7
 

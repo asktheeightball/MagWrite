@@ -1,9 +1,29 @@
 """Bounded USB keyboard connection state machine.
 
-Host-safe. There is no unbounded reconnect loop anywhere: an open attempt may
-only be made once per ``retry_interval`` seconds, and only ``max_attempts`` times
-in total. Once attempts are exhausted the machine latches ``ERROR`` and the
-harness fails closed rather than spinning.
+Host-safe. An open attempt may only be made once per ``retry_interval`` seconds,
+and — for a guarded harness — only ``max_attempts`` times in total. Once attempts
+are exhausted the machine latches ``ERROR`` and the harness fails closed rather
+than spinning.
+
+``max_attempts=None``: the standalone appliance — V1.6
+------------------------------------------------------
+
+The attempt *count* is removed, and only for the standalone runtime. The rate
+bound is untouched, so this is not the unbounded reconnect loop the harnesses
+refuse: it is still at most one open attempt per second, forever, which costs one
+bounded USB enumeration on a board that has nothing else to do.
+
+The count had to go because it made "no keyboard yet" terminal. Thirty attempts
+at one second each is thirty seconds, after which ``ERROR`` latches and
+:meth:`retry_due` refuses every further attempt for the life of the session — so
+a device powered on before its keyboard was plugged in would never see that
+keyboard, and the only cure was a reset. On a bench with a console that is a
+diagnostic; on a writing appliance with one power cable it is a device that does
+not work. A writer who plugs the keyboard in afterwards is not a fault condition,
+and thirty seconds is not a deadline anybody agreed to.
+
+Nothing about the harness path changes: ``max_attempts`` keeps its default and
+every guarded run keeps the exact behaviour it was verified with.
 """
 
 NO_DEVICE = "NO_DEVICE"
@@ -22,7 +42,9 @@ class UsbDeviceState:
         self, now=0.0, log=None, retry_interval=RETRY_INTERVAL_SECONDS,
         max_attempts=MAX_OPEN_ATTEMPTS,
     ):
-        if retry_interval <= 0 or max_attempts < 1:
+        if retry_interval <= 0:
+            raise ValueError("retry bounds must be positive")
+        if max_attempts is not None and max_attempts < 1:
             raise ValueError("retry bounds must be positive")
         self.log = log
         self.retry_interval = retry_interval
@@ -43,6 +65,10 @@ class UsbDeviceState:
 
     @property
     def exhausted(self):
+        if self.max_attempts is None:
+            # Standalone: there is no attempt budget to exhaust. The device
+            # keeps offering to find a keyboard for as long as it has power.
+            return False
         return self.open_attempts >= self.max_attempts
 
     def _enter(self, state, now, reason=None):
@@ -77,8 +103,12 @@ class UsbDeviceState:
         """Record one bounded open attempt and enter ``ENUMERATING``."""
         self.open_attempts += 1
         self.last_attempt_at = now
-        return self._enter(ENUMERATING, now, reason="open attempt %d of %d"
-                           % (self.open_attempts, self.max_attempts))
+        if self.max_attempts is None:
+            reason = "open attempt %d, unbounded" % (self.open_attempts,)
+        else:
+            reason = "open attempt %d of %d" % (
+                self.open_attempts, self.max_attempts)
+        return self._enter(ENUMERATING, now, reason=reason)
 
     def opened(self, now):
         self.connects += 1
@@ -102,6 +132,7 @@ class UsbDeviceState:
         return {
             "state": self.state,
             "open_attempts": self.open_attempts,
+            "max_open_attempts": self.max_attempts,
             "connects": self.connects,
             "disconnects": self.disconnects,
             "errors": self.errors,

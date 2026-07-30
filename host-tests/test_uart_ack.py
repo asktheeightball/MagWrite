@@ -451,12 +451,20 @@ class QueueAndSchedulerTests(unittest.TestCase):
         self.assertNotIn("busio", sys.modules)
 
     def test_bidirectional_physical_defaults_are_disabled(self):
+        """The *harness* stays disarmed, which is what its mode string says.
+
+        V1.6 turned ``ENABLE_UART_STATUS_TX`` on in the shipped MagTag config,
+        because the return channel carries the product's button events and its
+        display acknowledgements — it is the device, not this harness. Asserting
+        it off was a proxy for "this harness cannot run"; the mode string below is
+        that property directly, and it is the gate the entry point actually reads.
+        """
         with open(os.path.join(ROOT, "magtag", "config.py"), encoding="utf-8") as handle:
             magtag_config = handle.read()
         with open(os.path.join(ROOT, "fruitjam", "config.py"), encoding="utf-8") as handle:
             fruitjam_config = handle.read()
-        self.assertIn("ENABLE_UART_STATUS_TX = False", magtag_config)
         self.assertIn('BIDIRECTIONAL_UART_TEST_MODE = "DISABLED"', magtag_config)
+        self.assertNotIn('PHYSICAL_TEST_MODE = "MAGTAG_UART_ACK_RX"', magtag_config)
         self.assertIn("ENABLE_BIDIRECTIONAL_UART_TEST = False", fruitjam_config)
         self.assertIn('BIDIRECTIONAL_UART_TEST_MODE = "DISABLED"', fruitjam_config)
 

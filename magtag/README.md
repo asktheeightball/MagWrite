@@ -2,6 +2,15 @@
 
 CircuitPython application for the original Adafruit MagTag.
 
+From V1.6 this directory ships as the **display half of the writing appliance**:
+copy it onto CIRCUITPY and it runs, with no flag to set. `PHYSICAL_TEST_MODE`
+ships as `MAGTAG_STANDALONE`, which is activatable but is **not** a guarded
+harness mode and is deliberately absent from `hardware_test_boot.py`'s remount
+tuple — the runtime writes no guard, so it needs no writable filesystem. Every
+guarded harness below still ships disabled, still needs its own mode string, and
+still wins when armed. The compatibility gate is unchanged and still checked
+first. See [../docs/STANDALONE.md](../docs/STANDALONE.md).
+
 ## Implemented feasibility modules
 
 ```text
@@ -26,6 +35,9 @@ magwrite/uart_receiver.py sequence validation and newest-viewport coalescer
 magwrite/transport_scheduler.py drain-first single-refresh scheduler
 magwrite/viewport_message.py bounded semantic viewport model
 magwrite/viewport_renderer.py display-only complete-snapshot renderer
+magwrite/buttons.py      debounced four-button pad and normalized actions
+magwrite/startup_screens.py the two local screens drawn before the link is up
+dev_display_runtime.py   the runtime, in the STANDALONE or DEVELOPMENT profile
 ```
 
 ## First implementation task

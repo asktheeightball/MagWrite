@@ -68,9 +68,10 @@ and it is also the right design: a writing device with a private set of menu key
 is a device with two keyboards.
 
 Back has one meaning everywhere — leave the current state toward its parent — and
-at the root that is still the clean stop the runtime always had. This is the one
-behavioural change the shell makes to an existing gesture, and it is what makes
-Escape safe to press inside a document.
+at the root that is the clean stop the runtime always had, on the development
+profile. This is the one behavioural change the shell makes to an existing
+gesture, and it is what makes Escape safe to press inside a document. On the
+standalone appliance the root has no parent and no stop; see below.
 
 ## Leaving the editor — V1.5
 
@@ -145,9 +146,18 @@ cursor. A control surface that can alter a draft is one that can alter it from
 inside a bag, and the buttons are on the outside of the device.
 
 **A at the menu does nothing.** It is a *take me to the menu* button, not a back
-button, so it cannot walk off the root and end the session. Escape still can,
-because a writer who pressed Escape twice at the root meant it and a thumb on a
-bezel did not.
+button, so it cannot walk off the root and end the session. Escape still can on
+the bench, because a writer who pressed Escape twice at the root meant it and a
+thumb on a bezel did not.
+
+**V1.6 finishes that thought for the appliance.** `Shell(allow_exit=False)` — the
+standalone default — makes Escape at the root do what A has always done there:
+nothing, counted as `shell_exits_refused`. The V1.5 reasoning was never really
+about the bezel; it was about what a *stop* means on a device with one power
+cable, which is a session that ends, drains, draws `STOPPED`, and cannot be
+restarted by any key. One keystroke that switches the device off and none that
+switches it back on. Escape still leaves every other state, so it is not a dead
+key — only the root has nothing above it.
 
 **Buttons and keys meet at the same handler.** `Shell.button` maps its three
 movement actions onto the editor event kinds the keyboard already produces and

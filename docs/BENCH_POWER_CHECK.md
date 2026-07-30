@@ -158,6 +158,25 @@ panel was clean and legible** through both sessions.
 - **a long session was not run.** Two boots and a few minutes each is what this
   check is; soak testing belongs to Priority 7.
 
+### The capture kept running, and caught something
+
+Three further records were appended to the evidence file at 16:52:41, after this
+write-up, while the rig was still connected and nobody was typing at it:
+
+```json
+{"event":"dev_runtime_session_summary","result":"ERROR","stop_reason":"live session idle timeout","timeouts":1}
+{"event":"dev_runtime_stopped","result":"ERROR","detail":"live session idle timeout"}
+```
+
+The device switched itself off after the development runtime's 1800-second idle
+bound, and reported `ERROR` for it. The document was `SAVED` and all 107
+characters survived, so this costs the result above nothing — the check was over
+and everything it claims had already happened.
+
+It is left here because it is the clearest possible statement of why V1.6 exists.
+Every bound in that runtime was written to end a *run* on a bench with a console,
+and this rig has neither. See [STANDALONE.md](STANDALONE.md).
+
 ### Recorded along the way
 
 The Fruit Jam was captured waiting **24 seconds and climbing** before the rewire,

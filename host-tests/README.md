@@ -71,7 +71,21 @@ Logic that does not require CircuitPython or ESP32 hardware should be testable u
   not powered yet: handshake attempts that go nowhere, a panel arriving long
   after the old hello timeout would have ended the run, the handshake completing,
   the restored document intact through the wait and untouched *during* it, and no
-  duplicate-or-reversed sequence failure latched on either board.
+  duplicate-or-reversed sequence failure latched on either board;
+- the standalone appliance, which is the shipped configuration from V1.6: a
+  keyboard connected 120 s after the device was switched on, with the same
+  adapter under the old bounded budget asserted to *miss* it; the rate bound
+  surviving the removal of the attempt count; a device on the port that cannot be
+  driven, fatal for a harness and survivable for the appliance; a clock jumped a
+  day forward with neither run-length bound firing, and the bounded profile still
+  giving up; five Escapes at the main menu leaving the session running and the
+  words intact; a stored document the editor refuses, asserted **byte-for-byte**
+  against the card, with the empty editor's autosave and manual save both refused
+  and the hold released only by an actual open; a paragraph typed into a device
+  whose panel is not powered for nine seconds; and the MagTag's own startup
+  screens encoded, decoded, and drawn through the real renderer, including a
+  fault screen built from an exception message full of characters the panel has
+  no glyph for.
 
 No test asserts a bound as a literal. Every size is derived from the editor's own
 constants, so these keep testing the property the next time the bounds move --
@@ -86,4 +100,4 @@ Run the current feasibility suite from the repository root:
 python -m unittest discover -s host-tests -p "test_*.py" -v
 ```
 
-The current suite contains 1,135 tests and has no third-party host dependencies.
+The current suite contains 1,185 tests and has no third-party host dependencies.

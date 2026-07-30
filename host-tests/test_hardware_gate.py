@@ -46,14 +46,24 @@ class HardwareGateTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_decision("probably-compatible")
 
-    def test_recorded_identity_is_compatible_but_activation_stays_disabled(self):
+    def test_the_shipped_config_activates_the_panel_and_no_harness(self):
+        """V1.6: the display is the product, so it ships enabled.
+
+        The gate itself is unchanged and still fails closed on an unconfirmed or
+        incompatible board -- the two tests above assert that against synthetic
+        configs. What the shipped config now asserts is the pair of facts that
+        replaced "everything is off": this board may drive its own panel, and no
+        guarded harness mode is selected, so none of them can run.
+        """
         import config
+        from magwrite.display_adapter import STANDALONE_DISPLAY_MODE
 
         self.assertEqual(DECISION, "COMPATIBLE")
         self.assertEqual(config.HARDWARE_COMPATIBILITY_DECISION, DECISION)
-        self.assertFalse(config.ENABLE_PHYSICAL_DISPLAY)
-        with self.assertRaises(RuntimeError):
-            validate(config)
+        self.assertTrue(config.ENABLE_PHYSICAL_DISPLAY)
+        self.assertTrue(validate(config))
+        self.assertEqual(config.PHYSICAL_TEST_MODE, STANDALONE_DISPLAY_MODE)
+        self.assertNotIn(config.PHYSICAL_TEST_MODE, APPROVED_TEST_MODES)
 
 
 class BootRemountGateTests(unittest.TestCase):

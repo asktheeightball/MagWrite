@@ -23,6 +23,22 @@ elif (
     config.ENABLE_PHYSICAL_DISPLAY
     and getattr(config, "ENABLE_UART_RECEIVER", False)
     and getattr(config, "ENABLE_UART_STATUS_TX", False)
+    and getattr(config, "ENABLE_STANDALONE", False)
+    and config.PHYSICAL_TEST_MODE == "MAGTAG_STANDALONE"
+    and getattr(config, "STANDALONE_DISPLAY_MODE", "DISABLED")
+        == "MAGTAG_STANDALONE"
+):
+    # The shipped default from V1.6: the writing appliance. Same module and same
+    # code as the development branch above, on a board with no console. Terminal
+    # on its own for the same reason that one is.
+    import dev_display_runtime  # noqa: F401 - imported for its side effects
+    print('{"event":"display_standalone_exited","restartable":true}')
+    while True:
+        time.sleep(3600)
+elif (
+    config.ENABLE_PHYSICAL_DISPLAY
+    and getattr(config, "ENABLE_UART_RECEIVER", False)
+    and getattr(config, "ENABLE_UART_STATUS_TX", False)
     and config.PHYSICAL_TEST_MODE == "MAGTAG_USB_KEYBOARD_DISPLAY"
     and getattr(config, "USB_KEYBOARD_DISPLAY_TEST_MODE", "DISABLED")
         == "MAGTAG_USB_KEYBOARD_DISPLAY"

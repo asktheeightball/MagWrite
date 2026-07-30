@@ -295,10 +295,66 @@ Two rules the button path does not share with the keyboard:
   counted and discarded, including `UP` and `DOWN`. A control surface that can
   alter a draft is one that can alter it from inside a bag;
 - **`MENU` at the main menu does nothing.** It is a *go to the menu* control, not
-  a back control, so it cannot walk off the root and end the session. Escape
-  still can.
+  a back control, so it cannot walk off the root and end the session. On the
+  bench profile Escape still can; on the standalone appliance it does not either,
+  because a device with one power cable has no stop to take.
 
 ## Runtime model
+
+### Runtime profiles
+
+There is one runtime per board, in one of two profiles, chosen from `config` at
+start. The profiles are not two builds: the editor, shell, storage, transport,
+buttons, viewport builder, protocol, and pacing are identical, and a profile
+decides only the bounds that would end a *run*.
+
+| | `DEVELOPMENT` | `STANDALONE` |
+| --- | --- | --- |
+| Selected by | `ENABLE_DEV_RUNTIME`, opt-in | the shipped default |
+| Idle / session timeout | 1800 s / 7200 s | none |
+| Keyboard event bound | 100,000 | none |
+| Viewport / protocol frame bounds | 100,000 / 200,000 | none |
+| Back gesture at the main menu | the clean stop | nothing |
+
+The standalone profile removes no bound that protects **memory**. The input
+queue, the acknowledgement tracker, the button inbox, the status outbox, the USB
+poll budget, the input drain budget, the document bounds, and the catalogue bound
+are unchanged and still enforced, because an unbounded counter on a
+microcontroller is still a bug. What it removes is the four bounds that exist to
+end a session and the one gesture that ends one, none of which has a meaning on a
+device whose only stop is the power cable.
+
+The development profile is checked first, so a board deliberately armed for the
+bench is never quietly handed the appliance, and standalone is the fall-through,
+which is what makes it the default. Every guarded harness is checked before
+either and still wins.
+
+### Startup states
+
+A device with no console can only report on its panel, and for the first seconds
+of a start the panel belongs to the board that has not spoken yet. So each board
+reports what it alone can see:
+
+| State | Where it is shown |
+| --- | --- |
+| the panel has started | MagTag, locally |
+| nothing has arrived on the link | MagTag, locally, after a fixed patience |
+| a fault the link cannot carry | MagTag, locally |
+| no card | Fruit Jam, one status character, since V1.2 |
+| no keyboard | Fruit Jam, one status character and one menu row |
+| the stored document would not open | Fruit Jam, the recoverable error screen |
+
+The MagTag's local screens are the only exception to *the MagTag renders only
+what it is given*, and it is deliberately the narrowest one that answers the
+requirement. They carry no document, no cursor, no revision, and no state the
+Fruit Jam owns; they are numbered revision 0, which the protocol already reads as
+"nothing has been displayed"; they are acknowledged to nobody; and they are never
+drawn again once a viewport has arrived. The board remains display-only. It is
+allowed to say that it is alive, and nothing else.
+
+The display is constructed before the UART for the same reason: a construction
+failure the panel could report is a failure nobody sees if the panel does not
+exist yet.
 
 ### Fruit Jam cooperative loop
 
@@ -332,6 +388,12 @@ dead while the Fruit Jam is in reset, so a first handshake arriving before the
 panel is listening is the ordinary case rather than a fault. Input is still
 polled, the document is not touched, and the session and idle clocks start when
 the panel answers.
+
+Input polled during that phase is queued and not drained, because there is
+nowhere to show it. The queue holds about 32 keystrokes, and a writer who fills
+it — typing a sentence into a device that is still booting — has the **overflow**
+dropped and counted rather than the session ended. Everything already queued is
+applied the moment the panel answers.
 
 ### MagTag cooperative loop
 
@@ -486,6 +548,36 @@ persisting is worse than one that refuses to start.
 Every indicator character is present in the MagTag's proven 3×5 glyph table, and
 a host test asserts it. The indicator is drawn on the panel, so "a character"
 means "a character this panel can draw".
+
+### Keyboard state
+
+One further status character, on identical terms: `k` when no keyboard is
+claimed, nothing when one is. Both indicators together fit the fixed twenty-byte
+status field exactly, which is why each is one character and why neither is drawn
+when it has nothing to report.
+
+The main menu additionally spells it out on its spare fifth row — the four menu
+items are never displaced — because a writer who has just connected one cable and
+cannot type needs to know whether the device is broken or merely waiting.
+
+An absent keyboard is a **degraded mode**, never a stop. The device keeps looking
+at a bounded rate for as long as it has power, so a keyboard connected afterwards
+is picked up with no reset, and something attached that cannot be driven as a
+boot keyboard is reported and retried rather than fatal.
+
+### Startup must never cost the writer their work
+
+The storage layer already refuses to write past a reserve and already survives a
+power cut at any byte. One further rule belongs to startup specifically: **a
+document that cannot be loaded must not be overwritten in the attempt to recover
+from it.**
+
+An editor that refuses a stored document leaves itself empty at revision 0 while
+the store still holds the real one, and the ordinary autosave policy would
+promote that empty editor at the next threshold. So a refused restore *holds*
+every write for the session. Nothing on the card is read again, written, renamed,
+or removed; the writer lands on the recoverable error screen with the reason; and
+the hold is released only when a document has actually been opened.
 
 ## Power model
 

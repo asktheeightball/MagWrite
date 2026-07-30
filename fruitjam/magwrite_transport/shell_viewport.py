@@ -41,6 +41,12 @@ ERROR_TITLE = "MAGWRITE ERROR"
 EXIT_TITLE = "MAGWRITE"
 DRAFTS_TITLE = "MAGWRITE DRAFTS"
 NO_DRAFTS = "NO DRAFTS YET"
+# V1.6. The fifth row of the main menu, used only when there is something to say.
+# The four items occupy four of the panel's five rows, so this costs no layout
+# and pushes nothing off the screen. Written out rather than abbreviated because
+# the writer reading it has just connected one cable and needs to know whether the
+# device is broken or merely waiting -- which is what the second half answers.
+NO_KEYBOARD = "NO KEYBOARD - PLUG ONE IN"
 
 SELECTED_PREFIX = "> "
 UNSELECTED_PREFIX = "  "
@@ -110,11 +116,13 @@ def wrap(value, width=MAX_LINE_CHARS, max_lines=3):
     return tuple(lines)
 
 
-def _status(text, save_indicator):
-    if save_indicator:
-        if len(save_indicator) != 1:
-            raise ValueError("the save indicator must be one character")
-        text = text + " " + save_indicator
+def _status(text, save_indicator, keyboard_indicator=None):
+    for indicator in (save_indicator, keyboard_indicator):
+        if not indicator:
+            continue
+        if len(indicator) != 1:
+            raise ValueError("a status indicator must be one character")
+        text = text + " " + indicator
     return safe_text(text, MAX_FIELD_CHARS)
 
 
@@ -135,20 +143,26 @@ def _encode(title, lines, cursor_row, cursor_column, status):
 # ----------------------------------------------------------------- screens
 
 
-def menu_payload(shell, save_indicator=None):
+def menu_payload(shell, save_indicator=None, keyboard_indicator=None):
     """The main menu: every item visible at once, the selected one marked."""
     lines = []
     for index, item in enumerate(shell.items[:MAX_LINES]):
         prefix = SELECTED_PREFIX if index == shell.selection else UNSELECTED_PREFIX
         lines.append(prefix + item[1])
     row = shell.selection if shell.selection < len(lines) else 0
+    if not getattr(shell, "keyboard_ready", True) and len(lines) < MAX_LINES:
+        # V1.6. Only on the spare row, and only when there is one: the four menu
+        # items are what the writer came here for and none of them may be pushed
+        # off the panel to make room for a notice.
+        lines.append(NO_KEYBOARD)
     status = _status(
-        "MENU %d/%d" % (shell.selection + 1, len(shell.items)), save_indicator
+        "MENU %d/%d" % (shell.selection + 1, len(shell.items)), save_indicator,
+        keyboard_indicator,
     )
     return _encode(MENU_TITLE, tuple(lines), row, 0, status)
 
 
-def drafts_payload(shell, save_indicator=None):
+def drafts_payload(shell, save_indicator=None, keyboard_indicator=None):
     """The working set: one document a row, the selected one marked.
 
     The catalogue is bounded well above five, so the panel shows a window and the
@@ -160,7 +174,8 @@ def drafts_payload(shell, save_indicator=None):
     visible = shell.visible_drafts()
     if not visible:
         lines = (NO_DRAFTS, "", "ESC  MENU")
-        return _encode(DRAFTS_TITLE, lines, 0, 0, _status("0/0", save_indicator))
+        return _encode(DRAFTS_TITLE, lines, 0, 0,
+                       _status("0/0", save_indicator, keyboard_indicator))
     lines = []
     for offset, entry in enumerate(visible):
         index = shell.draft_top + offset
@@ -172,30 +187,32 @@ def drafts_payload(shell, save_indicator=None):
     if not 0 <= row < len(lines):
         row = 0
     status = _status(
-        "%d/%d" % (shell.draft_selection + 1, shell.draft_count), save_indicator
+        "%d/%d" % (shell.draft_selection + 1, shell.draft_count), save_indicator,
+        keyboard_indicator,
     )
     return _encode(DRAFTS_TITLE, tuple(lines), row, 0, status)
 
 
-def error_payload(shell, save_indicator=None):
+def error_payload(shell, save_indicator=None, keyboard_indicator=None):
     """A recoverable failure. The document is still in the editor behind it."""
     reason = wrap(shell.error_reason or "UNKNOWN FAULT", MAX_LINE_CHARS, 3)
     lines = list(reason) if reason else ["UNKNOWN FAULT"]
     lines.append("WORK IS KEPT")
     lines.append("ENTER  MENU")
-    status = _status("ERROR", save_indicator)
+    status = _status("ERROR", save_indicator, keyboard_indicator)
     return _encode(ERROR_TITLE, tuple(lines), 0, 0, status)
 
 
-def exit_payload(shell, editor, save_indicator=None):
+def exit_payload(shell, editor, save_indicator=None, keyboard_indicator=None):
     """The closing screen, so a stop is something the writer can see happen."""
     lines = ("STOPPED", "%d CHARS  %d LINES"
              % (editor.character_count(), len(editor.lines)))
-    status = _status("D%03d" % (editor.document_revision % 1000), save_indicator)
+    status = _status("D%03d" % (editor.document_revision % 1000), save_indicator,
+                     keyboard_indicator)
     return _encode(EXIT_TITLE, lines, 0, 0, status)
 
 
-def payload(shell, editor, save_indicator=None):
+def payload(shell, editor, save_indicator=None, keyboard_indicator=None):
     """Build the screen for the shell's current state.
 
     Returns ``None`` when the editor owns the panel, which is the caller's signal
@@ -203,11 +220,11 @@ def payload(shell, editor, save_indicator=None):
     """
     state = shell.state
     if state == STATE_MAIN_MENU:
-        return menu_payload(shell, save_indicator)
+        return menu_payload(shell, save_indicator, keyboard_indicator)
     if state == STATE_DRAFTS:
-        return drafts_payload(shell, save_indicator)
+        return drafts_payload(shell, save_indicator, keyboard_indicator)
     if state == STATE_ERROR:
-        return error_payload(shell, save_indicator)
+        return error_payload(shell, save_indicator, keyboard_indicator)
     if state == STATE_EXIT:
-        return exit_payload(shell, editor, save_indicator)
+        return exit_payload(shell, editor, save_indicator, keyboard_indicator)
     return None

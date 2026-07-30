@@ -139,18 +139,23 @@ one 5 V source (wall charger, or the PC), ≥1.5 A
   and the estimated combined budget is ~450 mA typical and ~900 mA worst case,
   with **no figure yet measured on this bench**;
 - swapping the one cable between the PC and a charger is the whole difference
-  between the development and standalone configurations.
+  between the development and standalone configurations. From V1.6 it is the
+  *only* difference: the shipped configuration on both boards is the writing
+  appliance, so a wall charger and nothing else is a working device. See
+  [docs/STANDALONE.md](docs/STANDALONE.md).
 
 **The MagTag has no console and no host-visible `CIRCUITPY` while wired this
 way** — its USB-C goes to the Fruit Jam. Move that cable to the PC to deploy to
-it, and move it back. The Fruit Jam's console reports the handshake from its own
+it, and move it back. **Deploy to the MagTag first**, for that reason. The Fruit Jam's console reports the handshake from its own
 end, so a MagTag that is not answering is still diagnosable.
 
 **There is no start order, and there cannot be one.** The Fruit Jam's USB-A ports
 carry no 5 V while the Fruit Jam is in reset, so the MagTag cannot be booted
 first. Both boards cold boot together and the Fruit Jam retries the display
 handshake until the panel answers — see
-[docs/DEVELOPMENT_RUNTIME.md](docs/DEVELOPMENT_RUNTIME.md).
+[docs/DEVELOPMENT_RUNTIME.md](docs/DEVELOPMENT_RUNTIME.md). From V1.6 the MagTag
+draws `MAGWRITE / STARTING` of its own accord while that happens, so a panel with
+nothing on it during the boot window is now a fault rather than the norm.
 
 **One USB-C connection per board, always.** Never plug the MagTag into the PC
 while the Fruit Jam is also feeding it. Neither board's power-path design has
@@ -354,6 +359,14 @@ Do not connect one battery simultaneously to the independent charger circuits on
       refreshes at 3586 ms and 3525 ms with no brownout, 24 partial refreshes
       averaging 924 ms, 23 button presses all applied, and zero faults of any
       kind. Nothing warm to the touch; panel clean.
+- [ ] Run the physical standalone check, `docs/STANDALONE_CHECK.md`. **NOT RUN.**
+      V1.6 makes the shipped configuration on both boards the writing appliance —
+      no flag, no console, no host-mounted volume, no start order — and it is
+      host-verified across 1,185 tests. Eleven steps on the bench with neither
+      board connected to the PC are what would make it a physical claim, and
+      until then it is not one. Step 10 is the important one: start with the
+      keyboard *disconnected*, then plug it in, and confirm writing becomes
+      available with no reboot.
 - [ ] Measure active and idle current for each board and USB receiver. **Still
       open, and now the one thing bench power leaves unmeasured.** A USB power
       meter on the upstream cable closes it, and would also give the receiver

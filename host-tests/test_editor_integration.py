@@ -377,12 +377,17 @@ class ActivationDefaultTest(unittest.TestCase):
         self.assertIn('EDITOR_INTEGRATION_TEST_MODE = "DISABLED"', source)
 
     def test_magtag_activation_is_disabled_by_default(self):
+        """This harness stays disarmed even though the panel now ships enabled.
+
+        V1.6: the MagTag ships as the standalone appliance, so the display and
+        both UART directions are on — they are the product. The editor-display
+        harness needs its own mode string *and* the matching
+        ``PHYSICAL_TEST_MODE``, and neither is set.
+        """
         source = read("magtag", "config.py")
-        self.assertIn("ENABLE_PHYSICAL_DISPLAY = False", source)
-        self.assertIn("ENABLE_UART_RECEIVER = False", source)
-        self.assertIn("ENABLE_UART_STATUS_TX = False", source)
         self.assertIn('EDITOR_DISPLAY_TEST_MODE = "DISABLED"', source)
-        self.assertIn('PHYSICAL_TEST_MODE = "DISABLED"', source)
+        self.assertIn('PHYSICAL_TEST_MODE = "MAGTAG_STANDALONE"', source)
+        self.assertNotIn('PHYSICAL_TEST_MODE = "MAGTAG_EDITOR_DISPLAY"', source)
 
     def test_both_entry_points_require_every_gate(self):
         fruitjam = read("fruitjam", "hardware_editor_test.py")

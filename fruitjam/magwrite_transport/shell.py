@@ -101,8 +101,16 @@ Two rules the button path does not share with the keyboard:
   control surface that can corrupt a draft from a pocket;
 * **back-to-menu is idempotent at the menu.** It is a "take me to the menu"
   button, not a back button, so pressing it at the root does *not* stop the
-  session. The keyboard's Escape still does, because a writer who pressed Escape
-  twice at the root meant it; a thumb on a bezel did not.
+  session. On the bench the keyboard's Escape still does, because a writer who
+  pressed Escape twice at the root meant it; a thumb on a bezel did not.
+
+Standalone — V1.6
+-----------------
+
+``allow_exit=False`` retires that last asymmetry for the appliance. A device with
+one power cable has no stop to take, so the keyboard's Escape at the root now
+does what the bezel's menu button has always done there: nothing. See
+:meth:`Shell.back`.
 """
 
 from magwrite_transport.button_input import (
@@ -212,7 +220,8 @@ DRAFT_ROWS = 5
 class Shell:
     """Bounded, fail-closed application state above the authoritative editor."""
 
-    def __init__(self, items=MENU_ITEMS, log=None, state=STATE_MAIN_MENU):
+    def __init__(self, items=MENU_ITEMS, log=None, state=STATE_MAIN_MENU,
+                 allow_exit=True):
         if not items:
             raise ValueError("the main menu needs at least one item")
         if state not in STATES:
@@ -220,6 +229,16 @@ class Shell:
         self.items = tuple(items)
         self.log = log
         self.state = state
+        # V1.6. On the bench the back gesture at the root is the clean stop, and
+        # it stays that way. On the standalone appliance there is no stop to
+        # take: the writer removes the cable. Leaving it reachable would mean one
+        # Escape at the menu ends the session, drains, and leaves a panel showing
+        # STOPPED that nothing but the reset button can move off -- a device with
+        # a keystroke that switches it off and no keystroke that switches it back
+        # on. The MagTag's menu button has never been able to do this, for the
+        # same reason; this makes the keyboard agree with the bezel.
+        self.allow_exit = allow_exit
+        self.exits_refused = 0
         self.selection = 0
         self.mode = None
         self.error_reason = None
@@ -239,6 +258,8 @@ class Shell:
         self.button_actions = 0
         self.buttons_ignored = 0
         self.save_state = None
+        # V1.6. See :meth:`note_keyboard_state`.
+        self.keyboard_ready = True
         # V1.4. The identity of the document the editor currently holds, as the
         # session most recently reported it. The shell is *told* this; it never
         # reads a card and never decides which document is open.
@@ -441,6 +462,11 @@ class Shell:
         if state == STATE_ERROR:
             return self._transition(STATE_MAIN_MENU, "dismissed the error")
         if state == STATE_MAIN_MENU:
+            if not self.allow_exit:
+                # The root of an appliance. Already there, nothing above it.
+                self.exits_refused += 1
+                self.ignored_events += 1
+                return self.state
             # The root. Back from here is the clean stop the runtime already had.
             return self._transition(STATE_EXIT, "stopped from the main menu")
         if state == STATE_EXIT:
@@ -487,6 +513,26 @@ class Shell:
                    "kind": kind, "title": title, "mode": self.mode,
                    "state": self.state})
         return self.document_id
+
+    def note_keyboard_state(self, ready):
+        """Adopt whether a keyboard is claimed. V1.6.
+
+        Held so the main menu can say ``NO KEYBOARD`` in words rather than in a
+        one-character token, which is what a writer who has just connected one
+        power cable and is looking at a menu they cannot type into needs to read.
+        Unlike the save state this *does* advance the visible revision here: the
+        menu screen is the shell's own, so the shell is the one that has to know
+        it changed.
+
+        Starts ``True`` deliberately. A session whose keyboard opens on the first
+        poll must not draw a NO KEYBOARD menu for one frame on the way past.
+        """
+        if bool(ready) == self.keyboard_ready:
+            return False
+        self.keyboard_ready = bool(ready)
+        if self.state == STATE_MAIN_MENU:
+            self._note_visible_change()
+        return True
 
     def note_save_state(self, state):
         """Adopt the save state the persistence layer computed.
@@ -694,9 +740,12 @@ class Shell:
             "shell_backs": self.backs,
             "shell_faults": self.faults,
             "shell_ignored_events": self.ignored_events,
+            "shell_allow_exit": self.allow_exit,
+            "shell_exits_refused": self.exits_refused,
             "shell_button_actions": self.button_actions,
             "shell_buttons_ignored": self.buttons_ignored,
             "shell_save_state": self.save_state,
+            "shell_keyboard_ready": self.keyboard_ready,
             "shell_error_reason": self.error_reason,
             "shell_visible_revision": self.visible_revision,
             "shell_document_id": self.document_id,

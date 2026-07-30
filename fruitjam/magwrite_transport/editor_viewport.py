@@ -46,17 +46,20 @@ class EditorViewport:
             (editor.row + 1) % 100, editor.column % 100,
         )
 
-    def status_text(self, editor, window, save_indicator=None):
+    def status_text(self, editor, window, save_indicator=None,
+                    keyboard_indicator=None):
         """Document revision, viewport revision, window position, save state.
 
-        The save indicator is appended rather than woven in, and omitting it
+        Both indicators are appended rather than woven in, and omitting them
         reproduces the exact status text the verified runs transmitted. That
         keeps every previously measured viewport payload and CRC-32 reachable,
-        so adding a visible save state cannot invalidate the physical evidence
-        the transport already has.
+        so adding visible save and keyboard state cannot invalidate the physical
+        evidence the transport already has.
 
-        Sixteen characters without it, eighteen with, against the fixed
-        twenty-byte status field.
+        Sixteen characters bare, eighteen with the save indicator, and twenty
+        with both -- against the fixed twenty-byte status field, which is why
+        each is one character and why neither is drawn when it has nothing to
+        report.
         """
         text = "D%03d V%03d R%02d/%02d" % (
             editor.document_revision % 1000,
@@ -64,13 +67,16 @@ class EditorViewport:
             (window["top"] + window["cursor_row"] + 1) % 100,
             window["total_rows"] % 100,
         )
-        if save_indicator:
-            if len(save_indicator) != 1:
-                raise ValueError("the save indicator must be one character")
-            text = text + " " + save_indicator
+        for indicator in (save_indicator, keyboard_indicator):
+            if not indicator:
+                continue
+            if len(indicator) != 1:
+                raise ValueError("a status indicator must be one character")
+            text = text + " " + indicator
         return text
 
-    def payload(self, editor, scenario_id, save_indicator=None, title=None):
+    def payload(self, editor, scenario_id, save_indicator=None, title=None,
+                keyboard_indicator=None):
         """Encode the complete semantic viewport for this editor state."""
         window = self.window(editor)
         lines = window["lines"]
@@ -82,5 +88,5 @@ class EditorViewport:
             lines,
             window["cursor_row"],
             window["cursor_column"],
-            self.status_text(editor, window, save_indicator),
+            self.status_text(editor, window, save_indicator, keyboard_indicator),
         )

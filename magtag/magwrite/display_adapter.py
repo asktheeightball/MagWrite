@@ -23,14 +23,22 @@ APPROVED_TEST_MODES = (
     USB_KEYBOARD_DISPLAY_MODE,
 )
 
-# The repeatable development runtime. Kept out of APPROVED_TEST_MODES on purpose:
-# it writes no guard, so it must *not* appear in the boot remount gate, and the
-# filesystem stays under the host's control. See magtag/dev_display_runtime.py.
+# The two product runtime modes. Both are kept out of APPROVED_TEST_MODES on
+# purpose: neither writes a guard, so neither may appear in the boot remount gate,
+# and the filesystem stays under the host's control.
+#
+# ``MAGTAG_STANDALONE`` is the shipped default from V1.6 -- the writing appliance,
+# started by connecting one power cable, with no console and no operator.
+# ``MAGTAG_DEV_DISPLAY`` is the same runtime on a bench with two consoles.
+# See magtag/dev_display_runtime.py.
 DEV_DISPLAY_MODE = "MAGTAG_DEV_DISPLAY"
-DEV_MODES = (DEV_DISPLAY_MODE,)
+STANDALONE_DISPLAY_MODE = "MAGTAG_STANDALONE"
+RUNTIME_MODES = (STANDALONE_DISPLAY_MODE, DEV_DISPLAY_MODE)
+# Retained under its original name: several harness-era readers import it.
+DEV_MODES = RUNTIME_MODES
 
 # Every mode the display may be activated for, guarded or not.
-ACTIVATION_MODES = APPROVED_TEST_MODES + DEV_MODES
+ACTIVATION_MODES = APPROVED_TEST_MODES + RUNTIME_MODES
 
 
 class DisplayAdapter:

@@ -57,7 +57,9 @@ The project has physically verified:
 - the MagWrite Shell;
 - the four writing modes, over an append-only document catalogue;
 - the one-gesture exit from a document, and the four MagTag buttons as the
-  primary shell controls.
+  primary shell controls;
+- one USB-C cable into the Fruit Jam starting the complete device by itself, with
+  no reset and no start order.
 
 ## Current milestone order
 
@@ -68,12 +70,25 @@ The project has physically verified:
    Save/Status interruption.~~ Physically verified 2026-07-30.
 5. Support a wireless keyboard with a USB receiver. **Blocked on hardware** —
    the one receiver available is incompatible; see `ROADMAP.md`.
-6. Bring the bench to one-cable power. **<- current.** Audited — a direct 5 V
-   feed between the boards is refused, because neither board has a 5 V input;
-   see [docs/BENCH_POWER.md](docs/BENCH_POWER.md).
-7. Build the minimum standalone writing workflow.
+6. ~~Bring the bench to one-cable power.~~ Physically verified 2026-07-30. A
+   direct 5 V feed between the boards is refused, because neither board has a 5 V
+   input; see [docs/BENCH_POWER.md](docs/BENCH_POWER.md).
+7. Build the minimum standalone writing workflow. **<- current.** Implemented
+   and host-verified; the physical check in
+   [docs/STANDALONE_CHECK.md](docs/STANDALONE_CHECK.md) has not been run.
 8. Integrate one rechargeable battery and one charging port.
 9. Complete enclosure and product hardening.
+
+## Running it
+
+Copy `fruitjam/` and `magtag/` onto their boards and connect one USB-C cable to
+the Fruit Jam. From V1.6 that is the whole procedure: the shipped configuration
+**is** the writing appliance, and there is no flag to set, no console to attach,
+no volume to mount, and no start order. See [docs/STANDALONE.md](docs/STANDALONE.md).
+
+The bench configuration, with two consoles and a stop gesture, is now the thing
+you opt into — see [docs/DEVELOPMENT_RUNTIME.md](docs/DEVELOPMENT_RUNTIME.md).
+Every guarded harness still ships disabled and still has to be armed by name.
 
 ## Repository layout
 
@@ -85,7 +100,7 @@ docs/               build, wiring, testing, reports, and research notes
 keyboard-bridge/    deferred LOLIN32 Bluetooth adapter work, if later required
 ```
 
-See [PRODUCT.md](PRODUCT.md), [ROADMAP.md](ROADMAP.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [HARDWARE.md](HARDWARE.md) for the current specification and decisions. [docs/PERSISTENCE.md](docs/PERSISTENCE.md), [docs/SHELL.md](docs/SHELL.md), and [docs/MODES.md](docs/MODES.md) carry the storage, shell, and writing-mode designs, and [docs/BENCH_POWER.md](docs/BENCH_POWER.md) the bench power audit.
+See [PRODUCT.md](PRODUCT.md), [ROADMAP.md](ROADMAP.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [HARDWARE.md](HARDWARE.md) for the current specification and decisions. [docs/STANDALONE.md](docs/STANDALONE.md) is the device as a writer meets it; [docs/PERSISTENCE.md](docs/PERSISTENCE.md), [docs/SHELL.md](docs/SHELL.md), and [docs/MODES.md](docs/MODES.md) carry the storage, shell, and writing-mode designs, and [docs/BENCH_POWER.md](docs/BENCH_POWER.md) the bench power audit.
 
 ## Related research
 

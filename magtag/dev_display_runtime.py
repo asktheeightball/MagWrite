@@ -70,12 +70,23 @@ from magwrite.buttons import (
 from magwrite.display_adapter import validate_physical_test_activation
 from magwrite.serial_log import StructuredSerialLogger
 from magwrite.sha256 import sha256_file
+from magwrite.startup_screens import (
+    fault_screen, starting_screen, waiting_screen,
+)
 from magwrite.status_queue import StatusQueue
 from magwrite.uart_protocol import BUTTON_EVENT, DISPLAY_ERROR, FrameParser
 from magwrite.uc8151_adapter import UC8151DisplayAdapter
 from magwrite.viewport_renderer import render_viewport
 
 DEV_DISPLAY_MODE = "MAGTAG_DEV_DISPLAY"
+STANDALONE_DISPLAY_MODE = "MAGTAG_STANDALONE"
+PROFILE_STANDALONE = "STANDALONE"
+PROFILE_DEVELOPMENT = "DEVELOPMENT"
+# How long the panel says only "STARTING" before it says it is *waiting*. Set
+# above the 9.05 s a measured cold boot took, so an ordinary start never spends a
+# refresh on it: seeing this screen means the writer board is taking longer than
+# it ever has, which is the one startup fact worth acting on.
+DEFAULT_STARTUP_WAIT_SECONDS = 15.0
 EXPECTED_DRIVER_SHA256 = (
     "A534B79DA5FC220EFBA5C61EE48048B54BAD3725CEFEC6D3BD7109233D75176E"
 )
@@ -123,13 +134,40 @@ class RefreshStats:
 
 logger = StructuredSerialLogger()
 validate_physical_test_activation(config, config.PHYSICAL_TEST_MODE)
-if not (
+
+
+def _select_profile():
+    """Which of the two runtime profiles this board's config asks for.
+
+    The development profile is checked first because it is the one that has to be
+    *asked* for: it ships disabled, and a board that has been deliberately armed
+    for the bench must not be quietly handed the appliance instead. Standalone is
+    the fall-through, which is what makes it the default.
+    """
+    if (
+        config.PHYSICAL_TEST_MODE == DEV_DISPLAY_MODE
+        and getattr(config, "DEV_DISPLAY_RUNTIME_MODE", "DISABLED")
+            == DEV_DISPLAY_MODE
+    ):
+        return PROFILE_DEVELOPMENT
+    if (
+        getattr(config, "ENABLE_STANDALONE", False)
+        and config.PHYSICAL_TEST_MODE == STANDALONE_DISPLAY_MODE
+        and getattr(config, "STANDALONE_DISPLAY_MODE", "DISABLED")
+            == STANDALONE_DISPLAY_MODE
+    ):
+        return PROFILE_STANDALONE
+    return None
+
+
+PROFILE = _select_profile()
+if PROFILE is None or not (
     getattr(config, "ENABLE_UART_RECEIVER", False)
     and getattr(config, "ENABLE_UART_STATUS_TX", False)
-    and config.PHYSICAL_TEST_MODE == DEV_DISPLAY_MODE
-    and getattr(config, "DEV_DISPLAY_RUNTIME_MODE", "DISABLED") == DEV_DISPLAY_MODE
 ):
-    raise RuntimeError("MagTag development display runtime is not enabled")
+    raise RuntimeError("no MagTag display runtime is enabled")
+STARTUP_WAIT_SECONDS = getattr(
+    config, "STANDALONE_DISPLAY_WAIT_SECONDS", DEFAULT_STARTUP_WAIT_SECONDS)
 if not config.UART_RX_PIN_ALIAS or not config.UART_TX_PIN_ALIAS:
     raise RuntimeError("both confirmed UART pin aliases are required")
 if sha256_file("/uc8151.py") != EXPECTED_DRIVER_SHA256:
@@ -205,35 +243,79 @@ uart = None
 display = None
 error = None
 
+
+def draw_local(screen, name, full=False):
+    """Draw one of this board's own startup screens. Never raises. V1.6.
+
+    A screen that cannot be drawn must not be the reason a panel that could have
+    drawn a document does not run, so every failure here is reported and stepped
+    over.
+    """
+    if display is None:
+        return False
+    try:
+        display.begin_refresh(render_viewport(screen), full=full)
+        display.wait_until_idle(config.UART_DISPLAY_BUSY_TIMEOUT_SECONDS)
+    except Exception as screen_error:  # noqa: BLE001 - reported, not swallowed
+        logger({"event": "display_startup_screen_failed", "screen": name,
+                "detail": str(screen_error)})
+        return False
+    logger({"event": "display_startup_screen", "screen": name})
+    return True
+
+
+# The display is constructed *first*, ahead of the UART, and that order is the
+# whole of why a wiring fault is now visible. Standalone has no console, so a
+# failure the panel could have shown and did not is a failure nobody sees.
+#
 # Fenced off from the serve loop for the same reason as on the Fruit Jam: the
 # filesystem was never remounted, so a construction failure leaves the board
 # writable, autoreloading, and restartable without safe mode.
 try:
-    uart = busio.UART(
-        tx=getattr(board, config.UART_TX_PIN_ALIAS),
-        rx=getattr(board, config.UART_RX_PIN_ALIAS),
-        baudrate=config.UART_BAUD,
-        timeout=0,
-        receiver_buffer_size=256,
-    )
     display = UC8151DisplayAdapter(config, config.PHYSICAL_TEST_MODE)
     display.initialize()
 except Exception as construction_error:  # noqa: BLE001 - reported, not swallowed
     error = str(construction_error)
+    display = None
     logger({"event": "dev_display_construction_failed", "detail": error,
-            "filesystem_remounted": False, "guard_written": False})
+            "stage": "display", "filesystem_remounted": False,
+            "guard_written": False})
+
+if display is not None:
+    # Before a single byte is read. Both boards cold boot together under one-cable
+    # power, so this is what the writer looks at while the Fruit Jam is mounting a
+    # card and restoring their document -- work it cannot report over a link that
+    # is not up yet. ``full`` because this is the first image of the session and
+    # the panel has no differential state to trust.
+    draw_local(starting_screen(), "STARTING", full=True)
+    try:
+        uart = busio.UART(
+            tx=getattr(board, config.UART_TX_PIN_ALIAS),
+            rx=getattr(board, config.UART_RX_PIN_ALIAS),
+            baudrate=config.UART_BAUD,
+            timeout=0,
+            receiver_buffer_size=256,
+        )
+    except Exception as construction_error:  # noqa: BLE001 - reported, not swallowed
+        error = str(construction_error)
+        logger({"event": "dev_display_construction_failed", "detail": error,
+                "stage": "uart", "filesystem_remounted": False,
+                "guard_written": False})
+        draw_local(fault_screen(error), "FAULT")
 
 sessions = 0
 buttons = None
 button_detail = None
-if display is not None:
+if display is not None and uart is not None:
     # After the display, and outside its try: a board that cannot claim its
     # buttons is still a board that can draw, and the writer still has a
     # keyboard. Degraded, reported, and started anyway.
     buttons, button_pins, button_detail = build_button_pad(logger)
-    logger({"event": "dev_display_ready",
+    logger({"event": "dev_display_ready", "profile": PROFILE,
+            "mode": config.PHYSICAL_TEST_MODE,
             "rx_alias": config.UART_RX_PIN_ALIAS,
             "tx_alias": config.UART_TX_PIN_ALIAS, "baud": config.UART_BAUD,
+            "startup_wait_seconds": STARTUP_WAIT_SECONDS,
             "buttons": buttons is not None, "button_detail": button_detail})
 
     def new_session():
@@ -246,6 +328,10 @@ if display is not None:
 
     parser, outbox, scheduler, stats = new_session()
     inflight_started = None
+    # V1.6. The one local screen the serve loop may draw, and it may draw it
+    # once. Anything the Fruit Jam sends supersedes it permanently.
+    started_waiting_at = time.monotonic()
+    waiting_screen_drawn = False
     bytes_received = 0
     bytes_sent = 0
     buttons_sent = 0
@@ -304,6 +390,22 @@ if display is not None:
                 bytes_sent += written
                 logger({"event": "dev_display_status_sent", "message_type": kind,
                         "sequence": sequence, "revision": revision})
+            if (
+                not waiting_screen_drawn
+                and scheduler.last_input_sequence is None
+                and scheduler.pending is None
+                and scheduler.ready_to_start is None
+                and scheduler.inflight is None
+                and not display.is_busy()
+                and time.monotonic() - started_waiting_at > STARTUP_WAIT_SECONDS
+            ):
+                # Nothing has arrived on the link at all -- not even a handshake --
+                # for longer than a cold boot has ever taken. Say so, once. Every
+                # condition above is a guarantee that the panel is idle and the
+                # scheduler owns no frame, so this can never cut across a refresh
+                # the writer's words are in.
+                waiting_screen_drawn = True
+                draw_local(waiting_screen(), "WAITING")
             if display.is_busy() and inflight_started is not None and (
                 time.monotonic() - inflight_started
                 > config.UART_DISPLAY_BUSY_TIMEOUT_SECONDS
@@ -340,6 +442,8 @@ if display is not None:
                 # scheduler are rebuilt rather than carried over.
                 parser, outbox, scheduler, stats = new_session()
                 inflight_started = None
+                started_waiting_at = time.monotonic()
+                waiting_screen_drawn = False
                 bytes_received = 0
                 bytes_sent = 0
                 buttons_sent = 0
@@ -367,10 +471,18 @@ if display is not None:
                 uart.write(item[3])
         except Exception:
             pass
+        # V1.6. The Fruit Jam is told over UART, which is exactly the channel a
+        # transport fault may have taken away, so the panel is told too. On a
+        # standalone device this is the only report that reaches anybody.
+        try:
+            display.wait_until_idle(config.UART_DISPLAY_BUSY_TIMEOUT_SECONDS)
+        except Exception:
+            pass
+        draw_local(fault_screen(error), "FAULT")
 
 # No guard is written, no evidence file is produced, and nothing is remounted:
 # the next start needs no cleanup, no deletion, and no safe mode.
-logger({"event": "dev_display_stopped", "detail": error,
+logger({"event": "dev_display_stopped", "detail": error, "profile": PROFILE,
         "sessions_served": sessions, "restartable": True,
         "guard_written": False, "filesystem_remounted": False,
         "buttons": buttons is not None, "button_detail": button_detail,

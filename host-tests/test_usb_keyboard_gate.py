@@ -70,17 +70,22 @@ class ActivationDefaultTest(unittest.TestCase):
         self.assertIn('USB_KEYBOARD_TEST_MODE = "DISABLED"', source)
 
     def test_magtag_activation_is_disabled_by_default(self):
+        """This harness stays disarmed even though the panel now ships enabled.
+
+        V1.6: the MagTag ships as the standalone appliance. The harness gate is
+        its own mode string plus the matching ``PHYSICAL_TEST_MODE``, and neither
+        is set.
+        """
         source = read("magtag", "config.py")
-        self.assertIn("ENABLE_PHYSICAL_DISPLAY = False", source)
-        self.assertIn("ENABLE_UART_RECEIVER = False", source)
-        self.assertIn("ENABLE_UART_STATUS_TX = False", source)
-        self.assertIn('PHYSICAL_TEST_MODE = "DISABLED"', source)
+        self.assertIn('PHYSICAL_TEST_MODE = "MAGTAG_STANDALONE"', source)
         self.assertIn('USB_KEYBOARD_DISPLAY_TEST_MODE = "DISABLED"', source)
+        self.assertNotIn(
+            'PHYSICAL_TEST_MODE = "MAGTAG_USB_KEYBOARD_DISPLAY"', source)
 
     def test_the_shipped_configs_refuse_the_run_as_loaded(self):
         import config as magtag_config
-        self.assertFalse(magtag_config.ENABLE_PHYSICAL_DISPLAY)
-        self.assertEqual(magtag_config.PHYSICAL_TEST_MODE, "DISABLED")
+        self.assertNotEqual(
+            magtag_config.PHYSICAL_TEST_MODE, "MAGTAG_USB_KEYBOARD_DISPLAY")
         self.assertEqual(
             magtag_config.USB_KEYBOARD_DISPLAY_TEST_MODE, "DISABLED"
         )

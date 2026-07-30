@@ -46,6 +46,37 @@ USB_KEYBOARD_LAYOUT = "AUTO"
 # be started and stopped as often as development needs. See fruitjam/dev_runtime.py.
 ENABLE_DEV_RUNTIME = False
 DEV_RUNTIME_MODE = "DISABLED"
+# ------------------------------------------------ the standalone default, V1.6
+# The one setting in this file that ships **enabled**, and the reason the device
+# starts from one power cable with nothing else done to it. It runs the same
+# runtime the development profile above runs -- the same editor, shell, storage,
+# transport, and buttons -- on a board with no console, no host-mounted volume,
+# and nobody watching. See docs/STANDALONE.md.
+#
+# Every harness in this file still ships disabled and still has to be armed by
+# name, and an armed harness still wins: fruitjam/code.py checks all of them
+# before it falls through to this. Setting ENABLE_STANDALONE False leaves a board
+# that refuses to start, which is a thing to do deliberately and never a thing to
+# leave set.
+ENABLE_STANDALONE = True
+STANDALONE_MODE = "FRUITJAM_STANDALONE"
+# ``None`` is unbounded, and these four are the bounds V1.6 removed. Each existed
+# to stop a *run*, and a writing appliance has no run to stop: a writer who pauses
+# to think has not gone idle in any sense worth ending a session over, a device
+# that has been powered since Tuesday has not overrun, and a document that took
+# 200,000 keystrokes is a manuscript rather than a runaway. Every bound that
+# protects memory -- queue capacities, the acknowledgement tracker, the button
+# inbox, the poll and drain budgets -- is unchanged and still enforced.
+STANDALONE_IDLE_TIMEOUT_SECONDS = None
+STANDALONE_SESSION_TIMEOUT_SECONDS = None
+STANDALONE_MAX_EVENTS = None
+STANDALONE_MAX_VIEWPORT_FRAMES = None
+STANDALONE_MAX_PROTOCOL_FRAMES = None
+# How many times a missing keyboard is looked for. ``None`` keeps looking, at the
+# one-per-second rate the state machine already enforced, for as long as the
+# device has power. The bounded default gave up after thirty seconds and latched,
+# so a device switched on before its keyboard was plugged in never saw it.
+STANDALONE_KEYBOARD_OPEN_ATTEMPTS = None
 # Generous rather than absent: a development session is open-ended, but a board
 # left typing into a UART nobody is watching should still give up eventually.
 DEV_RUNTIME_IDLE_TIMEOUT_SECONDS = 1800

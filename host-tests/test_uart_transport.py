@@ -296,8 +296,16 @@ class ScenarioAndSafetyTests(unittest.TestCase):
             validate_physical_test_activation(cfg, UART_VIEWPORT_RX_MODE)
 
     def test_defaults_disabled(self):
+        """Each guarded harness stays disarmed, by its own mode string.
+
+        V1.6 made the MagTag ship as the standalone appliance, so the panel and
+        the receiver are on: they are the device. The property that matters is
+        unchanged and asserted here directly — no *harness* mode is selected, so
+        no harness can run from a shipped config.
+        """
         for path, names in (
-            ("magtag/config.py", ("ENABLE_PHYSICAL_DISPLAY = False", "ENABLE_UART_RECEIVER = False")),
+            ("magtag/config.py", ('UART_TEST_MODE = "DISABLED"',
+                                  'PHYSICAL_TEST_MODE = "MAGTAG_STANDALONE"')),
             ("fruitjam/config.py", ("ENABLE_UART_TEST = False", 'UART_TEST_MODE = "DISABLED"')),
         ):
             with open(os.path.join(ROOT, path), encoding="utf-8") as handle:

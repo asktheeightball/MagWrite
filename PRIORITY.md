@@ -29,15 +29,93 @@ Do not create new certification harnesses, evidence packages, compatibility inve
 11. ~~Bring the bench to one-cable power.~~ **PHYSICALLY VERIFIED 2026-07-30.**
     One USB-C cable into the Fruit Jam, the MagTag on a Fruit Jam USB-A host
     port, and the complete device starts by itself.
-12. Complete the minimum standalone workflow. **<- current.**
+12. Complete the minimum standalone workflow. **<- current.** Implemented and
+    host-verified; the physical check has not been run.
 13. Defer keyboard edge cases, battery, enclosure, and hardening until their roadmap phase.
 
 ## Active product task
 
+**V1.6, the minimum standalone workflow — IMPLEMENTED AND HOST-VERIFIED, NOT YET
+PHYSICALLY CHECKED.** The design is `docs/STANDALONE.md`, the check is
+`docs/STANDALONE_CHECK.md`, and the account is in `ROADMAP.md`.
+
+**The shipped configuration is now the writing appliance.** Both boards start
+into the product path with no flag set, no console attached, no volume mounted on
+a PC, and no start order. `fruitjam/code.py` and `magtag/code.py` fall through to
+it after every armed harness, so arming a harness is still how a board is put on
+the bench, and every harness still ships disabled and still needs its own mode
+string. The MagTag's `ENABLE_PHYSICAL_DISPLAY` is now `True`, which is the one
+default that looks like a weakening and is not: the compatibility gate is
+unchanged and still checked first, and `MAGTAG_STANDALONE` is deliberately absent
+from the boot remount tuple, so no filesystem is taken from the host.
+
+**Five things that would have made the device not work, found by asking what
+happens with nobody watching:**
+
+1. **A board switched on before its keyboard was plugged in never saw that
+   keyboard.** The connection state machine allowed thirty open attempts at one
+   per second and then latched `ERROR` permanently. Thirty seconds is not a
+   deadline anybody agreed to, and the cure was a reset the writer has no reason
+   to know about. The attempt *count* is removed for the standalone profile; the
+   one-per-second rate bound is untouched, so this is not the unbounded reconnect
+   loop the harnesses refuse.
+2. **The idle bound ended the session after half an hour of a writer thinking**,
+   and the session ending left a panel nothing but the reset button could move.
+   **This one is recorded on hardware, not argued from the code**: the one-cable
+   evidence file `docs/BENCH_ONECABLE_FRUITJAM_SERIAL.jsonl` gained three lines
+   after that check was written up, and they are the verified device switching
+   itself off while left alone — `result: ERROR`, `stop_reason: live session idle
+   timeout`, with the document `SAVED` and all 107 characters intact. Nothing was
+   lost except the device. Both run-length bounds, the keyboard event bound, and
+   both frame bounds are removed for the appliance. Every bound that protects
+   *memory* is unchanged.
+3. **Escape at the main menu switched the device off** — drained, drew `STOPPED`,
+   and stopped. One keystroke that ends the device and no keystroke that starts
+   it. The MagTag's menu button has never been able to do this, deliberately;
+   the keyboard now agrees with the bezel. Power is the stop.
+4. **A stored document the editor refused took the whole runtime down during
+   construction**, leaving a blank panel and one line on a console nobody was
+   connected to. Worse, had it not, the empty editor left behind would have been
+   checkpointed over the writer's real document by the next threshold. Writes are
+   now *held* for the session, the card is not touched, and the writer lands on
+   the recoverable error screen with a way back to the menu.
+5. **Typing into a device that was still booting ended the session.** Keystrokes
+   are polled during the display wait but not drained, so a fast writer filled
+   the 64-event queue and overflowed it. The overflow is now dropped and counted
+   rather than fatal; what was already queued is still applied.
+
+**The panel now says what is happening.** The MagTag draws two screens of its own
+before the link is up — `STARTING`, and `WAITING FOR THE WRITER BOARD` after 15 s,
+which is above the 9.05 s a measured cold boot took, so an ordinary start never
+draws the second one. Those are the only things it ever draws that the Fruit Jam
+did not send, they carry no state the Fruit Jam owns, and they are never drawn
+again once a viewport arrives. A construction failure it *can* draw — a bad UART
+pin — now reaches the panel too, which is why the display is constructed before
+the UART. The Fruit Jam adds `NO KEYBOARD - PLUG ONE IN` on the spare menu row
+and a `k` in the status field of every frame.
+
+**Not claimed:** anything physical. 1,185 host tests pass, 49 of them new and
+written for exactly the five failures above, but no board has run this build.
+`docs/STANDALONE_CHECK.md` is the eleven-step check that would settle it, and its
+result section says NOT YET RUN.
+
+**Not delivered, and named rather than hidden:** rename and archive, dated
+journal entries, and sleep/wake/shutdown. The roadmap's V1.6 list included the
+first two; they are storage and clock questions rather than standalone ones, and
+neither blocks a writer using the device from one cable. There is no sleep state
+and no shutdown sequence at all — the device is on while it has power, and every
+editor exit checkpoints, so removing power is safe at any moment. Power
+management belongs to the battery phase, where there is something to manage.
+
+## Previous product task
+
 **One-cable bench power — PHYSICALLY VERIFIED 2026-07-30.** Evidence
 `docs/BENCH_ONECABLE_FRUITJAM_SERIAL.jsonl`; the check is
 `docs/BENCH_POWER_CHECK.md`, the audit is `docs/BENCH_POWER.md`, and the account
-is in `ROADMAP.md`.
+is in `ROADMAP.md`. Superseded as the active task by V1.6 above; the full account
+is retained below.
+
+### One-cable bench power, in full
 
 **One USB-C cable was connected and the complete device started by itself,
 twice**, with no reset and no start order. Both cold boots: four handshake
@@ -133,12 +211,17 @@ Carry forward, from V1.4 and V1.5:
 
 ## Next product task
 
-**V1.6, the minimum standalone workflow**, once the one-cable bench check has
-run. Bench power moved ahead of the dongle work by necessity rather than by
-preference: the dongle phase cannot proceed without hardware that is not here.
-The hope that power might change the dongle result has since been narrowed by the
-audit — the receiver's supply comes from the Fruit Jam's own host port, not from
-upstream — so it is worth re-asking, not worth expecting.
+**Run `docs/STANDALONE_CHECK.md` on the bench.** It is eleven steps and needs no
+console, no capture, and no PC — which is the point of it. Until it has run, V1.6
+is a host-verified build and nothing more, and the check's result section says so.
+
+After that, **V1.7 battery**, where a USB power meter finally answers the current
+question that has been open since the bench power audit.
+
+The dongle phase stays blocked on hardware that is not here. The hope that power
+might change its result was narrowed by the audit — the receiver's supply comes
+from the Fruit Jam's own host port, not from upstream — so it is worth re-asking
+if an ordinary wireless keyboard ever arrives, and not worth expecting.
 
 ## Completed product tasks
 
@@ -236,8 +319,23 @@ acceptance governs durability.
 
 The following are explicitly non-blocking unless they prevent normal writing:
 
-- the stale test count in `host-tests/README.md`, corrected again in V1.5 and
+- the stale test count in `host-tests/README.md`, corrected again in V1.6 and
   still worth a standing check;
+- **a session-ending fault leaves a stale panel until power is removed.** V1.6
+  took away every bound that could end a standalone session on its own, but a
+  genuine `LiveSessionError` — a transport integrity failure, say — still ends the
+  loop, and the Fruit Jam then sits in `code.py`'s sleep with whatever was last
+  drawn still on the panel. The recovery is a power cycle, which is the gesture
+  the device already asks for, and the writer loses at most the couple of seconds
+  since the last journal append. Making the Fruit Jam force one final error
+  viewport before it stops is the obvious answer and is new behaviour on the path
+  a physical run has not yet exercised, so it is recorded rather than added in the
+  same phase. The MagTag has no watchdog for a writer board that stops talking,
+  for the same reason;
+- **the standalone runtime logs the keyboard retry once a second forever when no
+  keyboard is attached.** Harmless on a device with no console — the bytes go
+  nowhere — and bounded in rate, but it is output produced for nobody. Worth a
+  quieter cadence if a later phase touches that path;
 - **`ButtonPad` press ordinals are not reset between MagTag sessions.** Harmless
   as built — a fresh Fruit Jam inbox starts at zero, so a continuing ordinal is
   always accepted — but it is a property that holds by coincidence of restart
@@ -264,9 +362,11 @@ The following are explicitly non-blocking unless they prevent normal writing:
   next to a writer's own words. `library._journal_title` is the one function that
   changes when a time source exists;
 - **no way to delete or rename a document from the device.** The catalogue is
-  bounded at 64 and refuses creation past it, cleanly and by name. Renaming and
-  archiving are V1.5 scope, and the append-only record format already supports
-  both as a single append;
+  bounded at 64 and refuses creation past it, cleanly and by name. The
+  append-only record format already supports both as a single append. Named in
+  the roadmap's V1.6 list and deliberately not delivered there: it is a storage
+  feature rather than a standalone one, and nothing about writing from one cable
+  needs it;
 - ~~the MagTag holds parser state after an *interrupted* Fruit Jam session and
   refuses the next handshake with `duplicate or reversed input sequence`, which
   the Fruit Jam reports as `status_hello timeout`.~~ **Fixed 2026-07-30**, after

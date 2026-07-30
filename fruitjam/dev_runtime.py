@@ -1,7 +1,27 @@
-"""Repeatable MagWrite development runtime on the Fruit Jam.
+"""The MagWrite runtime on the Fruit Jam, in either of its two profiles.
 
-This is **not** a physical-verification harness. It is the everyday way to bring
-the known-working product path up on the bench:
+This is **not** a physical-verification harness. It is the product path:
+
+    keyboard -> authoritative Fruit Jam editor -> UART -> MagTag
+
+``STANDALONE`` is the shipped default from V1.6 — the writing appliance, started
+by connecting one USB-C cable, with no console, no host-mounted volume, no
+operator, and no stop. ``DEVELOPMENT`` is the same runtime on a bench with two
+consoles, opted into with ``ENABLE_DEV_RUNTIME``.
+
+The profile changes six things and nothing else, all of them decided in one block
+below: the idle, session, event, viewport-frame, and protocol-frame bounds, and
+whether the back gesture at the main menu is a stop. The appliance is not a
+reduced build — it is the same editor, shell, storage, transport, and buttons,
+with the bounds that exist to end a *run* removed. See ``docs/STANDALONE.md``.
+
+The file keeps its name, and so do its diagnostics. ``dev_runtime_ready``,
+``dev_runtime_session_summary``, and ``dev_runtime_stopped`` are the vocabulary
+every physical evidence file in this repository is written in, and renaming them
+would make the record harder to read to make a filename tidier. What the console
+says instead is which profile it is running, in the ready line and in the summary.
+
+The everyday way to bring the known-working product path up on the bench:
 
     wired USB keyboard -> authoritative Fruit Jam editor -> UART -> MagTag
 
@@ -82,6 +102,9 @@ from magwrite_transport.protocol import MAX_PAYLOAD_SIZE, VERSION
 from magwrite_transport.shell import Shell
 
 DEV_RUNTIME_MODE = "FRUITJAM_DEV_RUNTIME"
+STANDALONE_MODE = "FRUITJAM_STANDALONE"
+PROFILE_STANDALONE = "STANDALONE"
+PROFILE_DEVELOPMENT = "DEVELOPMENT"
 
 # Development sessions are operator-paced and open-ended, so the transport
 # budgets are raised far above the certification ceilings rather than removed:
@@ -89,11 +112,62 @@ DEV_RUNTIME_MODE = "FRUITJAM_DEV_RUNTIME"
 DEV_MAX_VIEWPORT_FRAMES = 100000
 DEV_MAX_PROTOCOL_FRAMES = 200000
 
-if not (
-    getattr(config, "ENABLE_DEV_RUNTIME", False)
-    and getattr(config, "DEV_RUNTIME_MODE", "DISABLED") == DEV_RUNTIME_MODE
-):
-    raise RuntimeError("Fruit Jam development runtime is not enabled")
+
+def _select_profile():
+    """Which of the two profiles this board's config asks for.
+
+    Development is checked first because it is the one that has to be *asked*
+    for: it ships disabled, and a board deliberately armed for the bench must not
+    be quietly handed the appliance instead. Standalone is the fall-through,
+    which is what makes it the default.
+    """
+    if (
+        getattr(config, "ENABLE_DEV_RUNTIME", False)
+        and getattr(config, "DEV_RUNTIME_MODE", "DISABLED") == DEV_RUNTIME_MODE
+    ):
+        return PROFILE_DEVELOPMENT
+    if (
+        getattr(config, "ENABLE_STANDALONE", False)
+        and getattr(config, "STANDALONE_MODE", "DISABLED") == STANDALONE_MODE
+    ):
+        return PROFILE_STANDALONE
+    return None
+
+
+PROFILE = _select_profile()
+STANDALONE = PROFILE == PROFILE_STANDALONE
+if PROFILE is None:
+    raise RuntimeError("no Fruit Jam runtime is enabled")
+
+# The profile's whole effect, in one place. Everything below this block is
+# identical for both, which is the point: the appliance is not a reduced build of
+# the bench rig, it is the same code with the bounds that end a *run* removed and
+# the stop that ends a *session* taken away.
+if STANDALONE:
+    IDLE_TIMEOUT_SECONDS = getattr(
+        config, "STANDALONE_IDLE_TIMEOUT_SECONDS", None)
+    SESSION_TIMEOUT_SECONDS = getattr(
+        config, "STANDALONE_SESSION_TIMEOUT_SECONDS", None)
+    MAX_EVENTS = getattr(config, "STANDALONE_MAX_EVENTS", None)
+    MAX_VIEWPORT_FRAMES = getattr(config, "STANDALONE_MAX_VIEWPORT_FRAMES", None)
+    MAX_PROTOCOL_FRAMES = getattr(config, "STANDALONE_MAX_PROTOCOL_FRAMES", None)
+    KEYBOARD_OPEN_ATTEMPTS = getattr(
+        config, "STANDALONE_KEYBOARD_OPEN_ATTEMPTS", None)
+    # No keyboard is a degraded mode with a panel that says so, never a stop.
+    KEYBOARD_OPTIONAL = True
+    # There is no stop to take on a device with one power cable.
+    ALLOW_EXIT = False
+else:
+    IDLE_TIMEOUT_SECONDS = config.DEV_RUNTIME_IDLE_TIMEOUT_SECONDS
+    SESSION_TIMEOUT_SECONDS = config.DEV_RUNTIME_SESSION_TIMEOUT_SECONDS
+    MAX_EVENTS = config.DEV_RUNTIME_MAX_EVENTS
+    MAX_VIEWPORT_FRAMES = DEV_MAX_VIEWPORT_FRAMES
+    MAX_PROTOCOL_FRAMES = DEV_MAX_PROTOCOL_FRAMES
+    KEYBOARD_OPEN_ATTEMPTS = getattr(
+        config, "STANDALONE_KEYBOARD_OPEN_ATTEMPTS", None)
+    KEYBOARD_OPTIONAL = True
+    ALLOW_EXIT = True
+
 if not config.UART_TX_PIN_ALIAS or not config.UART_RX_PIN_ALIAS:
     raise RuntimeError("both confirmed UART pin aliases are required")
 if VERSION != 1 or MAX_PAYLOAD_SIZE != 192:
@@ -159,15 +233,17 @@ try:
     # the writer is and where input goes, and the one editor below outlives every
     # transition it makes.
     if getattr(config, "ENABLE_SHELL", False):
-        shell = Shell(log=log)
+        shell = Shell(log=log, allow_exit=ALLOW_EXIT)
     session = LiveTypingSession(
         time.monotonic, log,
         adapter_factory=lambda queue: UsbKeyboardAdapter(
             backend, queue, log,
             poll_budget=config.USB_KEYBOARD_POLL_BUDGET,
-            max_events=config.DEV_RUNTIME_MAX_EVENTS,
+            max_events=MAX_EVENTS,
             layout=config.USB_KEYBOARD_LAYOUT,
             now=time.monotonic(),
+            max_open_attempts=KEYBOARD_OPEN_ATTEMPTS,
+            optional=KEYBOARD_OPTIONAL,
         ),
         queue_capacity=config.USB_KEYBOARD_QUEUE_CAPACITY,
         tracker_capacity=config.USB_KEYBOARD_ACK_TRACKER_CAPACITY,
@@ -192,10 +268,14 @@ try:
         # fix for "the device does not switch on" to refuse to switch on.
         hello_retry_seconds=getattr(
             config, "DISPLAY_HANDSHAKE_RETRY_SECONDS", HELLO_RETRY_SECONDS),
-        idle_timeout_seconds=config.DEV_RUNTIME_IDLE_TIMEOUT_SECONDS,
-        session_timeout_seconds=config.DEV_RUNTIME_SESSION_TIMEOUT_SECONDS,
-        max_viewport_frames=DEV_MAX_VIEWPORT_FRAMES,
-        max_protocol_frames=DEV_MAX_PROTOCOL_FRAMES,
+        idle_timeout_seconds=IDLE_TIMEOUT_SECONDS,
+        session_timeout_seconds=SESSION_TIMEOUT_SECONDS,
+        max_viewport_frames=MAX_VIEWPORT_FRAMES,
+        max_protocol_frames=MAX_PROTOCOL_FRAMES,
+        # The writer has no console, so "is there a keyboard" has to be
+        # answerable from the panel: one character in every status field, and a
+        # line on the main menu.
+        show_keyboard_state=True,
         persistence=persistence,
         shell=shell,
         # V1.4. ``None`` on a degraded card, which is a supported mode: the four
@@ -217,7 +297,10 @@ except Exception as construction_error:  # noqa: BLE001 - reported, not swallowe
          "filesystem_remounted": False, "guard_written": False})
 
 if session is not None:
-    ready = {"event": "dev_runtime_ready", "tx_alias": config.UART_TX_PIN_ALIAS,
+    ready = {"event": "dev_runtime_ready", "profile": PROFILE,
+             "idle_timeout_seconds": IDLE_TIMEOUT_SECONDS,
+             "session_timeout_seconds": SESSION_TIMEOUT_SECONDS,
+             "tx_alias": config.UART_TX_PIN_ALIAS,
              "rx_alias": config.UART_RX_PIN_ALIAS, "baud": config.UART_BAUD,
              "startup_delay_seconds": config.STARTUP_DELAY_SECONDS,
              "display_handshake_retry_seconds": session.hello_retry_seconds,
@@ -234,7 +317,7 @@ if session is not None:
         # the stop is the one taken at the root; inside a document it checkpoints
         # and returns to the menu instead of ending the session.
         ready.update(shell.summary())
-        ready["stop_from"] = "MAIN_MENU"
+        ready["stop_from"] = "MAIN_MENU" if ALLOW_EXIT else "NOWHERE"
         ready["back_key"] = "ESCAPE"
         # V1.5. Reported at startup so the console says, before a single press,
         # which control surface the operator should expect to work.
@@ -268,5 +351,5 @@ if session is not None:
 # No guard is written, no evidence file is produced, and nothing is remounted:
 # the next start needs no cleanup, no deletion, and no safe mode.
 log({"event": "dev_runtime_stopped", "result": result, "detail": error,
-     "restartable": True, "guard_written": False,
+     "profile": PROFILE, "restartable": True, "guard_written": False,
      "filesystem_remounted": False})

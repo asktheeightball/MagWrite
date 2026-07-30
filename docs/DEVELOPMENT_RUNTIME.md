@@ -3,6 +3,22 @@
 The everyday way to bring MagWrite up on the bench. Not a test, not a harness,
 and it produces no evidence.
 
+**From V1.6 this is the profile you opt into.** The shipped configuration is the
+standalone writing appliance — see [STANDALONE.md](STANDALONE.md) — and the two
+run the same code from the same files. This profile differs in exactly four
+bounds and one gesture:
+
+| | Standalone (shipped) | Development (this page) |
+| --- | --- | --- |
+| Idle / session timeout | none | 1800 s / 7200 s |
+| Keyboard event bound | none | 100,000 |
+| Viewport / protocol frames | none | 100,000 / 200,000 |
+| Escape at the main menu | nothing | the clean stop |
+
+Everything else on this page applies to both. The ready line, the session
+summary, and the stopped record each carry `"profile"`, so a console says which
+one is running before anything else happens.
+
 ```text
 wired USB keyboard -> Fruit Jam (authoritative editor) -> UART -> MagTag (display)
 ```
@@ -53,7 +69,17 @@ milestone. Nothing here reads, writes, or requires the absence of any guard.
 | Fruit Jam | `fruitjam/dev_runtime.py` | `ENABLE_DEV_RUNTIME` + `DEV_RUNTIME_MODE = "FRUITJAM_DEV_RUNTIME"` |
 | MagTag | `magtag/dev_display_runtime.py` | `PHYSICAL_TEST_MODE` + `DEV_DISPLAY_RUNTIME_MODE = "MAGTAG_DEV_DISPLAY"` |
 
-Both ship **disabled**, like everything else that can drive hardware.
+Both activation *pairs* ship **disabled**, so this profile has to be asked for.
+The files themselves are not disabled and have not been since V1.6: the same two
+modules run the standalone appliance, selected by `ENABLE_STANDALONE` /
+`STANDALONE_MODE` on the Fruit Jam and `ENABLE_STANDALONE` /
+`STANDALONE_DISPLAY_MODE` on the MagTag, both of which ship **enabled**. A board
+armed for this profile wins, because the entry points check it first.
+
+The names are kept deliberately. `dev_runtime_ready`, `dev_display_ready`, and
+the rest are the vocabulary every physical evidence file in this repository is
+written in; renaming them would make the record harder to read in exchange for a
+tidier filename. `"profile"` is how the two are told apart.
 
 `MAGTAG_DEV_DISPLAY` is deliberately absent from the boot remount gate in
 `magtag/hardware_test_boot.py`, and there is no Fruit Jam boot branch for
@@ -111,10 +137,15 @@ Unchanged from the verified milestone, and physically confirmed:
 ## Power
 
 Two USB-C cables from the PC still works and is what every verified run so far
-used. The tidier arrangement is **one upstream USB-C cable into a powered hub,
-and one short cable from the hub into each board's own USB-C port** — same
-consoles, same host-writable volumes, one cable to the bench. Move the upstream
-end to a wall charger and the same rig runs standalone with nothing else changed.
+used, and it is the arrangement this profile wants: two consoles and two
+host-writable volumes. One upstream cable into a powered hub, and one short cable
+from the hub into each board's own USB-C port, gives the same thing over one
+cable to the bench.
+
+The **standalone** arrangement — one cable into the Fruit Jam, the MagTag off one
+of its USB-A host ports — is what `docs/BENCH_POWER.md` verified and what
+`docs/STANDALONE.md` describes. It has no MagTag console and no host-visible
+MagTag `CIRCUITPY`, which is why the MagTag must be deployed *first*.
 
 **Never feed one board's 5 V into the other**, and never let the red conductor of
 a 3-pin JST cable connect the two: on both boards that pin is 5 V by default.
@@ -125,7 +156,8 @@ Neither board has a 5 V input, and the reasoning is in
 
 1. Copy the repository files for each board onto its CIRCUITPY volume as usual,
    including `dev_runtime.py` / `dev_display_runtime.py`.
-2. On the **MagTag**, set in `config.py`:
+2. On the **MagTag**, set in `config.py` — only `PHYSICAL_TEST_MODE` and
+   `DEV_DISPLAY_RUNTIME_MODE` differ from the shipped values:
 
    ```python
    ENABLE_PHYSICAL_DISPLAY = True
@@ -156,7 +188,12 @@ Neither board has a 5 V input, and the reasoning is in
    with its cursor where it was.
 4. The panel opens on the **main menu**: Journal, Quick Note, Drafts, Recent.
    If a document was recovered the runtime skips the menu and opens straight into
-   the editor on it, in the mode that document belongs to.
+   the editor on it, in the mode that document belongs to. Before either, the
+   MagTag draws `MAGWRITE / STARTING` of its own accord, and
+   `WAITING FOR THE WRITER BOARD` if the Fruit Jam has said nothing for 15 s.
+   A menu row reading `NO KEYBOARD - PLUG ONE IN`, and a `k` beside the save
+   indicator, mean no keyboard is claimed yet; the device keeps looking, so
+   plugging one in is enough and no reset is needed.
 5. Navigate with the **four MagTag buttons**, which are the primary controls from
    V1.5:
 
@@ -236,18 +273,27 @@ nowhere. That is now the ordinary case rather than a fault:
 On the powered-hub arrangement, where both boards have their own USB-C cable,
 starting the MagTag first still works and simply makes the wait zero.
 
-One limitation, recorded rather than fixed: keystrokes are polled during the wait
-but not applied, because there is no panel to show them on. They queue, and the
-bounded input queue holds 64 events — about 32 keystrokes. Typing a long sentence
-into a rig whose panel has not yet answered would overflow it and end the
-session. Waiting for the display to come up before typing is the ordinary
-behaviour anyway, and dropping the keystrokes silently would be worse than
-saying so.
+Keystrokes are polled during the wait but not applied, because there is no panel
+to show them on. They queue, and the bounded input queue holds 64 events — about
+32 keystrokes, which are all applied the moment the panel answers.
+
+**Fixed in V1.6:** overflowing that queue used to *end the session*. It was
+recorded here as a limitation and it was one; one-cable power made it likely,
+because the writer now connects a cable and waits nine seconds at a blank panel,
+and some of them will start typing. The overflow is now dropped and counted, and
+named once as `live_input_dropped_waiting_for_display` with the queue capacity in
+it. Losing the tail of a sentence typed at a blank panel is a small cost; a device
+that switches itself off because somebody was keen is not.
 
 `tools/capture_serial.py` will record either console read-only if you want a
 log. It never writes to the port.
 
 ## Stopping and restarting
+
+**There is no clean stop in the standalone profile.** Escape at the main menu
+does nothing there, `dev_runtime_ready` reports `"stop_from": "NOWHERE"`, and the
+way to stop the device is to remove power — which is safe at any moment, because
+every editor exit checkpoints. Everything below is the development profile.
 
 - **Clean stop:** press **Escape**, HID usage `0x29`, or the **Application
   (menu) key**, `0x65`. Either drains the session, forces out and reconciles the
@@ -335,6 +381,12 @@ The shell adds `shell_restored`, `shell_transition`, `shell_mode_entered`,
 screen — and `shell_fault`. A wrong pin alias reports the `SD`-prefixed names the
 board actually exposes, so it is one line to read rather than a hunt.
 
+V1.6 adds `live_keyboard_state` when a keyboard is claimed or lost,
+`usb_keyboard_open_failed` and `usb_keyboard_read_failed` with `"fatal": false`
+when something on the port could not be driven, `live_input_dropped_waiting_for_display`,
+`live_document_restore_refused`, `document_writes_held` / `document_writes_released`,
+and `display_startup_screen` on the MagTag for each of its two local screens.
+
 Buttons add `dev_display_buttons_ready` or `dev_display_buttons_unavailable` and
 `dev_display_button_pressed` on the MagTag, and `button_event_received` plus
 `shell_button_applied` on the Fruit Jam. A press can therefore be followed from
@@ -360,10 +412,13 @@ unbounded counter on a microcontroller is still a bug.
   (`DEV_MAX_VIEWPORT_FRAMES`, `DEV_MAX_PROTOCOL_FRAMES`) rather than removed.
   The guarded harnesses pass neither and therefore keep the exact values they
   were verified with — a host test asserts that.
-- Idle and session timeouts are generous but present, so a board left typing
-  into a UART nobody is watching eventually gives up. They start when the display
-  answers, not when the board boots: a panel that took a minute to arrive is not
-  a session that ran long.
+- Idle and session timeouts are generous but present **in this profile**, so a
+  bench board left typing into a UART nobody is watching eventually gives up.
+  They start when the display answers, not when the board boots: a panel that
+  took a minute to arrive is not a session that ran long. The standalone profile
+  removes both, along with the keyboard event and frame bounds — see
+  [STANDALONE.md](STANDALONE.md) for the argument, which is that each of them
+  exists to end a *run* and an appliance has no run to end.
 - **The wait for the display is deliberately unbounded**, and it is the one bound
   removed rather than raised. A writer who connects one cable is owed a session
   that starts when the panel is ready; a Fruit Jam that gave up four seconds

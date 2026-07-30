@@ -23,7 +23,9 @@ from magwrite_transport.hid_keymap import (
 )
 from magwrite_transport.keyboard_layout import AUTO, resolve
 from magwrite_transport.keyboard_repeat import KeyRepeat
-from magwrite_transport.usb_device_state import ERROR, UsbDeviceState
+from magwrite_transport.usb_device_state import (
+    ERROR, MAX_OPEN_ATTEMPTS, UsbDeviceState,
+)
 from magwrite_transport.usb_hid_descriptors import (
     UsbKeyboardDisconnected, UsbKeyboardError, UsbKeyboardNotFound,
 )
@@ -44,6 +46,7 @@ class UsbKeyboardAdapter:
         repeat=None, state=None, poll_budget=REPORT_POLL_BUDGET,
         rollover_tolerance=ROLLOVER_TOLERANCE,
         max_events=MAX_KEYBOARD_EVENTS, now=0.0, layout=AUTO,
+        max_open_attempts=MAX_OPEN_ATTEMPTS, optional=False,
     ):
         if poll_budget < 1:
             raise ValueError("poll budget must be positive")
@@ -57,10 +60,25 @@ class UsbKeyboardAdapter:
         self.scenario = scenario
         self.translator = translator or HidKeyboardTranslator()
         self.repeat = repeat or KeyRepeat()
-        self.state = state or UsbDeviceState(now, log)
+        self.state = state or UsbDeviceState(
+            now, log, max_attempts=max_open_attempts
+        )
         self.poll_budget = poll_budget
         self.rollover_tolerance = rollover_tolerance
+        # ``None`` is unbounded, and only the standalone runtime passes it. See
+        # ``usb_device_state`` for the argument, which is the same one: a bound
+        # that exists to end a one-shot run must not be able to end a writing
+        # appliance that is doing exactly what it was switched on to do.
         self.max_events = max_events
+        # V1.6. With ``optional`` set, a keyboard that cannot be opened or that
+        # stops answering is a *degraded mode* rather than a stop condition: the
+        # panel says so, the MagTag buttons still reach the menu, and the next
+        # poll tries again. Without it -- every guarded harness -- an open or read
+        # failure is the fatal condition it has always been, because a
+        # certification run with no keyboard has nothing to certify.
+        self.optional = optional
+        self.open_failures = 0
+        self.read_failures = 0
         self.sequence = 0
         self.reports_received = 0
         self.events_generated = 0
@@ -123,6 +141,17 @@ class UsbKeyboardAdapter:
             self.state.not_found(now, str(error))
             return False
         except UsbKeyboardError as error:
+            self.open_failures += 1
+            if self.optional:
+                # Something is attached that this board cannot drive as a boot
+                # keyboard -- a hub, a receiver, a composite device. On an
+                # appliance that is a keyboard the writer has not plugged in
+                # yet, not a reason to refuse to be a writing device.
+                self.log({"event": "usb_keyboard_open_failed",
+                          "detail": str(error), "fatal": False,
+                          "open_failures": self.open_failures})
+                self.state.not_found(now, str(error))
+                return False
             self.state.failed(now, str(error))
             raise UsbKeyboardAdapterError("usb keyboard open failed: " + str(error))
         # A fresh session must never inherit held keys or a guessed latch state.
@@ -162,7 +191,7 @@ class UsbKeyboardAdapter:
     # ------------------------------------------------------------------ events
 
     def _emit(self, decision, scheduled_ms, repeat):
-        if self.events_generated >= self.max_events:
+        if self.max_events is not None and self.events_generated >= self.max_events:
             raise UsbKeyboardAdapterError("normalized keyboard event limit exceeded")
         event = InputEvent(
             self.sequence, self.scenario, decision.kind, decision.value,
@@ -225,6 +254,16 @@ class UsbKeyboardAdapter:
                 self._disconnected(now, str(error))
                 return produced
             except UsbKeyboardError as error:
+                self.read_failures += 1
+                if self.optional:
+                    # Treated as the unplug it almost always is. The held keys
+                    # are cleared, the state machine goes to DISCONNECTED, and
+                    # the next poll starts looking again.
+                    self.log({"event": "usb_keyboard_read_failed",
+                              "detail": str(error), "fatal": False,
+                              "read_failures": self.read_failures})
+                    self._disconnected(now, str(error))
+                    return produced
                 self.state.failed(now, str(error))
                 raise UsbKeyboardAdapterError("usb keyboard read failed: " + str(error))
             if raw is None:
@@ -281,6 +320,9 @@ class UsbKeyboardAdapter:
             "keyboard_layout": self.translator.layout.name,
             "remapped_usages": self.translator.remapped_usages,
             "queue_overflows": self.queue_overflows,
+            "keyboard_optional": self.optional,
+            "keyboard_open_failures": self.open_failures,
+            "keyboard_read_failures": self.read_failures,
             "held_key_resets": self.translator.resets,
             "usb_device": self.state.describe(),
             "usb_descriptor": self.descriptor,

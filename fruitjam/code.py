@@ -32,6 +32,26 @@ elif (
         == "FRUITJAM_UART_ACK_TX"
 ):
     import hardware_uart_ack_test
+elif (
+    getattr(config, "ENABLE_STANDALONE", False)
+    and getattr(config, "STANDALONE_MODE", "DISABLED") == "FRUITJAM_STANDALONE"
+    and not (
+        config.ENABLE_UART_TEST
+        and config.UART_TEST_MODE == "FRUITJAM_UART_VIEWPORT_TX"
+    )
+):
+    # The shipped default from V1.6: the writing appliance. It is last on purpose
+    # -- every armed harness above still wins, so arming one is still how a board
+    # is put on the bench -- and the guard against the one-shot UART TX mode is
+    # here rather than above because that harness is not an import, it is the
+    # module-level code below that this branch must not preempt.
+    #
+    # Same module as the development branch at the top, which chooses its profile
+    # from config. Terminal on its own, for the same reason that one is.
+    import dev_runtime  # noqa: F401 - imported for its side effects
+    print('{"event":"standalone_exited","restartable":true}')
+    while True:
+        time.sleep(3600)
 elif not config.ENABLE_UART_TEST or config.UART_TEST_MODE != "FRUITJAM_UART_VIEWPORT_TX":
     print('{"event":"uart_tx_refused","reason":"disabled"}')
     while True:
