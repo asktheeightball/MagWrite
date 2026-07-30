@@ -33,7 +33,7 @@ this list wins.
 | V1 | Phase | Section below | State |
 | --- | --- | --- | --- |
 | 1 | Responsiveness and keyboard completeness | V1.1 | Host-verified; one physical attempt FAILED, certification retired |
-| 2 | microSD persistence and forced-power-loss recovery | Priority 4 | Host-verified; physical confirmation owed |
+| 2 | microSD persistence and forced-power-loss recovery | Priority 4 | PHYSICALLY VERIFIED 2026-07-30 |
 | 3 | MagWrite Shell | V1.3 | Not started |
 | 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | Not started |
 | 5 | Standalone workflow | Priority 5 | Not started |
@@ -381,7 +381,7 @@ lines of prose and stopped cleanly on Escape:
 This confirms normal writing works. It is not a responsiveness measurement and
 licenses no timing claim.
 
-## Priority 4 — Single-document persistence and recovery — V1.2 — HOST-VERIFIED
+## Priority 4 — Single-document persistence and recovery — V1.2 — PHYSICALLY VERIFIED
 
 microSD-backed storage on the Fruit Jam. Implemented; `docs/PERSISTENCE.md`
 carries the design, the recovery argument, and the policy values.
@@ -408,10 +408,10 @@ so a stalled panel can never stall a save.
 Scope held deliberately narrow, as instructed: one document, no document
 browser, no shell, no new certification framework.
 
-**Exit — not yet met:** a writing session survives forced power loss with the
-final acknowledged edit recovered. The host suite proves the logic, including a
-sweep that cuts power at every byte offset of a journal append. Only pulling
-power from the real board proves the claim.
+**Exit met on 2026-07-30:** a writing session survived forced power loss with
+the final acknowledged edit recovered exactly. The host suite proves the logic,
+including a sweep that cuts power at every byte offset of a journal append; the
+physical run below proves the claim.
 
 ### Hardware bring-up — 2026-07-30
 
@@ -432,18 +432,41 @@ Confirmed on the board:
 - the shipped `sd_storage.mount` correctly reported `UNMOUNTABLE` with
   `[Errno 19] No such device` for the card described below.
 
-**Blocked:** the card in the slot carries no usable filesystem. It is 946 MB,
-reads reliably, and has a valid MBR signature, but its one partition entry is
-type `0x06` (FAT16) claiming more sectors than the card physically has, and no
-FAT volume boot record exists at that offset or at twelve other conventional
-offsets. `storage.mount` therefore fails with `ENODEV`, correctly.
+The card originally in the slot carried no usable filesystem — a valid MBR whose
+one partition entry claimed more sectors than the card physically had, with no
+FAT volume boot record at that offset or twelve others. It was reformatted with
+explicit authorisation. FatFs sizes the FAT width from the volume, so a 946 MB
+card came out **FAT16, not FAT32**; nothing in V1.2 depends on the width.
 
-Without a mountable card there is no autosave to observe, no Ctrl-S to confirm,
-and no forced-power-loss recovery to perform. Reformatting destroys whatever the
-card currently holds, so it awaits an explicit decision.
+### Physical verification — PASSED, 2026-07-30
 
-**Owed:** a card with a FAT filesystem, then the physical run — type, pull power
-mid-session, restart, confirm the recovered document and cursor.
+Evidence: `docs/FRUITJAM_V12_PERSISTENCE_SERIAL.jsonl`.
+
+Writing session: 12 autosave journal appends and 3 checkpoints, one automatic and
+two manual. Ctrl-S arrived as modifier `0x01` usage `0x16`, produced a manual
+checkpoint, and **inserted no character**. Three presses collapsed into two
+checkpoints. The save indicator moved `u` → `r` → `s` on the panel.
+
+Forced power loss: USB pulled mid-session with no clean stop. On restart the
+shipped store recovered
+
+```json
+{"recovered":true,"revision":73,"source":"JOURNAL","truncated_final_record":false,
+ "rejected_records":0,"cursor_row":2,"cursor_column":8,"characters":71}
+```
+
+and the session restored revision 73, 3 lines, 71 characters, cursor at (2, 8).
+Checked against the console's own per-keystroke record: the last checkpoint
+before the cut was revision 65 at 63 characters, eight more characters were
+typed, and recovery returned exactly those. **Every acknowledged edit survived.**
+
+One defect was found and fixed during the run: a mount survives a soft reboot, so
+the second start raised `SD_SCK in use` and reported `NO_CARD` while a good card
+was mounted. `sd_storage.already_mounted` now adopts an existing mount. On the
+development runtime, where saving a file restarts it, this had affected every
+restart.
+
+**Exit met.**
 
 ## V1.3 — MagWrite Shell
 

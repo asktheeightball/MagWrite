@@ -212,18 +212,20 @@ Do not connect one battery simultaneously to the independent charger circuits on
       are now named explicitly rather than using the shared `board.SPI()`.
       `SD_CARD_DETECT` is claimed by the firmware before user code runs, so the
       optional card-detect path stays disabled.
-- [ ] **Provide a microSD card with a FAT filesystem.** The card currently in
-      the slot is 946 MB, reads reliably, and has a valid MBR signature, but its
-      one partition entry is type `0x06` (FAT16) claiming more sectors than the
-      card physically has, and no FAT volume boot record exists at that offset or
-      at twelve other conventional offsets. `storage.mount` fails with
-      `[Errno 19] No such device`, and the runtime correctly reports
-      `UNMOUNTABLE`. Reformatting destroys whatever the card holds.
-- [ ] Verify microSD autosave and forced-power-loss recovery. The logic is
-      host-verified in full, including power cut at every byte offset of a
-      journal append; see `docs/PERSISTENCE.md`. What is owed is the physical
-      run: type, pull power mid-session, restart, confirm the recovered document
-      and cursor. Blocked on the card above.
+- [x] **Provide a microSD card with a FAT filesystem.** Done 2026-07-30. The
+      card found in the slot had a valid MBR whose one partition entry claimed
+      more sectors than the card physically had, with no FAT volume boot record
+      at that offset or twelve others; the runtime correctly reported
+      `UNMOUNTABLE`. It was reformatted with explicit authorisation. FatFs sizes
+      the FAT width from the volume, so the 946 MB card came out **FAT16, not
+      FAT32**; nothing in V1.2 depends on the width. The format was proved by
+      write, sync, unmount, remount, read back.
+- [x] Verify microSD autosave and forced-power-loss recovery. **PASSED
+      2026-07-30**; evidence `docs/FRUITJAM_V12_PERSISTENCE_SERIAL.jsonl`. A
+      writing session produced 12 autosaves and 3 checkpoints, Ctrl-S manual save
+      worked and inserted no character, and after the USB cable was pulled
+      mid-session the restart recovered revision 73, 71 characters, cursor
+      (2, 8) — exactly the last acknowledged edit.
 - [ ] Measure active and idle current for each board and USB receiver.
 - [ ] Determine and verify safe single-battery capacity, charging, and distribution topology.
 - [ ] Complete enclosure and field-use testing.

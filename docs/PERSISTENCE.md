@@ -2,8 +2,9 @@
 
 V1.2. One document, on the microSD card, that survives forced power loss.
 
-Status: **host-verified. Not yet physically confirmed.** See
-[Physical confirmation still owed](#physical-confirmation-still-owed).
+Status: **physically verified on 2026-07-30.** A writing session survived a
+forced power loss with the final acknowledged edit recovered exactly. See
+[Hardware findings](#hardware-findings--2026-07-30).
 
 ## What acknowledged means
 
@@ -240,29 +241,81 @@ That is the designed answer, and the `NO_CARD`/`UNMOUNTABLE` split earned its
 keep on the first real card: it tells the operator to format it, not to check
 whether it is seated.
 
-### Blocked
+### The card had to be reformatted
 
-**The card in the slot carries no usable filesystem.** It is a 946 MB card
-(1,937,920 blocks) that reads reliably and has a valid `0x55AA` MBR signature,
-but:
+The card originally in the slot carried no usable filesystem. 946 MB
+(1,937,920 blocks), reading reliably, valid `0x55AA` MBR signature, but its
+single partition entry was type `0x06` claiming 1,939,323 sectors from LBA 133 —
+**past the end of the card** — and no FAT volume boot record existed there or at
+twelve other conventional offsets. The sector the table pointed at began with the
+bytes `USB`, suggesting a raw image had been written to the card. `storage.mount`
+failed with `ENODEV`, correctly.
 
-- its single partition entry is type `0x06` (FAT16), not FAT32;
-- that partition claims 1,939,323 sectors starting at LBA 133, which runs
-  **past the end of the card** — a corrupt or stale partition table;
-- no valid FAT volume boot record exists at LBA 133 or at any of the twelve
-  other conventional offsets scanned. The sector the table points at begins with
-  the bytes `USB`, suggesting a raw image was written to the card at some point.
+It was reformatted with explicit authorisation. `storage.VfsFat.mkfs` exposes no
+format selector and FatFs sizes the FAT width from the volume, so a 946 MB card
+with 16 KB clusters came out **FAT16, not FAT32**. That is fully serviceable
+here and nothing in V1.2 depends on the FAT width, but it is recorded as what it
+is rather than as what was asked for.
 
-So `storage.mount` fails with `ENODEV`, correctly.
+The format was proved rather than assumed: write, `os.sync()`, unmount, remount,
+read back — the file survived.
 
-This blocks the V1.2 exit condition: without a mountable card there is no
-autosave to observe, no Ctrl-S to confirm, and no forced-power-loss recovery to
-perform. Reformatting the card would destroy whatever it currently holds, which
-is not a decision this document gets to make.
+### The writing session
 
-### Still owed
+Twelve autosave journal appends and three checkpoints, one automatic and two
+manual. Ctrl-S reached the board as modifier `0x01` with usage `0x16` and
+produced `usb_keyboard_save_requested` followed by
+`document_checkpointed ... "manual":true`, with **no character inserted** — the
+defect that motivated the Ctrl work does not occur on hardware. Three Ctrl-S
+presses collapsed into two checkpoints, which is the intended collapsing.
 
-**The V1.2 exit condition itself.** "A writing session survives forced power loss
-with the final acknowledged edit recovered" is a claim about hardware. The host
-suite proves the logic; only pulling power from the real board proves the claim.
-It needs a card with a FAT filesystem on it.
+The save-state indicator moved through `u` → `r` → `s` on the panel.
+
+### Forced power loss
+
+The USB cable was pulled mid-session with no clean stop. On restart the shipped
+`DocumentStore.open()` returned:
+
+```json
+{"recovered":true,"revision":73,"source":"JOURNAL","journal_records":2,
+ "checkpoint_records":2,"truncated_final_record":false,"rejected_records":0,
+ "mirror_stale":true,"cursor_row":2,"cursor_column":8,"characters":71}
+```
+
+and the session restored it:
+
+```json
+{"event":"live_document_restored","revision":73,"lines":3,"characters":71,
+ "cursor_row":2,"cursor_column":8}
+```
+
+Checked against the console's own per-keystroke record, which is an independent
+expectation rather than the board's own claim: the last checkpoint before the cut
+was revision 65 at 63 characters, eight further characters were typed, and
+recovery returned revision 73 at 71 characters with the cursor at the end of
+them. **Every acknowledged edit was recovered exactly.**
+
+`mirror_stale: true` is correct and expected — the plain-text mirror was last
+written at checkpoint revision 66, and the journal carried the newer state. The
+authoritative log won, which is the design.
+
+### One defect found and fixed
+
+A mount survives a soft reboot, and with it the SPI bus and chip-select. The
+second start therefore raised `SD_SCK in use`, was reported as `FAILED`, and
+showed `NO_CARD` on the panel — while a perfectly good card sat mounted at that
+very path. On the development runtime, whose defining feature is that saving a
+file restarts it, this happened on **every** restart.
+
+`sd_storage.already_mounted` now adopts an existing mount instead of fighting it.
+A mount point that resolves to the root filesystem is deliberately not treated as
+a mount, so an empty `/sd` directory on CIRCUITPY is never mistaken for a card.
+Confirmed on hardware: `{"event":"sd_already_mounted","mount_point":"/sd"}`
+followed by a successful recovery and restore.
+
+### Recorded, not chased
+
+The recovered text contains consistent character mis-mappings — `this` arrived as
+`tgus`, `is` as `us`. That is the deferred keyboard-mapping backlog, not
+persistence: whatever characters the editor accepted were journaled and recovered
+faithfully, which is exactly what this phase is responsible for.

@@ -14,15 +14,15 @@ Do not create new certification harnesses, evidence packages, compatibility inve
 
 1. ~~Finish the current ordinary writing session.~~ Done.
 2. ~~Move directly to V1.2: microSD persistence.~~ Implemented, host-verified.
-3. Confirm the microSD pin aliases and run one physical forced-power-loss test.
-4. Build the MagWrite Shell.
+3. ~~Confirm the microSD pin aliases and run one physical forced-power-loss test.~~ Done 2026-07-30.
+4. Build the MagWrite Shell. **<- next**
 5. Add Journal, Quick Note, Drafts, and Recent.
 6. Complete the minimum standalone workflow.
 7. Defer optional buttons, keyboard edge cases, battery, enclosure, and hardening until their roadmap phase.
 
 ## Active product task
 
-**V1.2 — Single-document persistence and recovery — implemented, host-verified**
+**V1.2 — Single-document persistence and recovery — PHYSICALLY VERIFIED**
 
 Every requirement is built and covered by the host suite. See
 `docs/PERSISTENCE.md` for the design and `ROADMAP.md` for the requirement map.
@@ -31,23 +31,31 @@ The acknowledged revision is the latest revision accepted by the **Fruit Jam
 editor**, not the MagTag display. Display acknowledgements govern pacing; editor
 acceptance governs durability.
 
-Hardware bring-up ran on 2026-07-30. The pin aliases are now **read off the
-board** and set in `config.py`: the card is on the dedicated SPI bus
-(`SD_SCK`/`SD_MOSI`/`SD_MISO`/`SD_CS`), not the shared `board.SPI()`. The
-shipped mount path was exercised on real hardware and reported correctly.
+Hardware bring-up and physical verification ran on 2026-07-30. Evidence:
+`docs/FRUITJAM_SD_PROBE.jsonl` and `docs/FRUITJAM_V12_PERSISTENCE_SERIAL.jsonl`.
 
-**One item blocks the V1.2 exit, and it is not a software defect:**
+The pin aliases are read off the board: the card is on the dedicated SPI bus
+(`SD_SCK`/`SD_MOSI`/`SD_MISO`/`SD_CS`), not the shared `board.SPI()`. The card
+found in the slot had no usable filesystem and was reformatted with explicit
+authorisation; FatFs chose FAT16 for a 946 MB volume, which V1.2 does not care
+about.
 
-- the microSD card currently in the Fruit Jam **carries no usable filesystem**.
-  946 MB, reads reliably, valid MBR signature, but its single partition entry is
-  FAT16 claiming more sectors than the card has, and no FAT volume boot record
-  exists at that offset or twelve others. `storage.mount` fails with `ENODEV`,
-  correctly, and the runtime reports `UNMOUNTABLE`.
+**Exit met.** A writing session produced 12 autosaves and 3 checkpoints, Ctrl-S
+manual save worked and inserted no character, the save indicator moved
+`u` -> `r` -> `s`, and after the USB cable was pulled mid-session the restart
+recovered revision 73, 71 characters, cursor (2, 8) — exactly the last
+acknowledged edit, checked against the console's own per-keystroke record.
 
-Until a card with a FAT filesystem is in the slot there is no autosave to
-observe, no Ctrl-S to confirm, and no forced-power-loss recovery to perform.
-Reformatting destroys whatever the card holds, so it awaits an explicit
-decision.
+One defect was found and fixed during the run: a mount survives a soft reboot, so
+every restart after the first raised `SD_SCK in use` and reported `NO_CARD` while
+a good card was mounted. `sd_storage.already_mounted` now adopts the existing
+mount.
+
+Recorded, not chased: the recovered text shows consistent character
+mis-mappings (`this` -> `tgus`). That is the deferred keyboard-mapping backlog;
+whatever the editor accepted was journaled and recovered faithfully.
+
+Next: V1.3, the MagWrite Shell.
 
 This is not a new certification harness. The development runtime already brings
 persistence up and logs the mount status, the recovery, and the save state.
@@ -58,6 +66,10 @@ The following are explicitly non-blocking unless they prevent normal writing:
 
 - the stale test count in `host-tests/README.md`, corrected in V1.2 but worth a
   standing check;
+- character mis-mappings seen in the V1.2 physical run (`this` typed as `tgus`,
+  `is` as `us`) on the EPOMAKER TH40. Persistence stored and recovered exactly
+  what the editor accepted, so this is a keyboard-mapping question, not a
+  storage one;
 - apostrophe and unusual keyboard mappings;
 - Home, End, Delete, Caps Lock, and key-repeat refinement;
 - formal responsiveness measurement;

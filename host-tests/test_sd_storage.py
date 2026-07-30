@@ -56,10 +56,15 @@ class FakeSdCardIo:
 
 
 class FakeStorage:
-    def __init__(self, vfs_error=None, mount_error=None):
+    def __init__(self, vfs_error=None, mount_error=None, existing=None):
         self.vfs_error = vfs_error
         self.mount_error = mount_error
         self.mounted = []
+        self.root = object()
+        # What ``getmount(mount_point)`` should return. ``None`` models a plain
+        # directory on the root filesystem, which is what /sd is before a card
+        # has ever been mounted there.
+        self.existing = existing
 
     def VfsFat(self, card):
         if self.vfs_error is not None:
@@ -70,6 +75,11 @@ class FakeStorage:
         if self.mount_error is not None:
             raise self.mount_error
         self.mounted.append((filesystem, point))
+
+    def getmount(self, path):
+        if path == "/":
+            return self.root
+        return self.existing if self.existing is not None else self.root
 
 
 class FakeConfig:
@@ -203,6 +213,78 @@ class MountTests(unittest.TestCase):
     def test_an_unknown_status_cannot_be_constructed(self):
         with self.assertRaises(ValueError):
             MountResult("PROBABLY_FINE")
+
+
+class AlreadyMountedTests(unittest.TestCase):
+    """A mount survives a soft reboot; a second start must not fight it.
+
+    This is a real hardware defect, found on 2026-07-30. After the first
+    successful mount the card stays mounted across a soft reboot, and with it the
+    SPI bus and chip-select. The next start raised "SD_SCK in use", was reported
+    as FAILED, and the panel showed NO_CARD -- while a perfectly good card sat
+    mounted at that very path. On the development runtime, whose defining feature
+    is that saving a file restarts it, that happened on every single restart.
+    """
+
+    def test_an_existing_mount_is_adopted_rather_than_re_created(self):
+        storage = FakeStorage(existing="live-card-vfs")
+        sdcardio = FakeSdCardIo()
+        records = []
+        result = sd_storage.mount(
+            FakeBoard(), sdcardio, storage, log=records.append)
+        self.assertTrue(result.mounted)
+        self.assertEqual(result.filesystem, "live-card-vfs")
+        self.assertIn("already mounted", result.detail)
+        # The bus is never touched, which is the whole point: claiming it is what
+        # failed before.
+        self.assertEqual(sdcardio.calls, [])
+        self.assertEqual(storage.mounted, [])
+        self.assertIn("sd_already_mounted",
+                      [record["event"] for record in records])
+
+    def test_a_plain_directory_at_the_mount_point_is_not_a_mount(self):
+        """/sd exists as an ordinary directory before a card is ever attached."""
+        storage = FakeStorage(existing=None)
+        result = sd_storage.mount(FakeBoard(), FakeSdCardIo(), storage)
+        self.assertTrue(result.mounted)
+        # It really mounted, rather than adopting the root filesystem.
+        self.assertEqual(storage.mounted, [("vfs:card", "/sd")])
+
+    def test_already_mounted_returns_none_when_the_paths_share_a_filesystem(self):
+        storage = FakeStorage()
+        self.assertIsNone(sd_storage.already_mounted(storage, "/sd"))
+
+    def test_already_mounted_returns_the_filesystem_when_they_differ(self):
+        storage = FakeStorage(existing="card")
+        self.assertEqual(sd_storage.already_mounted(storage, "/sd"), "card")
+
+    def test_a_build_without_getmount_falls_through_to_mounting(self):
+        class NoGetMount(FakeStorage):
+            getmount = None
+
+        storage = NoGetMount()
+        self.assertIsNone(sd_storage.already_mounted(storage, "/sd"))
+        result = sd_storage.mount(FakeBoard(), FakeSdCardIo(), storage)
+        self.assertTrue(result.mounted)
+
+    def test_a_raising_getmount_falls_through_to_mounting(self):
+        class Raising(FakeStorage):
+            def getmount(self, path):
+                raise OSError("no such mount")
+
+        storage = Raising()
+        self.assertIsNone(sd_storage.already_mounted(storage, "/sd"))
+        result = sd_storage.mount(FakeBoard(), FakeSdCardIo(), storage)
+        self.assertTrue(result.mounted)
+
+    def test_bring_up_reports_mounted_when_it_adopts(self):
+        controller, result = bring_up(
+            settings(), 0.0, lambda record: None, board_module=FakeBoard(),
+            sdcardio=FakeSdCardIo(), storage_module=FakeStorage(existing="card"),
+            filesystem=FakeFileSystem(),
+        )
+        self.assertEqual(result.status, MOUNTED)
+        self.assertTrue(controller.has_storage)
 
 
 class CardDetectTests(unittest.TestCase):

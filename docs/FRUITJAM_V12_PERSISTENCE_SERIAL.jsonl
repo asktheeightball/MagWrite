@@ -1,0 +1,26 @@
+# Fruit Jam V1.2 persistence — physical evidence, 2026-07-30
+# Writing session: autosave, manual save (Ctrl-S), save-state indicator.
+{"characters":2,"event":"document_checkpointed","revision":2,"manual":false,"save_state":"SAVED"}
+{"characters":3,"event":"document_journaled","revision":3,"journal_records":1,"save_state":"RECOVERABLE"}
+{"characters":4,"event":"document_journaled","revision":4,"journal_records":2,"save_state":"RECOVERABLE"}
+{"characters":5,"event":"document_journaled","revision":5,"journal_records":3,"save_state":"RECOVERABLE"}
+{"characters":10,"event":"document_journaled","revision":10,"journal_records":4,"save_state":"RECOVERABLE"}
+{"characters":14,"event":"document_journaled","revision":14,"journal_records":5,"save_state":"RECOVERABLE"}
+{"characters":26,"event":"document_journaled","revision":26,"journal_records":6,"save_state":"RECOVERABLE"}
+{"characters":27,"event":"document_journaled","revision":27,"journal_records":7,"save_state":"RECOVERABLE"}
+{"characters":28,"event":"document_journaled","revision":28,"journal_records":8,"save_state":"RECOVERABLE"}
+{"characters":35,"event":"document_journaled","revision":35,"journal_records":9,"save_state":"RECOVERABLE"}
+{"characters":39,"event":"document_journaled","revision":41,"journal_records":10,"save_state":"RECOVERABLE"}
+{"characters":51,"event":"document_journaled","revision":53,"journal_records":11,"save_state":"RECOVERABLE"}
+{"characters":63,"event":"document_journaled","revision":65,"journal_records":12,"save_state":"RECOVERABLE"}
+{"event":"usb_keyboard_save_requested","usage":22,"save_requests":1}
+{"characters":63,"event":"document_checkpointed","revision":65,"manual":true,"save_state":"SAVED"}
+{"event":"usb_keyboard_save_requested","usage":22,"save_requests":2}
+{"characters":63,"event":"document_checkpointed","revision":65,"manual":true,"save_state":"SAVED"}
+{"event":"usb_keyboard_save_requested","usage":22,"save_requests":3}
+{"characters":63,"event":"document_checkpointed","revision":65,"manual":true,"save_state":"SAVED"}
+# Forced power loss: restart, recovery, and restore.
+{"mount_point":"/sd","event":"sd_already_mounted"}
+{"mirror_stale":true,"truncated_final_record":false,"revision":73,"checkpoint_records":2,"source":"JOURNAL","journal_records":2,"recovered":true,"cursor_row":2,"characters":71,"event":"document_recovery","rejected_records":0,"cursor_column":8}
+{"cursor_column":8,"characters":71,"revision":73,"event":"live_document_restored","lines":3,"cursor_row":2}
+{"save_key":"CTRL-S","save_state":"RECOVERABLE","rx_alias":"A1","mount_point":"/sd","storage_status":"MOUNTED","storage_detail":"adopted a filesystem already mounted at /sd","startup_delay_seconds":3.0,"baud":115200,"tx_alias":"A0","event":"dev_runtime_ready","stop_key":"APPLICATION","keyboard_layout":"AUTO"}

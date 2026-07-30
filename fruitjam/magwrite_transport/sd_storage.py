@@ -82,6 +82,27 @@ def board_sd_aliases(board_module):
     )
 
 
+def already_mounted(storage_module, mount_point):
+    """Return the filesystem already mounted at ``mount_point``, or ``None``.
+
+    A mount point that resolves to the *root* filesystem is not a mount: it is an
+    ordinary directory sitting on CIRCUITPY, which is exactly what ``/sd`` looks
+    like before a card is attached. Only a filesystem distinct from the root
+    counts, so an empty ``/sd`` directory is never mistaken for a mounted card.
+    """
+    getmount = getattr(storage_module, "getmount", None)
+    if getmount is None:
+        return None
+    try:
+        mounted = getmount(mount_point)
+        root = getmount("/")
+    except (OSError, AttributeError):
+        return None
+    if mounted is None or mounted is root:
+        return None
+    return mounted
+
+
 def resolve_pins(board_module, aliases):
     """Return the resolved pin objects, or raise ``AttributeError`` naming them.
 
@@ -121,6 +142,20 @@ def mount(
     def report(record):
         if log is not None:
             log(record)
+
+    # A mount survives a soft reboot, and with it the SPI bus and chip-select the
+    # card is on. Without this check the *second* start -- which on the
+    # development runtime means every time a file is saved -- fails with
+    # "SD_SCK in use" and reports NO_CARD while a perfectly good card sits
+    # mounted at that very path. Adopting the existing mount is both correct and
+    # the only behaviour that keeps the runtime restartable.
+    existing = already_mounted(storage_module, mount_point)
+    if existing is not None:
+        report({"event": "sd_already_mounted", "mount_point": mount_point})
+        return MountResult(
+            MOUNTED, "adopted a filesystem already mounted at " + mount_point,
+            mount_point, existing,
+        )
 
     aliases = {
         "cs": cs_alias, "sck": sck_alias, "mosi": mosi_alias,
