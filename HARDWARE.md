@@ -119,29 +119,48 @@ input.
 The supported arrangement, and the one in use:
 
 ```text
-one 5 V source (wall charger, or the PC)
-        |  one upstream USB-C cable
+one 5 V source (wall charger, or the PC), ≥1.5 A
+        |  one USB-C cable
         v
-powered hub with per-port current limiting
-        |                    |
-        v USB-C              v USB-C
-   Fruit Jam              MagTag
+   Fruit Jam ---- USB-A ----> wired USB keyboard
+        |
+        +-------- USB-A ---- USB-A-to-USB-C ----> MagTag
+        |
         \___ A0/A1 UART + common GND ___/
              (red conductor insulated)
 ```
 
-- each board keeps its own USB-C input, switch, protection, and regulator;
+- each board is still powered through its own **USB-C** input, with its own
+  switch, protection, and regulator. The MagTag's supply is a Fruit Jam USB-A
+  **host port**, a documented 5 V output, so this is a host powering a device
+  rather than a header pin being back-fed;
 - both boards are **sinks**; nothing sources current into the shared node;
-- supply 5 V at ≥1 A, ≥1.5 A preferred — the estimated combined budget is ~450 mA
-  typical and ~900 mA worst case, with **no figure yet measured on this bench**;
-- swapping the upstream cable between the PC and a charger is the whole
-  difference between the development and standalone configurations.
+- supply 5 V at **≥1.5 A** — everything now draws through one USB-C connector,
+  and the estimated combined budget is ~450 mA typical and ~900 mA worst case,
+  with **no figure yet measured on this bench**;
+- swapping the one cable between the PC and a charger is the whole difference
+  between the development and standalone configurations.
 
-**One USB-C connection per board, always.** Never plug a board into the PC while
-the hub is also feeding it. Neither board's power-path design has been shown to
-make two simultaneous sources safe: the MagTag documents power-path behaviour for
-USB against a *battery* only, and the Fruit Jam documents none at all on its 5V
-pin.
+**The MagTag has no console and no host-visible `CIRCUITPY` while wired this
+way** — its USB-C goes to the Fruit Jam. Move that cable to the PC to deploy to
+it, and move it back. The Fruit Jam's console reports the handshake from its own
+end, so a MagTag that is not answering is still diagnosable.
+
+**There is no start order, and there cannot be one.** The Fruit Jam's USB-A ports
+carry no 5 V while the Fruit Jam is in reset, so the MagTag cannot be booted
+first. Both boards cold boot together and the Fruit Jam retries the display
+handshake until the panel answers — see
+[docs/DEVELOPMENT_RUNTIME.md](docs/DEVELOPMENT_RUNTIME.md).
+
+**One USB-C connection per board, always.** Never plug the MagTag into the PC
+while the Fruit Jam is also feeding it. Neither board's power-path design has
+been shown to make two simultaneous sources safe: the MagTag documents
+power-path behaviour for USB against a *battery* only, and the Fruit Jam
+documents none at all on its 5V pin.
+
+The powered-hub variant — one source, one upstream cable, a hub with per-port
+current limiting, one USB-C cable into each board — remains valid and is the way
+to get **both** consoles at once.
 
 ## UART protocol direction
 
@@ -311,7 +330,17 @@ Do not connect one battery simultaneously to the independent charger circuits on
       by either board**: the MagTag has no 5 V input at all, and the Fruit Jam's
       5V pin is a regulator output. One shared 5 V source feeding each board
       through its own USB-C port is what the documentation permits, and it is
-      also the smaller change.
+      also the smaller change. **Superseded the same day by a smaller
+      arrangement still:** one supply into the Fruit Jam's USB-C, and the MagTag
+      fed from a Fruit Jam **USB-A host port** — a documented output into a
+      documented input, and genuinely one cable rather than one cable and a hub.
+- [x] Remove the board start order. Required by the arrangement above rather than
+      chosen: **the Fruit Jam's USB-A ports carry no 5 V while it is held in
+      reset**, so the MagTag cannot be started first and both boards necessarily
+      cold boot together. The Fruit Jam now retries the display handshake until
+      the panel answers instead of failing after one attempt, and the MagTag lets
+      a handshake re-baseline its input numbering as long as it has displayed
+      nothing yet. Host-verified; see `host-tests/test_display_wait.py`.
 - [ ] Run the physical one-cable bench check.
 - [ ] Measure active and idle current for each board and USB receiver. **Still
       open, and now the one thing bench power leaves unmeasured.** A USB power

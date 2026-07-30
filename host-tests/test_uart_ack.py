@@ -416,8 +416,13 @@ class QueueAndSchedulerTests(unittest.TestCase):
     def test_sequence_gap_and_stale_viewport_stop(self):
         clock, display, outbox, scheduler = self.make_scheduler()
         scheduler.service([encode_frame(HELLO, 1, 0)])
-        with self.assertRaises(AckSchedulerError):
-            scheduler.service([encode_frame(HELLO, 3, 0)])
+        # A second HELLO before anything has been displayed re-baselines the
+        # count rather than stopping, because under one-cable power the Fruit Jam
+        # retries its handshake while this board's panel is still initialising.
+        # The rule and its narrowness are covered in test_display_wait.py; what
+        # matters here is that it does not weaken the gap rule below.
+        scheduler.service([encode_frame(HELLO, 3, 0)])
+        self.assertEqual(scheduler.last_input_sequence, 3)
         clock, display, outbox, scheduler = self.make_scheduler()
         one = ViewportMessage(1, 1, "A", ("ONE",), 0, 3, "")
         scheduler.service([encode_frame(VIEWPORT, 1, 1, one.encode())])

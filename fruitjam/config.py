@@ -53,6 +53,14 @@ DEV_RUNTIME_SESSION_TIMEOUT_SECONDS = 7200
 # The keyboard event budget is a bound on the adapter, not a certification
 # ceiling, so a development session gets a much larger one than a bounded run.
 DEV_RUNTIME_MAX_EVENTS = 100000
+# How long one display handshake attempt waits before the next is sent. Under
+# one-cable power the MagTag is fed from a Fruit Jam USB-A port, which carries no
+# 5 V while the Fruit Jam is in reset -- so the MagTag cannot be started first and
+# the first HELLO routinely goes out before its panel has finished initialising.
+# The Fruit Jam waits and retries indefinitely rather than failing; this is only
+# how often it asks. Mirrors magwrite_transport/live_session.HELLO_RETRY_SECONDS,
+# which carries the reasoning; a host test asserts the two agree.
+DISPLAY_HANDSHAKE_RETRY_SECONDS = 3.0
 # A live run is operator-paced, so it is abandoned only after a long silence.
 USB_KEYBOARD_IDLE_TIMEOUT_SECONDS = 600
 USB_KEYBOARD_SESSION_TIMEOUT_SECONDS = 2700

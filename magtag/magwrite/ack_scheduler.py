@@ -50,17 +50,52 @@ class AckDisplayScheduler:
         self.expected_final_hash = None
         self.test_complete_sent = False
         self.completions = []
+        # Counted so a run that needed one says so. See ``_may_rebaseline``.
+        self.handshake_rebaselines = 0
 
     def feed_chunks(self, chunks):
         for chunk in chunks:
             self.parser.feed(chunk)
 
+    def _may_rebaseline(self, frame):
+        """Whether this frame is allowed to restart the input numbering.
+
+        Exactly one frame ever is: a ``HELLO`` that arrives before this session
+        has accepted a single viewport. That is the handshake, and a handshake is
+        by definition the start of a count rather than a continuation of one.
+
+        Added for one-cable power. The MagTag is powered from a Fruit Jam USB-A
+        port, so it cannot be started first and both boards cold boot together;
+        the Fruit Jam therefore retries its handshake while this board's panel
+        initialises, and either board may restart during that window. Before this
+        rule, the second board to boot would refuse the first frame it ever saw
+        because the numbers did not begin where it expected -- reported as
+        ``duplicate or reversed input sequence``, which named the symptom and
+        nothing about the cause. It cost false starts in three bench runs.
+
+        The rule is narrow on purpose. Once a viewport has been accepted, or one
+        is pending, in flight, or about to start, sequence discipline is absolute
+        again: that is a session with the writer's words moving through it, and a
+        gap or a repeat there is a real transport fault.
+        """
+        return (
+            frame.message_type == HELLO
+            and self.latest_revision == 0
+            and self.pending is None
+            and self.ready_to_start is None
+            and self.inflight is None
+        )
+
     def _accept_sequence(self, frame):
         if self.last_input_sequence is not None:
             if frame.sequence <= self.last_input_sequence:
-                raise AckSchedulerError("duplicate or reversed input sequence")
-            if frame.sequence != self.last_input_sequence + 1:
-                raise AckSchedulerError("input sequence gap")
+                if not self._may_rebaseline(frame):
+                    raise AckSchedulerError("duplicate or reversed input sequence")
+                self.handshake_rebaselines += 1
+            elif frame.sequence != self.last_input_sequence + 1:
+                if not self._may_rebaseline(frame):
+                    raise AckSchedulerError("input sequence gap")
+                self.handshake_rebaselines += 1
         self.last_input_sequence = frame.sequence
 
     def _status(self, message_type, revision, fields):

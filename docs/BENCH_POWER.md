@@ -15,6 +15,14 @@ permit, and it is smaller than the alternative rather than larger.
 Nothing in this document introduces a boost converter. The MT3608 belongs to the
 battery revision, Priority 6, and stays there.
 
+> **Correction, 2026-07-30, same day.** The audit's finding is unchanged — no 5 V
+> header feed, in either direction — but the arrangement it recommended has been
+> replaced by a smaller one. The MagTag is powered from a Fruit Jam **USB-A host
+> port**, not from a second port on a hub, so the rig is genuinely one cable
+> rather than one cable and a hub. Sections 5 to 7 are rewritten for it. That
+> port carries no 5 V while the Fruit Jam is in reset, which is why the start
+> order in section 7 is gone rather than merely relaxed.
+
 ## 1. The connection points, as documented
 
 ### Fruit Jam
@@ -110,7 +118,9 @@ Two consequences.
 
 1. A supply rated **5 V at 1 A** covers the typical case with margin; **1.5–2 A**
    covers the worst case and leaves the receiver question room to be re-asked
-   without changing the supply again.
+   without changing the supply again. With the MagTag on a Fruit Jam host port
+   the whole of this table draws through one USB-C connector, so 1.5 A is the
+   figure to buy rather than the optimistic one.
 2. Had the direct feed been available, the Fruit Jam's ~500 mA 5V pin would sit
    *under* the worst-case budget once a keyboard and a receiver are counted, and
    the MagTag's 200 mA connector path would be the tighter limit still. The
@@ -118,70 +128,103 @@ Two consequences.
 
 ## 5. The arrangement that is supported
 
-One 5 V source, one upstream cable, two short USB-C cables — one into each
-board's own USB-C port.
+One 5 V source into the Fruit Jam's USB-C, and the MagTag fed from a Fruit Jam
+**USB-A host port** with an ordinary USB-A-to-USB-C cable.
 
 ```text
-                 5 V source
-            (charger, or the PC)
+        5 V supply (charger, or the PC)
                      |
                      |  one USB-C cable
                      v
-        powered hub / 2-port supply
-             |              |
-    USB-C    |              |    USB-C
-             v              v
-        Fruit Jam       MagTag
-             |              ^
-             |  A0 TX ------+ D10 RX
-             |  A1 RX <-----+ A1 TX
-             +---- GND -----+
+                 Fruit Jam
+             USB-A         USB-A
+               |             |
+               |             +---- USB-A to USB-C ----> MagTag
+               |
+               +---- wired USB keyboard
+                     |
+                     |  A0 TX ------> D10 RX
+                     |  A1 RX <------ A1 TX
+                     +----- GND -----+
        (red/power conductor left disconnected and insulated)
 ```
 
-Why this is the smallest safe thing rather than a retreat:
+Why this is supported, and by the same rule that refused the direct feed:
 
-- each board keeps its **documented** power input, its own switch, its own input
-  protection, and its own regulator;
-- **both boards are sinks.** Nothing sources current into the shared node, so
-  there is no source-against-source condition anywhere in the rig;
+- each board is still powered through its **documented** power input. The Fruit
+  Jam takes USB-C. The MagTag takes USB-C. Neither is back-fed;
+- the Fruit Jam's USB-A ports are **documented outputs** — 5 V switched by
+  `USB_HOST_5V_POWER` behind the CH334F hub — so this is a host port supplying a
+  device, which is the one thing USB power is unambiguously for;
+- **the MagTag remains a sink**, with exactly one cable into it. There is no
+  source-against-source condition anywhere in the rig;
 - the UART is untouched — same three conductors, same 115200 baud, same
   insulated red;
 - ground was already common through the UART, and stays exactly as common;
 - it adds no soldering, no new part on either board, and nothing to undo before
   the battery revision.
 
+Nothing in section 2 is softened by this. The refused arrangement was a wire
+from a **5 V header pin** into a node documented as an output; this is a USB
+port doing its documented job. The distinction is the whole of it.
+
+### What it costs
+
+**The MagTag's USB-C is now occupied by the Fruit Jam, so the MagTag has no
+console and no host-visible `CIRCUITPY` while the rig is wired this way.** That
+is a real loss and it is not worked around: to deploy to the MagTag, move its
+cable to the PC, copy, and move it back. In normal use there is nothing to
+deploy, and the Fruit Jam's console reports the handshake from its own end, so a
+MagTag that is not answering is still visible — see section 7.
+
+The MagTag also enumerates on the Fruit Jam's USB host bus as an ordinary
+CircuitPython device. It is not selected as the keyboard: the selector matches
+the HID boot-keyboard class triple, and CircuitPython's own HID interface is not
+a boot interface. It appears in the Fruit Jam's `usb_keyboard_opened` failure
+list and is otherwise ignored.
+
 ### Requirements
 
-- **Supply:** 5 V, ≥1 A, ≥1.5 A preferred.
-- **Distribution:** a **powered hub with per-port current limiting** is preferred
-  over a passive splitter. With per-port limiting, a fault on one board does not
-  drag the other's rail down; with a passive splitter, it does.
-- **Fuse:** none to add inline. Each board's USB input protection plus the hub's
-  per-port limit is the protection, and inserting a fuse in a USB-C cable is not
-  a modification worth making to a rig with no unfused node.
+- **Supply:** 5 V, ≥1.5 A. Everything now draws through the Fruit Jam's USB-C:
+  the Fruit Jam, its hub, the keyboard, **and** the MagTag. The ≥1 A floor from
+  the hub arrangement is no longer enough headroom to be comfortable.
+- **Fuse:** none to add inline. The Fruit Jam's USB input protection and the
+  CH334F's per-port limiting are the protection.
 - **Cables:** short, and known-good for power. A marginal cable shows up here as
-  a brownout under refresh, not as an obvious failure.
+  a brownout under a full refresh, not as an obvious failure.
 
-### Two configurations, same wiring
+### Two configurations, one cable
 
 | | Upstream | What you get |
 | --- | --- | --- |
-| **Development** | one USB-C cable from the **PC** to a powered data hub | both boards powered, both serial consoles, both CIRCUITPY volumes host-writable |
-| **Standalone bench** | one USB-C cable from a **wall charger** to the hub | both boards powered, no host, no consoles |
+| **Development** | one USB-C cable from the **PC** to the Fruit Jam | both boards powered, the Fruit Jam's console and `CIRCUITPY`, no MagTag console |
+| **Standalone** | one USB-C cable from a **wall charger** to the Fruit Jam | both boards powered, no host, no consoles |
 
-Moving between them is one cable at the upstream end. Nothing on either board
-changes, and no configuration file changes.
+Moving between them is one cable. Nothing on either board changes, and no
+configuration file changes.
+
+### The powered-hub variant
+
+The hub arrangement — one source, one upstream cable, a powered hub with
+per-port current limiting, one short USB-C cable into each board — remains valid
+and remains the way to get **both** consoles at once. It is what to fall back to
+if a MagTag console is needed for a session, and what to use if the Fruit Jam's
+host port ever proves short of current for the panel. It is two cables at the
+boards rather than one, which is the only reason it is no longer the default.
 
 ## 6. Both USB cables must not be connected at once
 
-Each board has **one** USB-C port, and in this arrangement that port is already
-occupied by the hub. So the rule is easy to keep and easy to state:
+Each board has **one** USB-C port, and in this arrangement each one is already
+occupied — the Fruit Jam's by the supply, the MagTag's by the Fruit Jam's host
+port. So the rule is easy to keep and easy to state:
 
-> **One USB-C connection per board, always.** Never plug a board into the PC
-> while the hub is also feeding it, and never connect the two boards' 5 V or
-> VBUS rails with a wire — including through the red conductor of a 3-pin JST
+> **One USB-C connection per board, always.** Never plug the MagTag into the PC
+> while the Fruit Jam is also feeding it, and never connect the two boards' 5 V
+> or VBUS rails with a wire — including through the red conductor of a 3-pin JST
 > cable.
+
+Moving the MagTag's cable to the PC to deploy is fine, and is the intended way
+to do it. Having **both** connected is what is forbidden.
 
 Neither board's power-path design has been shown to make two simultaneous
 sources safe. The MagTag documents power-path behaviour only for USB against a
@@ -191,18 +234,29 @@ sources stay forbidden.
 
 ## 7. Reset procedure
 
-Unchanged, and the existing ordering rule still governs:
+**There is no start order any more, and there cannot be one.** The Fruit Jam's
+USB-A ports carry no 5 V while the Fruit Jam is held in reset, so the MagTag has
+no power until the Fruit Jam has one. "Restart the MagTag first" is not a
+sequence this wiring can perform, and the software stopped requiring it:
 
-1. power the rig up from the single upstream cable;
-2. if a session ended abnormally, **restart the MagTag first** and wait for
-   `dev_display_ready`, then the Fruit Jam — see
-   [DEVELOPMENT_RUNTIME.md](DEVELOPMENT_RUNTIME.md);
-3. to restart both, pull the **upstream** cable, wait for both boards to go dark,
-   and reconnect. That is a simultaneous cold start, which the MagTag ordering
-   rule tolerates because neither board is mid-session;
-4. do not pull a single downstream cable to reset one board while the other is
-   mid-frame. That is the interrupted-session case, and it costs a MagTag
-   restart.
+1. connect the one cable. Both boards cold boot together;
+2. the Fruit Jam wins that race — it has no e-paper panel to initialise — so its
+   first handshake usually goes out before the MagTag is listening. It **waits**,
+   re-sending every `DISPLAY_HANDSHAKE_RETRY_SECONDS` and logging
+   `live_waiting_for_display` with the document it is holding, until the panel
+   answers. A restored document is not touched while it waits;
+3. to restart everything, pull the one cable, wait for both boards to go dark,
+   and reconnect;
+4. to restart only the Fruit Jam, press its reset button. The MagTag loses power
+   with it, because its power comes through the Fruit Jam, so this is also a
+   simultaneous cold start — which is now the only kind there is.
+
+The old ordering rule and the `duplicate or reversed input sequence` failure it
+existed to avoid are described in
+[DEVELOPMENT_RUNTIME.md](DEVELOPMENT_RUNTIME.md). Both are retired: the Fruit Jam
+keeps its frame numbering monotonic across handshake attempts and re-baselines
+the status channel each time, and the MagTag lets a handshake restart the count
+as long as it has displayed nothing yet.
 
 ## 8. What this does not settle
 

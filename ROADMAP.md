@@ -37,7 +37,7 @@ this list wins.
 | 3 | MagWrite Shell | V1.3 | PHYSICALLY VERIFIED 2026-07-30 |
 | 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | PHYSICALLY VERIFIED 2026-07-30 |
 | 5 | Shell UX: one-gesture exit, and MagTag buttons | V1.5 | PHYSICALLY VERIFIED 2026-07-30 |
-| 6 | One-cable bench power | One-cable bench power | Audited 2026-07-30; direct 5 V feed refused, hub arrangement pending a physical check |
+| 6 | One-cable bench power | One-cable bench power | Audited 2026-07-30; direct 5 V feed refused, MagTag on a Fruit Jam USB-A port, start order removed in software, host-verified, pending a physical check |
 | 7 | Standalone workflow | Priority 5 | Not started |
 | 8 | Battery, enclosure, and hardening | Priorities 6 and 7 | Not started |
 
@@ -1214,18 +1214,79 @@ right and be wrong. `HARDWARE.md` now carries the reason next to the rule.
 
 ### The arrangement that is supported
 
-One 5 V source, one upstream USB-C cable, a powered hub with per-port current
-limiting, and one short cable into each board's own USB-C port. Each board keeps
-its documented input, switch, protection, and regulator; **both boards are
-sinks**, so nothing sources current into the shared node; the UART is untouched;
-and ground was already common through it.
+**Corrected the same day, and the correction is smaller than what it replaced.**
+The audit recommended a powered hub with one USB-C cable into each board. The
+arrangement actually adopted is one supply into the **Fruit Jam's USB-C**, with
+the MagTag fed from a **Fruit Jam USB-A host port** through an ordinary
+USB-A-to-USB-C cable, and the keyboard on the other host port.
 
-Swapping the upstream cable between the PC and a wall charger is the entire
-difference between the development configuration — both consoles, both CIRCUITPY
-volumes writable — and the standalone one. No file on either board changes.
+That is still a documented output into a documented input — a USB host powering
+a USB device, which is the one thing USB power is unambiguously for — so nothing
+in the refusal above is softened by it. The refused arrangement was a wire from a
+**5 V header pin** into a node documented as an output. This is a port doing its
+job. Each board keeps its documented USB-C input, switch, protection, and
+regulator; **both boards are sinks**; the UART is untouched; ground was already
+common through it.
 
-Estimated combined budget: ~450 mA typical, ~900 mA worst case, so 5 V at ≥1 A
-and preferably ≥1.5 A. **No figure was measured on this bench.** The MagTag's
+It costs the MagTag's console and its host-visible `CIRCUITPY` while the rig is
+wired this way, which is a real loss and is not worked around: to deploy to the
+MagTag, move its cable to the PC and move it back. Moving the one cable between
+the PC and a wall charger is the entire difference between the development and
+standalone configurations. No file on either board changes.
+
+The hub arrangement remains valid and is the fallback when both consoles are
+needed at once.
+
+### The consequence that had to be answered in software
+
+**The Fruit Jam's USB-A ports carry no 5 V while the Fruit Jam is held in
+reset.** So the MagTag, which is now powered from one of them, cannot be booted
+first — and "restart the MagTag first, wait for `dev_display_ready`, then the
+Fruit Jam" became an instruction the hardware cannot obey. Both boards
+necessarily cold boot together, and the Fruit Jam wins that race almost every
+time: it has no e-paper panel to initialise, and the MagTag spends seconds inside
+`display.initialize()` before it reads a byte.
+
+Until now a HELLO that went unanswered for five seconds ended the session with
+`status_hello timeout` and `result: ERROR`. Under one cable that is a device that
+does not switch on. So the handshake waits instead:
+
+- **it retries indefinitely**, every `DISPLAY_HANDSHAKE_RETRY_SECONDS` (3.0),
+  logging `live_waiting_for_display` with the attempt, the elapsed wait, and the
+  number of characters of document it is holding. `live_typing_started` then
+  reports `hello_attempts` and `display_wait_seconds`;
+- **the frame sequence never restarts.** Each attempt takes the next number, so a
+  MagTag that boots halfway through hears a monotonic stream. Restarting the
+  count per attempt is precisely what would produce `duplicate or reversed input
+  sequence` on the far board;
+- **the status channel is re-baselined each attempt**, so a MagTag that boots
+  late and numbers its first reply 1 is heard rather than counted stale and
+  dropped — which would have made the wait futile however long it ran;
+- **a fault during the handshake restarts the handshake** with a fresh parser
+  rather than ending the session, logged as `live_display_handshake_restarted`
+  and counted as `display_handshake_restarts`;
+- **the MagTag lets a `HELLO` re-baseline its input numbering**, but only while it
+  has displayed nothing — nothing accepted, pending, in flight, or about to
+  start. Once the writer's words are moving, sequence discipline is absolute
+  again;
+- **nothing touches the document.** A restored document is loaded before the
+  session runs and is not read, re-derived, or re-saved by any of this. The
+  session and idle clocks start when the panel answers, so a slow display does
+  not spend the writing session's budget.
+
+This also retires a backlog item recorded three times — after the V1.3, V1.4, and
+dongle bench runs — as transport hardening worth doing later. It stopped being
+deferrable the moment the hardware stopped allowing its workaround.
+
+Host-verified in `host-tests/test_display_wait.py`: the Fruit Jam starts first,
+the first attempts go nowhere, the panel arrives well after the old timeout would
+have fired, the handshake completes, the restored document comes through the wait
+byte-for-byte, and no sequence failure is latched on either board. Both boards'
+rules are asserted from their own code, not from a model of it.
+
+Estimated combined budget: ~450 mA typical, ~900 mA worst case. With everything
+drawing through the Fruit Jam's one USB-C connector, **≥1.5 A** is the figure to
+supply rather than the optimistic one. **No figure was measured on this bench.** The MagTag's
 ~50 mA active figure is Adafruit's; the Fruit Jam's is an estimate, because none
 is published. The measurement checklist item stays open and a USB power meter on
 the upstream cable is what closes it.

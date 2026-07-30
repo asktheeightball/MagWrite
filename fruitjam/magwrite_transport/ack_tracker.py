@@ -85,6 +85,30 @@ class AckTracker:
         self.completed_timeout = completed_timeout
         self.caught_up_timeout = caught_up_timeout
 
+    def restart_handshake(self, now):
+        """Re-arm the handshake so another ``HELLO`` may be attempted.
+
+        Added for one-cable power, where the MagTag is powered from the Fruit
+        Jam's own USB-A port and therefore *cannot* be started first: both boards
+        necessarily cold boot together and the first HELLO usually goes out
+        before the panel's board is listening. Retrying is only useful if the
+        state a failed attempt left behind is cleared, and there is exactly one
+        piece of it here.
+
+        The status channel's numbering is baselined again, because the board that
+        answers this attempt may have booted after the last one and will start
+        its own sequence at 1. Without this, a late MagTag's first reply would be
+        counted stale, silently dropped, and the handshake could never complete
+        however long it was retried -- the timeout would simply repeat.
+
+        Nothing about display state is touched, and nothing needs to be: no
+        viewport can have been transmitted while the handshake is outstanding, so
+        ``states`` is empty and the document is somewhere else entirely.
+        """
+        self.hello = False
+        self.last_status_sequence = None
+        self.started_at = now
+
     def sent(self, revision, sequence, viewport_hash, now):
         if self.find(revision) is not None:
             raise AckError("duplicate sent revision")

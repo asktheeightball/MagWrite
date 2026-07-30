@@ -59,6 +59,20 @@ never silently truncated. The Fruit Jam pre-windows long text and the MagTag
 does not edit, scroll, persist, or reinterpret it.
 
 `HELLO` is bounded ASCII application/test metadata.
+
+**`HELLO` is the one frame that may restart the input sequence numbering, and
+only before the MagTag has displayed anything** — nothing accepted, pending, in
+flight, or about to start. A handshake is the beginning of a count rather than a
+continuation of one. Once a viewport has been accepted, sequence discipline is
+absolute again: a repeated or reversed number is a fault and a gap is a fault.
+
+This exists because one-cable bench power made a start order impossible. The
+MagTag is powered from a Fruit Jam USB-A host port, which carries no 5 V while
+the Fruit Jam is in reset, so both boards cold boot together and the Fruit Jam
+retries its handshake while the panel initialises. The Fruit Jam never restarts
+its own numbering between those attempts — each takes the next number — so this
+rule covers the *other* direction of the same window: either board restarting
+before a session has begun. It is not a licence to renumber a live session.
 `END_OF_SCENARIO` is the one-byte scenario id followed by the eight-hex-digit
 CRC-32 of that scenario's final VIEWPORT payload.
 `END_OF_TEST` is ASCII `final_revision;viewport_count;final_viewport_crc32`.
@@ -104,6 +118,13 @@ after panel busy is idle. `DISPLAY_CAUGHT_UP` requires no in-flight refresh,
 no pending viewport, and displayed revision equal to latest accepted revision.
 Status queues and acknowledgement histories are bounded; overflow is fatal and
 the physical harness never retries automatically.
+
+The one exception, and it is confined to the handshake: while `STATUS_HELLO` is
+still outstanding the Fruit Jam retries rather than failing, re-baselining the
+return channel's sequence numbering and rebuilding its parser on each attempt, so
+a MagTag that boots late and numbers its first reply 1 is heard rather than
+counted stale. Nothing has been transmitted or displayed at that point. Once the
+session is live, every bound above is fatal exactly as before.
 
 ### BUTTON_EVENT (implemented, host verified; PHYSICALLY VERIFIED 2026-07-30)
 

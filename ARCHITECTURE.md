@@ -323,6 +323,16 @@ Two rules the button path does not share with the keyboard:
 11. Check timeouts and emit bounded diagnostics.
 12. Yield cooperatively.
 
+Before this loop begins there is one phase with different rules: the display
+handshake. Until the MagTag answers, stages 8 to 11 are replaced by a retry — the
+handshake is re-sent at a fixed interval, indefinitely, and every timeout and
+integrity bound is held back. Both boards necessarily cold boot together under
+one-cable power, because the MagTag is powered from a Fruit Jam host port that is
+dead while the Fruit Jam is in reset, so a first handshake arriving before the
+panel is listening is the ordinary case rather than a fault. Input is still
+polled, the document is not touched, and the session and idle clocks start when
+the panel answers.
+
 ### MagTag cooperative loop
 
 1. Drain available Fruit Jam UART bytes.

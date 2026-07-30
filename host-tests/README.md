@@ -66,7 +66,12 @@ Logic that does not require CircuitPython or ESP32 hardware should be testable u
   frame, parser, acknowledgement tracker, shell, and editor, asserting the text
   is exactly what the keyboard typed and the acknowledgement path was unaffected;
 - leaving the editor in one gesture, the silent checkpoint it still performs, and
-  the absence of the removed save state and save screen.
+  the absence of the removed save state and save screen;
+- a simultaneous cold boot in which the Fruit Jam starts first and the MagTag is
+  not powered yet: handshake attempts that go nowhere, a panel arriving long
+  after the old hello timeout would have ended the run, the handshake completing,
+  the restored document intact through the wait and untouched *during* it, and no
+  duplicate-or-reversed sequence failure latched on either board.
 
 No test asserts a bound as a literal. Every size is derived from the editor's own
 constants, so these keep testing the property the next time the bounds move --
@@ -81,4 +86,4 @@ Run the current feasibility suite from the repository root:
 python -m unittest discover -s host-tests -p "test_*.py" -v
 ```
 
-The current suite contains 1,103 tests and has no third-party host dependencies.
+The current suite contains 1,134 tests and has no third-party host dependencies.

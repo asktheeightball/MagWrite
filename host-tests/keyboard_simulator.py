@@ -282,7 +282,7 @@ class KeyboardLink:
     def __init__(self, reports=(), log=None, render=render_viewport, panel=None,
                  backend=None, status_queue_capacity=32, adapter_options=None,
                  typing_interval_seconds=0.0, typing_start_seconds=0.0,
-                 buttons=None, **session_options):
+                 buttons=None, display_ready_at=0.0, **session_options):
         self.clock = SimulatedClock()
         self.records = []
         self.log = log if log is not None else self.records.append
@@ -322,11 +322,26 @@ class KeyboardLink:
         self.adapter = self.session.adapter
         self.status_frames_sent = 0
         self.iterations = 0
+        # A MagTag that is not powered yet. Under one-cable power the panel's
+        # board is fed from the Fruit Jam's own USB-A port, so it cannot be
+        # started first; it boots alongside and its UART is deaf until it does.
+        # Modelled as the only thing that is physically true of a board with no
+        # power: bytes sent to it go nowhere and are never delivered late.
+        self.display_ready_at = display_ready_at
+        self.display_bytes_lost = 0
+
+    @property
+    def display_powered(self):
+        return self.clock.now >= self.display_ready_at
 
     def step(self):
         self.iterations += 1
         self.session.service()
         chunks = self.session.take_outbound()
+        if not self.display_powered:
+            self.display_bytes_lost += sum(len(chunk) for chunk in chunks)
+            self.clock.now += STEP_SECONDS
+            return
         if self.pad is not None:
             # Exactly the MagTag runtime's order: poll, offer, then let the
             # scheduler run and the outbox drain in one pass.

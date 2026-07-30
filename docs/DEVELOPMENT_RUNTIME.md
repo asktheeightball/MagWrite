@@ -215,8 +215,34 @@ now reports the catalogue, every entry, and the active document before the text.
 To run the pre-shell V1.2 behaviour instead, set `ENABLE_SHELL = False` on the
 Fruit Jam. Everything below then behaves exactly as it did before V1.3.
 
-Start the MagTag first. It is the side that answers the handshake, and starting
-it second just means the Fruit Jam's first HELLO goes nowhere.
+**Start order: there isn't one any more.** Under one-cable bench power the MagTag
+is fed from a Fruit Jam USB-A host port, and those ports carry no 5 V while the
+Fruit Jam is held in reset — so "start the MagTag first" is not a sequence the
+hardware can perform. Both boards cold boot together, the Fruit Jam wins the race
+because it has no e-paper panel to initialise, and its first HELLO does indeed go
+nowhere. That is now the ordinary case rather than a fault:
+
+- the Fruit Jam re-sends the handshake every
+  `DISPLAY_HANDSHAKE_RETRY_SECONDS` (3.0) until the panel answers, indefinitely,
+  logging `live_waiting_for_display` with the attempt number, how long it has
+  been waiting, and how many characters of document it is holding;
+- `live_typing_started` then carries `hello_attempts` and `display_wait_seconds`,
+  so a session says in one line how long its panel took;
+- a restored document is loaded before any of this and is not read, re-derived,
+  or re-saved while the wait runs. The words simply wait;
+- the session and idle clocks start when the panel answers, so a slow display
+  does not spend the writing session's budget.
+
+On the powered-hub arrangement, where both boards have their own USB-C cable,
+starting the MagTag first still works and simply makes the wait zero.
+
+One limitation, recorded rather than fixed: keystrokes are polled during the wait
+but not applied, because there is no panel to show them on. They queue, and the
+bounded input queue holds 64 events — about 32 keystrokes. Typing a long sentence
+into a rig whose panel has not yet answered would overflow it and end the
+session. Waiting for the display to come up before typing is the ordinary
+behaviour anyway, and dropping the keystrokes silently would be worse than
+saying so.
 
 `tools/capture_serial.py` will record either console read-only if you want a
 log. It never writes to the port.
@@ -252,14 +278,31 @@ log. It never writes to the port.
   parser and scheduler, logs `dev_display_awaiting_next_session`, and is ready
   for the next start.
 
-  **After an interrupted session it does.** A Fruit Jam that vanished mid-frame —
-  a pulled cable, a reset, a timeout — leaves the MagTag holding parser state
-  from a session that never ended, and the next Fruit Jam's handshake arrives
-  looking like a duplicate. The MagTag stops with `duplicate or reversed input
-  sequence` and `sessions_served: 0`, and the Fruit Jam reports `status_hello
-  timeout` and ends `result: ERROR`. Neither message names the real cause. Both
-  boards are fine; restart the MagTag first, wait for `dev_display_ready`, then
-  restart the Fruit Jam. This cost two false starts during the V1.3 bench run.
+  **After an interrupted session it no longer does either.** A Fruit Jam that
+  vanished mid-frame — a pulled cable, a reset, a timeout — used to leave the
+  MagTag holding parser state from a session that never ended, so the next Fruit
+  Jam's handshake arrived looking like a duplicate. The MagTag stopped with
+  `duplicate or reversed input sequence` and `sessions_served: 0`, and the Fruit
+  Jam reported `status_hello timeout` and ended `result: ERROR`. Neither message
+  named the real cause; both boards were fine; the fix was to restart the MagTag
+  first. It cost false starts in the V1.3, V1.4, and dongle bench runs.
+
+  Retired with one-cable power, which made the old fix impossible to perform:
+
+  - **the MagTag lets a `HELLO` re-baseline its input numbering**, but only while
+    it has displayed nothing — nothing accepted, pending, in flight, or about to
+    start. A handshake is the beginning of a count, not a continuation of one.
+    Once the writer's words are moving through the link, sequence discipline is
+    absolute again and a repeat or a gap is still a fault;
+  - **the Fruit Jam keeps its frame numbering monotonic across attempts** — a
+    retry that restarted the count is exactly what would produce the duplicate —
+    and re-baselines the *status* channel each attempt, so a MagTag that boots
+    late and numbers its first reply 1 is heard rather than dismissed as stale;
+  - a fault during the handshake — a stale reply, a fragment clocked in while the
+    far board was powering up — restarts the handshake with a fresh parser
+    instead of ending the session, logging `live_display_handshake_restarted`
+    with its cause. The session summary counts them as
+    `display_handshake_restarts`.
 
 If construction fails — no keyboard, a bad pin alias, a driver hash mismatch —
 the board logs `dev_runtime_construction_failed` or
@@ -273,7 +316,9 @@ Fruit Jam's latency figures are running aggregates, and the MagTag drains its
 refresh completions into a running aggregate every pass rather than keeping a
 list.
 
-Fruit Jam: `dev_runtime_ready`, `live_event_processed`, `live_viewport_sent`
+Fruit Jam: `dev_runtime_ready`, `live_waiting_for_display`,
+`live_display_handshake_restarted`, `live_typing_started`,
+`live_event_processed`, `live_viewport_sent`
 (with the pacing reason that released it), `live_status_received`,
 `live_viewport_superseded`, `live_typing_finished`, `live_test_complete`,
 `dev_runtime_session_summary`, `dev_runtime_stopped`.
@@ -316,7 +361,14 @@ unbounded counter on a microcontroller is still a bug.
   The guarded harnesses pass neither and therefore keep the exact values they
   were verified with — a host test asserts that.
 - Idle and session timeouts are generous but present, so a board left typing
-  into a UART nobody is watching eventually gives up.
+  into a UART nobody is watching eventually gives up. They start when the display
+  answers, not when the board boots: a panel that took a minute to arrive is not
+  a session that ran long.
+- **The wait for the display is deliberately unbounded**, and it is the one bound
+  removed rather than raised. A writer who connects one cable is owed a session
+  that starts when the panel is ready; a Fruit Jam that gave up four seconds
+  early would be a device that does not switch on. It is not a silent wait — every
+  attempt logs — and it costs nothing, because nothing has begun.
 - The MagTag keeps its display busy timeout. That one is a fault detector, not a
   budget: a panel that never reports itself idle is broken at any hour.
 - Queue capacities, the USB poll budget, and the status frame budget are

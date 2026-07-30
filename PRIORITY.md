@@ -27,9 +27,12 @@ Do not create new certification harnesses, evidence packages, compatibility inve
     **blocked on hardware**: the only receiver on the bench is incompatible and
     closed, and no other exists here.
 11. Bring the bench to one-cable power. **<- current.** Audited 2026-07-30: the
-    direct 5 V feed is refused because neither board has a 5 V input, and the
-    supported one-source-two-USB-C-ports arrangement is awaiting its physical
-    check.
+    direct 5 V feed is refused because neither board has a 5 V input. The
+    arrangement is now one supply into the Fruit Jam's USB-C with the MagTag fed
+    from a Fruit Jam USB-A host port, which removed the board start order
+    outright — those ports are dead while the Fruit Jam is in reset. The Fruit
+    Jam waits for the display instead of failing; host-verified, awaiting the
+    physical check.
 12. Complete the minimum standalone workflow.
 13. Defer keyboard edge cases, battery, enclosure, and hardening until their roadmap phase.
 
@@ -54,6 +57,24 @@ board's own USB-C port.** Both boards stay sinks, both keep their own protection
 and regulator, the UART is untouched, and swapping the upstream cable between the
 PC and a wall charger is the whole difference between the development and
 standalone configurations.
+
+**Corrected the same day, and the correction is the phase's real result.** The
+recommended hub is gone: the MagTag is powered from a **Fruit Jam USB-A host
+port**, a documented 5 V output feeding a documented USB-C input, so the rig is
+genuinely one cable. That arrangement has one consequence that had to be answered
+in software rather than in procedure — **the Fruit Jam's USB-A ports carry no 5 V
+while it is held in reset**, so the MagTag cannot be started first and both boards
+necessarily cold boot together. "Restart the MagTag first" became an instruction
+the hardware cannot obey.
+
+So the handshake waits. The Fruit Jam retries every 3 s until the panel answers
+rather than failing after one `status_hello timeout`, keeps its frame numbering
+monotonic across attempts, re-baselines the status channel each time, and rebuilds
+its parser after a failed attempt; the MagTag lets a `HELLO` re-baseline its input
+numbering while it has displayed nothing. A restored document is untouched
+throughout. Host-verified in `host-tests/test_display_wait.py`; this also retires
+the three-time-recurring `duplicate or reversed input sequence` backlog item
+below.
 
 Found along the way and worth more than the phase itself: **both boards' 3-pin
 JST connectors carry 5 V on the red conductor by default**, so a stock 3-wire
@@ -240,14 +261,15 @@ The following are explicitly non-blocking unless they prevent normal writing:
   bounded at 64 and refuses creation past it, cleanly and by name. Renaming and
   archiving are V1.5 scope, and the append-only record format already supports
   both as a single append;
-- the MagTag holds parser state after an *interrupted* Fruit Jam session and
+- ~~the MagTag holds parser state after an *interrupted* Fruit Jam session and
   refuses the next handshake with `duplicate or reversed input sequence`, which
-  the Fruit Jam reports as `status_hello timeout`. Restarting the MagTag first
-  clears it, and `docs/DEVELOPMENT_RUNTIME.md` now says so. Cost two false starts
-  in the V1.3 bench run and **recurred once in the V1.4 run**, from restarting the
-  Fruit Jam by autoreload without restarting the MagTag first. Three occurrences
-  now. A session that ends abnormally arguably ought to be recoverable without an
-  operator knowing this, but that is transport hardening, not a shell defect;
+  the Fruit Jam reports as `status_hello timeout`.~~ **Fixed 2026-07-30**, after
+  three occurrences, because one-cable power made the documented workaround
+  — restart the MagTag first — physically impossible to perform. The MagTag lets
+  a handshake re-baseline its input numbering while it has displayed nothing, and
+  the Fruit Jam retries rather than failing. It was recorded here as transport
+  hardening and it was; it stopped being deferrable when the hardware stopped
+  allowing the workaround;
 - `FakeKeyboardBackend.typing_interval_seconds` in the host simulator delivers a
   report every *two* intervals, not one: the interval gate is evaluated before
   the per-poll gate and consumes a slot even on the polls where the per-poll gate

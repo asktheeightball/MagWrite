@@ -52,6 +52,15 @@ return UART this runtime already had: menu, up, down, select. The keyboard keeps
 every shell key it had as a fallback, but nothing in the product flow needs it —
 a writer navigates with their thumbs and types with their hands.
 
+Under one-cable power the **start order is gone**. The MagTag is fed from a Fruit
+Jam USB-A host port, which carries no 5 V while the Fruit Jam is held in reset, so
+"start the MagTag first" is not an instruction that can be followed: both boards
+cold boot together and the Fruit Jam usually wins, having no e-paper panel to
+initialise. The handshake therefore waits. It is re-sent every
+``DISPLAY_HANDSHAKE_RETRY_SECONDS`` until the panel answers, logging
+``live_waiting_for_display`` while it does, and a restored document sits
+untouched throughout. One unanswered HELLO is no longer a stopped session.
+
 Persistence, added in V1.2, does not compromise any of the above. The microSD
 card is a separate filesystem from CIRCUITPY, so mounting it needs no
 ``storage.remount``: the host keeps the drive writable, autoreload stays on, and
@@ -171,6 +180,11 @@ try:
             ),
         ),
         latency=LatencyRecorder(),
+        # One-cable power: the MagTag hangs off a Fruit Jam USB-A port, so it
+        # cannot be started first and both boards come up together. The
+        # handshake is retried at this interval until the panel answers, rather
+        # than failed after one attempt.
+        hello_retry_seconds=config.DISPLAY_HANDSHAKE_RETRY_SECONDS,
         idle_timeout_seconds=config.DEV_RUNTIME_IDLE_TIMEOUT_SECONDS,
         session_timeout_seconds=config.DEV_RUNTIME_SESSION_TIMEOUT_SECONDS,
         max_viewport_frames=DEV_MAX_VIEWPORT_FRAMES,
@@ -199,6 +213,9 @@ if session is not None:
     ready = {"event": "dev_runtime_ready", "tx_alias": config.UART_TX_PIN_ALIAS,
              "rx_alias": config.UART_RX_PIN_ALIAS, "baud": config.UART_BAUD,
              "startup_delay_seconds": config.STARTUP_DELAY_SECONDS,
+             "display_handshake_retry_seconds": (
+                 config.DISPLAY_HANDSHAKE_RETRY_SECONDS),
+             "display_handshake": "RETRIES_UNTIL_READY",
              "keyboard_layout": config.USB_KEYBOARD_LAYOUT,
              "stop_key": "ESCAPE", "stop_key_alternate": "APPLICATION",
              "save_key": "CTRL-S"}

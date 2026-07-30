@@ -67,9 +67,47 @@ applied at stage 6 alongside the keyboard's finish gesture -- after input and
 durability, before any frame is built. The MagTag sends normalized actions and
 nothing else; every question of what an action *means* is answered on this side,
 because this side owns shell and document state.
+
+Waiting for the display — one-cable power
+-----------------------------------------
+
+Until one-cable power, the handshake was allowed to be a single shot: the bench
+procedure said *start the MagTag first*, so a HELLO that went unanswered for five
+seconds meant something was actually wrong and stopping was the honest response.
+
+One-cable power removes that procedure rather than complicating it. The MagTag is
+powered from a Fruit Jam USB-A host port, and those ports carry no 5 V while the
+Fruit Jam is held in reset -- so the MagTag *cannot* be started first, and both
+boards necessarily cold boot together. The Fruit Jam wins that race almost every
+time: it has no e-paper panel to initialise, and the MagTag spends seconds on
+`display.initialize()` before it reads a single byte. A first HELLO going
+unanswered is now the ordinary case, not a fault.
+
+So ``PHASE_HELLO`` retries instead of failing. Every ``HELLO_RETRY_SECONDS`` the
+handshake is re-armed and another HELLO is sent, indefinitely, and the wait is
+logged rather than raised. Four properties make that safe rather than merely
+patient:
+
+* **the frame sequence never goes backwards.** Each attempt takes the next
+  number, so a MagTag that boots halfway through sees a monotonic stream and has
+  no reason to call it a duplicate. Resetting the counter per attempt is what
+  would produce ``duplicate or reversed input sequence`` on the other board;
+* **the status channel's numbering is re-baselined** on each attempt, so a MagTag
+  that boots late and starts its own replies at sequence 1 is heard rather than
+  dismissed as stale;
+* **the parser is rebuilt** on each attempt, so a partial frame or a fragment
+  clocked in while the far board was powering up cannot latch a permanent
+  integrity failure, and no error the previous attempt saw carries into the next;
+* **nothing touches the document.** A restored document is loaded before the
+  session starts and is not re-read, re-derived, or re-saved by any of this. The
+  words wait exactly as they were.
+
+Once a status hello arrives the session proceeds exactly as it always did, and
+the session clock is re-baselined to that moment so a long wait for a panel does
+not come out of the writing session's budget.
 """
 
-from magwrite_transport.ack_tracker import AckTracker
+from magwrite_transport.ack_tracker import AckError, AckTracker
 from magwrite_transport.button_input import (
     MENU as BUTTON_MENU, ButtonInbox,
 )
@@ -130,6 +168,16 @@ STATUS_FRAME_BUDGET = 16
 IDLE_TIMEOUT_SECONDS = 600.0
 SESSION_TIMEOUT_SECONDS = 2700.0
 
+# How long one display handshake attempt is given before the next is sent. Three
+# seconds is comfortably longer than a MagTag that is already listening takes to
+# answer -- the bench measures that reply in milliseconds -- and short enough
+# that a panel arriving late is picked up within one glance at the console.
+#
+# It is deliberately *below* the tracker's own five-second hello timeout, but
+# nothing depends on that ordering: while the handshake is outstanding the
+# session owns the retry clock and the tracker's timeout is not consulted at all.
+HELLO_RETRY_SECONDS = 3.0
+
 PHASE_HELLO = "HELLO"
 PHASE_LIVE = "LIVE"
 PHASE_DRAIN = "DRAIN"
@@ -151,7 +199,7 @@ class LiveTypingSession:
         viewport=None, tracker=None, editor=None, pacer=None, latency=None,
         max_viewport_frames=MAX_VIEWPORT_FRAMES,
         max_protocol_frames=MAX_PROTOCOL_FRAMES, persistence=None, shell=None,
-        library=None,
+        library=None, hello_retry_seconds=HELLO_RETRY_SECONDS,
     ):
         self.monotonic = monotonic
         self.log = log
@@ -219,6 +267,16 @@ class LiveTypingSession:
             self.editor.note_visible_change()
         self.idle_timeout_seconds = idle_timeout_seconds
         self.session_timeout_seconds = session_timeout_seconds
+        # The display handshake, which under one-cable power is a wait rather
+        # than a single shot. ``hello_sent_at`` is the retry clock;
+        # ``handshake_started_at`` is how long the panel has been missing, which
+        # is the number an operator at the bench actually wants.
+        self.hello_retry_seconds = hello_retry_seconds
+        self.hello_attempts = 0
+        self.handshake_restarts = 0
+        self.hello_sent_at = None
+        self.handshake_started_at = None
+        self.display_wait_seconds = 0.0
         self.phase = PHASE_HELLO
         self.outbound = []
         self.frame_sequence = 0
@@ -393,6 +451,96 @@ class LiveTypingSession:
             or self.parser.buffer_overflows
         ):
             raise LiveSessionError("fatal status parser integrity failure")
+
+    # -------------------------------------------------------- handshake stage
+
+    def _drain_handshake_status(self, now):
+        """Stage 4 while the handshake is outstanding, where nothing is fatal.
+
+        The far board is booting, or is not powered yet, or -- if the operator
+        interrupted the last session -- has stopped holding state from it. Every
+        one of those arrives here as an exception, and under one-cable power none
+        of them may end a session that has a document in it and a panel that is
+        very likely seconds away from answering.
+
+        So a fault during the handshake restarts the handshake. That is not
+        swallowing it: it is logged with its own detail, counted, and the attempt
+        it poisoned is abandoned along with the parser state that carried it.
+        """
+        try:
+            self._drain_status(now)
+        except (AckError, LiveSessionError) as fault:
+            self.handshake_restarts += 1
+            self._restart_handshake(now, str(fault))
+
+    def _restart_handshake(self, now, detail=None):
+        """Discard everything one failed attempt left behind. Nothing else."""
+        # A fresh parser rather than a cleared one: the counters this session
+        # reports are integrity counters, and an attempt made against a board
+        # that was not powered must not leave its fragments in them.
+        self.parser = FrameParser()
+        self.tracker.restart_handshake(now)
+        self.log({
+            "event": "live_display_handshake_restarted",
+            "attempts": self.hello_attempts, "detail": detail,
+            "document_characters": self.editor.character_count(),
+        })
+
+    def _send_hello(self, now):
+        """Emit one handshake attempt and log the wait it is part of.
+
+        The frame sequence deliberately keeps climbing across attempts. The
+        MagTag rejects a sequence that repeats or goes backwards -- correctly, it
+        is how a truncated session is detected -- so restarting the count here is
+        precisely how a retry would poison the board it was trying to reach.
+        """
+        if self.handshake_started_at is None:
+            self.handshake_started_at = now
+        self.hello_attempts += 1
+        self.hello_sent_at = now
+        self._emit(HELLO, 0, HELLO_PAYLOAD)
+        if self.hello_attempts > 1:
+            # Logged from the second attempt on, because the first is simply the
+            # handshake and every one after it is a *wait* -- the state an
+            # operator needs to see named while a panel is still booting.
+            self.log({
+                "event": "live_waiting_for_display",
+                "attempt": self.hello_attempts,
+                "sequence": self.frame_sequence,
+                "waiting_seconds": round(now - self.handshake_started_at, 2),
+                "retry_seconds": self.hello_retry_seconds,
+                "document_characters": self.editor.character_count(),
+                "document_preserved": True,
+            })
+
+    def _service_handshake(self, now):
+        """Stages 7 and 8 while the display has not answered.
+
+        Unbounded by design. A writer who plugs in one cable and waits is owed a
+        session that starts when the panel is ready, not one that gave up four
+        seconds before it was.
+        """
+        if self.tracker.hello:
+            self.display_wait_seconds = round(now - self.handshake_started_at, 2)
+            self.phase = PHASE_LIVE
+            # The wait is not the session. Re-baselining both clocks here is what
+            # keeps a slow panel from spending the writing session's budget, and
+            # from making the idle timeout fire on a writer who has not yet been
+            # given anything to look at.
+            self.started_at = now
+            self.last_activity_at = now
+            self.log({
+                "event": "live_typing_started",
+                "usb_ready": self.adapter.ready,
+                "hello_attempts": self.hello_attempts,
+                "display_wait_seconds": self.display_wait_seconds,
+            })
+            return
+        if (
+            self.hello_sent_at is None
+            or now - self.hello_sent_at >= self.hello_retry_seconds
+        ):
+            self._send_hello(now)
 
     # --------------------------------------------------------- viewport stage
 
@@ -785,8 +933,12 @@ class LiveTypingSession:
         if self.phase == PHASE_LIVE:
             self._drain_input(now)
 
-        # Stage 4.
-        self._drain_status(now)
+        # Stage 4. While the handshake is outstanding the same drain runs with
+        # nothing fatal in it, because the far board may still be booting.
+        if self.phase == PHASE_HELLO:
+            self._drain_handshake_status(now)
+        else:
+            self._drain_status(now)
 
         # Stage 5, which runs *before* the viewport stages exactly as the
         # architecture's loop order specifies. Durability is never made to wait
@@ -803,14 +955,7 @@ class LiveTypingSession:
 
         # Stages 7 and 8.
         if self.phase == PHASE_HELLO:
-            if self.frame_sequence == 0:
-                self._emit(HELLO, 0, HELLO_PAYLOAD)
-            elif self.tracker.hello:
-                self.phase = PHASE_LIVE
-                self.log({
-                    "event": "live_typing_started",
-                    "usb_ready": self.adapter.ready,
-                })
+            self._service_handshake(now)
         elif self.phase == PHASE_LIVE:
             self._maybe_send_viewport(now)
             # Without a shell the finish gesture ends the session, exactly as it
@@ -859,7 +1004,13 @@ class LiveTypingSession:
                     "final_hash": "%08X" % self.tracker.final_hash,
                 })
 
-        # Stage 9.
+        # Stage 9. Both bounds are held back while the handshake is outstanding:
+        # the tracker's own hello timeout is superseded by the retry above, and
+        # the session budget has not started, because nothing has been written,
+        # displayed, or asked of the writer yet. Waiting for a panel to boot is
+        # not a session running long.
+        if self.phase == PHASE_HELLO:
+            return
         self.tracker.check_timeouts(now)
         if now - self.started_at > self.session_timeout_seconds:
             raise LiveSessionError("live session timeout")
@@ -904,6 +1055,9 @@ class LiveTypingSession:
             "final_displayed_revision": self.tracker.final_displayed_revision,
             "final_hash": "%08X" % self.tracker.final_hash,
             "test_complete": self.tracker.final_complete,
+            "hello_attempts": self.hello_attempts,
+            "display_wait_seconds": self.display_wait_seconds,
+            "display_handshake_restarts": self.handshake_restarts,
             "input_frames_sent": self.frame_sequence,
             "bytes_sent": self.bytes_sent,
             "bytes_received": self.bytes_received,
