@@ -92,7 +92,75 @@ bench, so `HARDWARE.md`'s measurement item stays open and is not claimed here.
 
 ## Result
 
-Not yet run. The code it exercises is host-verified — `host-tests/test_display_wait.py`
-covers the simultaneous cold boot end to end, including a display that arrives
-after the old timeout would have ended the session, a restored document that
-survives the wait untouched, and the sequence rules on both boards.
+**PASSED 2026-07-30.** Evidence: `BENCH_ONECABLE_FRUITJAM_SERIAL.jsonl` and its
+`.timestamped.jsonl`, 351 records over two cold boots. Only the Fruit Jam console
+exists in this configuration, by construction.
+
+**One USB-C cable was connected and the complete device started by itself.** No
+reset was pressed, no start order was used, and no key was touched before the
+document was on the panel.
+
+### The two cold boots, which are the same boot twice
+
+| | Boot 1 | Boot 2 |
+| --- | --- | --- |
+| Handshake attempts | 4 | 4 |
+| `display_wait_seconds` | 9.05 | 9.05 |
+| Document recovered | `NOTE 1`, 96 chars, revision 361 | `NOTE 1`, **107 chars, revision 372** |
+| Keyboard | `EPOMAKER TH40` `36B0:304E`, boot interface claimed | same |
+| First refresh | full, 3586 ms | full, 3525 ms |
+
+Boot 2 recovered exactly the 107 characters the MENU button checkpointed on the
+way out of boot 1, so the round trip closes: written, made durable by a button,
+power removed, and recovered by a rig that was told nothing.
+
+The wait is the phase's central number, and it is worth reading twice. **The
+Fruit Jam's first three handshakes went to a board that was not listening**, at
+3.00 s, 6.01 s, and 9.01 s, each one logging the 96 (then 107) characters it was
+holding and `"document_preserved": true`. The fourth was answered. On the code
+this replaced, the session would have ended in `status_hello timeout` and
+`result: ERROR` at five seconds — twice over, on both boots.
+
+### Everything else the run measured
+
+- 26 viewports sent, 26 caught up. Nothing lost, nothing stale at the end;
+- 24 partial refreshes: 845–966 ms, mean 924 ms — in line with every previous
+  bench run, so the shared supply did not slow the panel;
+- two full refreshes, one per session, 3586 ms and 3525 ms. The largest current
+  step of a run, taken twice, with no brownout and no reset;
+- 23 button presses received, 23 applied. One press, one action, ordinals 1..23
+  monotonic;
+- typing reached the document through the shared rail with no dropped or
+  duplicated report;
+- autosave journaled and the MENU exit checkpointed to `SAVED` every time;
+- microSD adopted the firmware's `/sd` mount on both boots.
+
+Zero of each of the following, across both sessions: `live_display_handshake_restarted`,
+`result: ERROR`, `duplicate or reversed input sequence`, `dev_display_error`,
+`shell_fault`, rejected events, queue overflows, keyboard disconnects, CRC
+failures, resynchronisation events, and storage faults.
+
+Operator observations, which the logs cannot supply: **nothing was warm to the
+touch** on either board, the cable, or the MagTag's regulator area, and **the
+panel was clean and legible** through both sessions.
+
+### What this run does not claim
+
+- **No current was measured.** There is still no USB power meter on the bench, so
+  every figure in `BENCH_POWER.md` section 4 remains documented-elsewhere or
+  estimated, and `HARDWARE.md`'s measurement item stays open. Two boards, a hub,
+  a keyboard, and a panel ran through one USB-C connector from a PC port without
+  a brownout; that is an observation, not an amperage;
+- **the receiver question is untouched.** It was not part of this run and nothing
+  here bears on `36B0:3002`;
+- **no thermal measurement.** "Nothing warm to the touch" is a hand, not a
+  thermocouple, and it is recorded as such;
+- **a long session was not run.** Two boots and a few minutes each is what this
+  check is; soak testing belongs to Priority 7.
+
+### Recorded along the way
+
+The Fruit Jam was captured waiting **24 seconds and climbing** before the rewire,
+with the MagTag not running at all — `BENCH_ONECABLE_PREFLIGHT_FRUITJAM.jsonl`.
+That is the retry doing the thing it was built for, on hardware, before the
+arrangement that needs it was even wired up.

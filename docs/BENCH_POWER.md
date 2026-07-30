@@ -22,6 +22,9 @@ battery revision, Priority 6, and stays there.
 > rather than one cable and a hub. Sections 5 to 7 are rewritten for it. That
 > port carries no 5 V while the Fruit Jam is in reset, which is why the start
 > order in section 7 is gone rather than merely relaxed.
+>
+> **Physically verified the same day.** One cable, two cold boots, the device
+> starting by itself both times. See [BENCH_POWER_CHECK.md](BENCH_POWER_CHECK.md).
 
 ## 1. The connection points, as documented
 

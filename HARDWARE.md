@@ -290,7 +290,10 @@ Do not connect one battery simultaneously to the independent charger circuits on
       same port and session as a control. Not to be pursued further. Evidence
       `docs/FRUITJAM_DONGLE_PROBE_SERIAL.jsonl`; the account is in `ROADMAP.md`.
 - [ ] Determine whether the Fruit Jam host port supplies enough current for a
-      2.4 GHz receiver's radio. **Still open.** The powered-hub test that would
+      2.4 GHz receiver's radio. **Still open**, and note that one-cable power did
+      *not* answer it even though the host port now also carries a MagTag: the
+      bench check ran with no meter, so "no brownout" is an observation about a
+      panel and a keyboard, not a figure about a radio. The powered-hub test that would
       settle it was declined on 2026-07-30; the wired control does not answer it,
       because a wired keyboard and a radio are not comparable loads. Worth
       re-asking after one-cable bench power — but note that the receiver hangs
@@ -341,7 +344,16 @@ Do not connect one battery simultaneously to the independent charger circuits on
       the panel answers instead of failing after one attempt, and the MagTag lets
       a handshake re-baseline its input numbering as long as it has displayed
       nothing yet. Host-verified; see `host-tests/test_display_wait.py`.
-- [ ] Run the physical one-cable bench check.
+- [x] Run the physical one-cable bench check. **PASSED 2026-07-30**; evidence
+      `docs/BENCH_ONECABLE_FRUITJAM_SERIAL.jsonl`, procedure and result in
+      `docs/BENCH_POWER_CHECK.md`. One USB-C cable was connected and the complete
+      device started by itself, twice, with no reset and no start order: four
+      handshake attempts and a 9.05 s wait on both boots, the document recovered
+      both times — the second recovering exactly what a MagTag button had
+      checkpointed before power was pulled — 26 viewports all displayed, two full
+      refreshes at 3586 ms and 3525 ms with no brownout, 24 partial refreshes
+      averaging 924 ms, 23 button presses all applied, and zero faults of any
+      kind. Nothing warm to the touch; panel clean.
 - [ ] Measure active and idle current for each board and USB receiver. **Still
       open, and now the one thing bench power leaves unmeasured.** A USB power
       meter on the upstream cable closes it, and would also give the receiver

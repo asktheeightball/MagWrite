@@ -26,21 +26,27 @@ Do not create new certification harnesses, evidence packages, compatibility inve
 10. ~~Integrate USB dongle keyboard compatibility.~~ Started 2026-07-30 and
     **blocked on hardware**: the only receiver on the bench is incompatible and
     closed, and no other exists here.
-11. Bring the bench to one-cable power. **<- current.** Audited 2026-07-30: the
-    direct 5 V feed is refused because neither board has a 5 V input. The
-    arrangement is now one supply into the Fruit Jam's USB-C with the MagTag fed
-    from a Fruit Jam USB-A host port, which removed the board start order
-    outright — those ports are dead while the Fruit Jam is in reset. The Fruit
-    Jam waits for the display instead of failing; host-verified, awaiting the
-    physical check.
-12. Complete the minimum standalone workflow.
+11. ~~Bring the bench to one-cable power.~~ **PHYSICALLY VERIFIED 2026-07-30.**
+    One USB-C cable into the Fruit Jam, the MagTag on a Fruit Jam USB-A host
+    port, and the complete device starts by itself.
+12. Complete the minimum standalone workflow. **<- current.**
 13. Defer keyboard edge cases, battery, enclosure, and hardening until their roadmap phase.
 
 ## Active product task
 
-**One-cable bench power — AUDITED 2026-07-30. The direct 5 V feed is refused;
-the physical check is pending.** The audit is `docs/BENCH_POWER.md`; the account
+**One-cable bench power — PHYSICALLY VERIFIED 2026-07-30.** Evidence
+`docs/BENCH_ONECABLE_FRUITJAM_SERIAL.jsonl`; the check is
+`docs/BENCH_POWER_CHECK.md`, the audit is `docs/BENCH_POWER.md`, and the account
 is in `ROADMAP.md`.
+
+**One USB-C cable was connected and the complete device started by itself,
+twice**, with no reset and no start order. Both cold boots: four handshake
+attempts, a 9.05 s wait, the document recovered, the keyboard claimed, a full
+refresh completed. The second boot recovered exactly the 107 characters a MagTag
+button had checkpointed before power was pulled. 26 viewports all displayed, 24
+partial refreshes averaging 924 ms, 23 button presses all applied, and zero
+faults of any kind. Nothing warm to the touch; panel clean. No current was
+measured — there is still no meter on the bench.
 
 The phase asked which board should take USB-C and which should be fed from the
 other's 5 V rail. **Neither, and not because of a margin.** The MagTag's pinout

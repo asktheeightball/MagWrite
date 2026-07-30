@@ -86,4 +86,4 @@ Run the current feasibility suite from the repository root:
 python -m unittest discover -s host-tests -p "test_*.py" -v
 ```
 
-The current suite contains 1,134 tests and has no third-party host dependencies.
+The current suite contains 1,135 tests and has no third-party host dependencies.

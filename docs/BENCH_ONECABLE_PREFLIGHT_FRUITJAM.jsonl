@@ -1,0 +1,6 @@
+]0;🐍code.py | 10.2.1\
+{"attempt":6,"retry_seconds":3.0,"waiting_seconds":15.01,"document_characters":96,"document_preserved":true,"event":"live_waiting_for_display","sequence":6}
+{"attempt":7,"retry_seconds":3.0,"waiting_seconds":18.01,"document_characters":96,"document_preserved":true,"event":"live_waiting_for_display","sequence":7}
+{"attempt":8,"retry_seconds":3.0,"waiting_seconds":21.02,"document_characters":96,"document_preserved":true,"event":"live_waiting_for_display","sequence":8}
+{"attempt":9,"retry_seconds":3.0,"waiting_seconds":24.02,"document_characters":96,"document_preserved":true,"event":"live_waiting_for_display","sequence":9}
+{"attempt":10,"retry_seconds":3.0,"waiting_seconds":27.02,"document_characters":96,"document_preserved":true,"event":"live_waiting_for_display","sequence":10}

@@ -1,0 +1,8 @@
+{"host_time": "2026-07-30T16:17:53.301116-04:00", "capture_event": "capture_start", "port": "COM11", "label": "preflight", "baud": 115200}
+{"host_time": "2026-07-30T16:17:53.353246-04:00", "capture_event": "connected", "port": "COM11", "label": "preflight"}
+{"host_time": "2026-07-30T16:17:53.564219-04:00", "monotonic": 0.265, "line": "\u001b]0;\ud83d\udc0dcode.py | 10.2.1\u001b\\"}
+{"host_time": "2026-07-30T16:17:55.232863-04:00", "monotonic": 1.937, "line": "{\"attempt\":6,\"retry_seconds\":3.0,\"waiting_seconds\":15.01,\"document_characters\":96,\"document_preserved\":true,\"event\":\"live_waiting_for_display\",\"sequence\":6}"}
+{"host_time": "2026-07-30T16:17:58.235874-04:00", "monotonic": 4.937, "line": "{\"attempt\":7,\"retry_seconds\":3.0,\"waiting_seconds\":18.01,\"document_characters\":96,\"document_preserved\":true,\"event\":\"live_waiting_for_display\",\"sequence\":7}"}
+{"host_time": "2026-07-30T16:18:01.241168-04:00", "monotonic": 7.953, "line": "{\"attempt\":8,\"retry_seconds\":3.0,\"waiting_seconds\":21.02,\"document_characters\":96,\"document_preserved\":true,\"event\":\"live_waiting_for_display\",\"sequence\":8}"}
+{"host_time": "2026-07-30T16:18:04.242797-04:00", "monotonic": 10.953, "line": "{\"attempt\":9,\"retry_seconds\":3.0,\"waiting_seconds\":24.02,\"document_characters\":96,\"document_preserved\":true,\"event\":\"live_waiting_for_display\",\"sequence\":9}"}
+{"host_time": "2026-07-30T16:18:07.246859-04:00", "monotonic": 13.953, "line": "{\"attempt\":10,\"retry_seconds\":3.0,\"waiting_seconds\":27.02,\"document_characters\":96,\"document_preserved\":true,\"event\":\"live_waiting_for_display\",\"sequence\":10}"}

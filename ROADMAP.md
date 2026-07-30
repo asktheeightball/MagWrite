@@ -37,7 +37,7 @@ this list wins.
 | 3 | MagWrite Shell | V1.3 | PHYSICALLY VERIFIED 2026-07-30 |
 | 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | PHYSICALLY VERIFIED 2026-07-30 |
 | 5 | Shell UX: one-gesture exit, and MagTag buttons | V1.5 | PHYSICALLY VERIFIED 2026-07-30 |
-| 6 | One-cable bench power | One-cable bench power | Audited 2026-07-30; direct 5 V feed refused, MagTag on a Fruit Jam USB-A port, start order removed in software, host-verified, pending a physical check |
+| 6 | One-cable bench power | One-cable bench power | PHYSICALLY VERIFIED 2026-07-30 |
 | 7 | Standalone workflow | Priority 5 | Not started |
 | 8 | Battery, enclosure, and hardening | Priorities 6 and 7 | Not started |
 
@@ -1173,7 +1173,42 @@ asks for a code change: the adapter, the `AUTO` seam, the state machine, and the
 diagnostics all did their jobs, and the one thing they could not do was invent a
 device that sends reports.
 
-## One-cable bench power — AUDITED 2026-07-30, DIRECT 5 V FEED REFUSED
+## One-cable bench power — PHYSICALLY VERIFIED 2026-07-30
+
+**One USB-C cable was connected and the complete device started by itself.** That
+was the phase's whole goal stated as a sentence, and it is now a thing that
+happened twice, on hardware, with no reset pressed and no start order used.
+Evidence `docs/BENCH_ONECABLE_FRUITJAM_SERIAL.jsonl`; the check and its full
+result are `docs/BENCH_POWER_CHECK.md`.
+
+Both cold boots produced the same numbers: **four handshake attempts, a 9.05 s
+wait**, the document recovered, the keyboard claimed, and a full refresh
+completed — 3586 ms and 3525 ms, the largest current step of a run, taken twice
+with no brownout. The second boot recovered exactly the 107 characters a MagTag
+button had checkpointed before power was pulled, so the loop closes: written,
+made durable by a button press, power removed, recovered by a rig that was told
+nothing.
+
+Across both sessions: 26 viewports sent and 26 displayed; 24 partial refreshes at
+845–966 ms, mean 924 ms, in line with every previous bench run; 23 button presses
+and 23 applied. Zero handshake restarts, `ERROR` results, `duplicate or reversed
+input sequence`, display errors, rejected events, queue overflows, keyboard
+disconnects, CRC failures, resynchronisation events, or storage faults. Nothing
+warm to the touch and the panel clean, both reported by the operator, because a
+log cannot say either.
+
+The wait is the number worth reading twice. **The first three handshakes of each
+boot went to a board that was not listening** — at 3.00 s, 6.01 s, and 9.01 s,
+each logging the document it was holding — and the fourth was answered. On the
+code this replaced, both boots would have ended in `status_hello timeout` and
+`result: ERROR` at five seconds.
+
+Not measured, and not claimed: a single current figure. There is still no USB
+power meter on the bench, so "no brownout with two boards, a hub, a keyboard, and
+a panel through one connector" is an observation, not an amperage, and
+`HARDWARE.md`'s measurement item stays open.
+
+### The audit that came first — direct 5 V feed refused
 
 The goal was one USB-C connection powering both boards with the wired UART and
 normal operation preserved. The audit came first and is in
@@ -1301,6 +1336,12 @@ by anything upstream of the board. The dongle phase remains blocked on an
 ordinary second receiver.
 
 It introduces no boost converter. The MT3608 belongs to Priority 6.
+
+It makes no thermal claim. "Nothing warm to the touch" is a hand, not a
+thermocouple, and it is recorded as exactly that.
+
+It is not a soak test. Two cold boots and a few minutes of writing each is what
+this check is; long-duration behaviour belongs to Priority 7.
 
 ## Priority 5 — Minimum standalone workflow — V1.6
 
