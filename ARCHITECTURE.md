@@ -221,7 +221,9 @@ The MagTag owns:
 - physical busy-state observation;
 - displayed revision and display errors;
 - local button scanning and debounce;
-- normalized button-event transmission.
+- normalized button-event transmission;
+- the persistent button footer, which names the four bezel actions and carries
+  no state the Fruit Jam owns.
 
 The MagTag does not independently:
 
@@ -424,6 +426,73 @@ Initial policy:
 
 The production full-refresh interval remains configurable and must be based on later wear testing.
 
+### Panel typography and layout — V1.7
+
+The UI draws with **CircuitPython's built-in `terminalio.FONT`** — Terminus, a
+6×12 monospace cell — at **native scale 1**, and with nothing else. Editor text,
+menus, titles, the startup and waiting screens, status, error text, and the
+button footer all go through the one path in `magtag/magwrite/font.py`.
+
+It replaced a 3×5 bitmap table maintained by hand in
+`magtag/magwrite/test_pattern.py`. That table worked, and it cost something every
+time: each new apostrophe, semicolon, and the whole lowercase alphabet was an act
+of type design, a character with no entry raised `KeyError` on the first frame
+carrying it, and the sanitizers on both boards existed largely to prevent that.
+The built-in font ships with the firmware, covers printable ASCII and beyond, and
+costs no flash and no maintenance. The old table is **kept, not deleted**: the
+one-shot hardware harnesses that produced this project's physical evidence still
+draw with it, and re-rendering a proven harness would change what those runs
+measured.
+
+Scale 1 is not a compromise. The built-in font's 6 px advance is exactly what the
+old table drew at scale 2, so the apparent size is what the bench already read
+comfortably — two pixels taller, with real letterforms. No larger integer scale
+fits a usable number of rows on a 128 px panel, and non-integer scaling and
+simulated bold are both refused: this is a 1-bit panel, and both produce mush.
+
+**Nothing about the geometry is written down.** `viewport_renderer.geometry()`
+asks the font for its own bounding box and derives the row pitch, the row count,
+and the column count from it. With the 6×12 built-in font that is:
+
+| Band | y | Height |
+| --- | --- | --- |
+| Title and right-aligned status | 2 | 12 |
+| Header rule | 16 | 1 |
+| Body rows 0–5, 14 px pitch | 19 | 6 × 12 |
+| Cursor underline | row + 12 | 2 |
+| Footer rule | 112 | 1 |
+| Button footer | 115 | 12 |
+
+giving **48 columns by 6 rows**, against 28 by 5 before. The cursor underline
+lives in the 2 px leading between rows, so it costs no height and can never
+overlap the row below. The last body row ends at y=102, ten pixels clear of the
+footer rule.
+
+That capacity is the one number the two boards must agree on, and they share no
+import: the Fruit Jam wraps to `editor_layout.VIEWPORT_COLUMNS/ROWS`, the MagTag
+derives it, and a host test asserts every copy against the derivation. Six rows
+by 48 columns is what raised the protocol payload maximum from 192 to 384 bytes;
+see `PROTOCOL.md`.
+
+### The button footer — V1.7
+
+A strip above the four bezel buttons, on every screen, naming what each one does:
+`MENU`, ▲, ▼, `SELECT`, centred on the four quarter-centres of the panel's long
+axis. The mapping is unchanged — A `MENU`, B `UP`, C `DOWN`, D `SELECT` — and so
+is every button's behaviour; what changed is that the panel now says so.
+
+It knows nothing. Four fixed labels for the four fixed normalized actions this
+board already sends, drawn locally rather than transmitted as viewport lines: a
+label the Fruit Jam had to send on every frame would be payload spent repeating
+itself forever, and a chance for the two boards to disagree about the bezel. It
+carries no state, so it is identical on every screen and a partial refresh never
+has to redraw it — a host test asserts that identity pixel for pixel.
+
+The arrows are filled triangles drawn from display primitives, not text. The
+built-in font has no arrow glyph in the printable-ASCII range both boards
+restrict themselves to, and `^` and `v` are a caret and a letter — readable as
+arrows only by someone already told they are arrows.
+
 ### Adaptive send pacing
 
 *When* the Fruit Jam transmits a viewport is decided in one place,
@@ -545,9 +614,12 @@ writer spends nearly all their time, and it is what the journal exists to
 provide. `NO_CARD` is always shown — a writing tool that silently stops
 persisting is worse than one that refuses to start.
 
-Every indicator character is present in the MagTag's proven 3×5 glyph table, and
-a host test asserts it. The indicator is drawn on the panel, so "a character"
-means "a character this panel can draw".
+Every indicator character is drawn by the MagTag's font, and a host test asserts
+it. The indicator is drawn on the panel, so "a character" means "a character this
+panel can draw". That alphabet is printable ASCII from V1.7, when the UI moved to
+`terminalio.FONT`; it was a hand-maintained 3×5 table before, which is why the
+first attempt at these indicators used `=` and `*` and raised `KeyError` on the
+first frame that carried one.
 
 ### Keyboard state
 
@@ -556,8 +628,8 @@ claimed, nothing when one is. Both indicators together fit the fixed twenty-byte
 status field exactly, which is why each is one character and why neither is drawn
 when it has nothing to report.
 
-The main menu additionally spells it out on its spare fifth row — the four menu
-items are never displaced — because a writer who has just connected one cable and
+The main menu additionally spells it out on a spare row below the four menu
+items — which are never displaced — because a writer who has just connected one cable and
 cannot type needs to know whether the device is broken or merely waiting.
 
 An absent keyboard is a **degraded mode**, never a stop. The device keeps looking

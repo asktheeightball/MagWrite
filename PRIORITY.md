@@ -33,15 +33,60 @@ Do not create new certification harnesses, evidence packages, compatibility inve
     2026-07-30.** The device is a standalone writing machine: one cable, both
     boards start by themselves, the document comes back, and it neither loses a
     late keyboard nor switches itself off.
-13. Integrate one rechargeable battery and one charging port — V1.7. **<- current.**
-14. Defer keyboard edge cases, enclosure, and hardening until their roadmap phase.
+13. Draw the MagTag UI in the built-in font and label the four buttons on the
+    panel — V1.7. **<- current**, host-verified, awaiting the physical check.
+14. Integrate one rechargeable battery and one charging port — V1.8.
+15. Defer keyboard edge cases, enclosure, and hardening until their roadmap phase.
 
 ## Active product task
 
-**V1.7, battery and charging.** See `ROADMAP.md` Priority 6. The USB power meter
-that phase needs is what finally answers the current question left open by the
-bench power audit, and no figure from this bench may be assumed until one is
-measured.
+**V1.7, the MagTag font and button footer.** Battery work is paused until this
+UI milestone is physically verified.
+
+Two changes, both to what the writer looks at and neither to what the device
+does.
+
+1. **The panel draws with CircuitPython's built-in `terminalio.FONT`**, at native
+   scale 1, everywhere: editor text, menus, titles, the startup and waiting
+   screens, status, error text, and the footer. It replaces a 3×5 bitmap table
+   maintained by hand, in which every apostrophe and the whole lowercase alphabet
+   had been an act of type design and a character with no entry raised `KeyError`
+   on the first frame that carried it. The panel's alphabet is now printable
+   ASCII rather than an explicit subset, so the punctuation a writer types is
+   drawn instead of being replaced with a space.
+2. **A persistent footer above the four bezel buttons** — `MENU`, an up arrow, a
+   down arrow, `SELECT` — on every screen. The mapping and every button's
+   behaviour are unchanged; the panel now says what they are. The arrows are
+   filled triangles from display primitives, because `^` and `v` are a caret and
+   a letter.
+
+**The layout is derived, not declared.** `viewport_renderer.geometry()` asks the
+font for its own bounding box and computes the row pitch, row count, and column
+count from it — so the five-row layout was not preserved and was not replaced by
+another arbitrary number. With the 6×12 built-in font the panel comes out at
+**48 columns by 6 rows**, against 28 by 5, which is roughly double the visible
+text at the same apparent size: the built-in font's 6 px advance is exactly what
+the old table drew at scale 2.
+
+That capacity is the one number the two boards must agree on and they share no
+import, so a host test asserts the Fruit Jam's `editor_layout` constants, the
+viewport message bounds, and the shell screen bounds all against the MagTag's
+derivation. Six rows of 48 is a 340-byte worst-case viewport, which raised the
+protocol payload maximum from 192 to 384 bytes and the parser accumulator from
+512 to 1024. Widening a bound accepts every frame the narrower one did, so
+nothing already proven on the wire is invalidated.
+
+**Host-verified, 1,226 tests, 41 of them new.** `compileall`, the UART
+validator, the CircuitPython compatibility sweep, and `git diff --check` all
+pass. Physical verification is the outstanding step and nothing here is claimed
+without it — in particular whether scale 1 is comfortable to read at arm's
+length, and whether the panel's left-to-right order is the bezel's. The second is
+one line, `button_footer.FOOTER_ACTIONS`, if it is wrong.
+
+**Deliberately not done:** the hand-drawn 3×5 table is kept rather than deleted.
+The one-shot hardware harnesses that produced this project's physical evidence
+draw with it, and re-rendering a proven harness would change what those runs
+measured. Nothing the writer sees comes from it any more.
 
 ## Previous product task
 
@@ -242,7 +287,8 @@ Carry forward, from V1.4 and V1.5:
 
 ## Next product task
 
-**V1.7 — one rechargeable battery and one charging port.** `ROADMAP.md` Priority
+**V1.8 — one rechargeable battery and one charging port.** Paused until the V1.7
+UI milestone above is physically verified. `ROADMAP.md` Priority
 6 carries the requirements: one protected single cell, one charger with
 power-path/load-sharing, one system power switch, regulated supply for both
 boards, no parallel charger circuits, brownout margin, and **measured** peak,
@@ -253,7 +299,7 @@ the one purchase that unblocks this phase**, and no current figure has ever been
 taken on this bench — the one-cable phase closed without one and said so. Nothing
 about the battery design can be sized honestly until it exists.
 
-The device is a usable standalone writing machine as of V1.6, so V1.7 is about
+The device is a usable standalone writing machine as of V1.6, so V1.8 is about
 making it portable rather than making it work.
 
 The dongle phase stays blocked on hardware that is not here. The hope that power

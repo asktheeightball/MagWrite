@@ -268,13 +268,19 @@ Two consequences worth writing down:
   the acknowledgement tracker would be reconciling frames that are not the same
   frame.
 - **Every character must have a glyph.** `shell_viewport.SAFE_CHARACTERS` is
-  asserted against the MagTag's real 3×5 table by a host test, and anything else
-  is replaced. This is a fixed defect, not a habit: the first save indicator used
-  `=` and `*`, which have no glyph, and the renderer raised `KeyError` on the
-  first frame that carried one. Error text is the obvious repeat of that mistake,
-  because it is the one string on the device that comes from an exception rather
-  than a literal — which is also why `NO_CARD` is drawn as `NO CARD`. The
-  underscore has no glyph.
+  what the panel's font can draw and anything else is replaced. This is a fixed
+  defect, not a habit: the first save indicator used `=` and `*`, which the
+  hand-drawn 3×5 table had no entry for, and the renderer raised `KeyError` on
+  the first frame that carried one. Error text is the obvious repeat of that
+  mistake, because it is the one string on the device that comes from an
+  exception rather than a literal.
+
+  From V1.7 that alphabet is printable ASCII, because the panel draws with
+  `terminalio.FONT`. A wider alphabet is not a complete one — an accented letter
+  in an exception message still has no glyph and is still replaced — and the
+  renderer still refuses rather than drawing a hole in a word. `NO_CARD` is still
+  drawn as `NO CARD`; the underscore would render now, and a writer should still
+  not be shown a program's identifier.
 
 The shell uses scenario id 7, distinct from the editor's 6, so a shell frame is
 never mistaken for a document frame in a capture or a later reconciliation.

@@ -85,7 +85,20 @@ Logic that does not require CircuitPython or ESP32 hardware should be testable u
   whose panel is not powered for nine seconds; and the MagTag's own startup
   screens encoded, decoded, and drawn through the real renderer, including a
   fault screen built from an exception message full of characters the panel has
-  no glyph for.
+  no glyph for;
+- the panel's font, its derived geometry, and the button footer: that the UI
+  resolves the firmware's own `terminalio.FONT` wherever it exists and the
+  metrics-only host stand-in only where it does not; that the font has a glyph
+  for every character either board may draw and refuses one it does not; that the
+  row pitch, row count, and column count follow the bounding box the font reports
+  rather than a literal, including the assertion that **one more row or one more
+  column would not fit**; that the Fruit Jam's layout constants, the viewport
+  message bounds, and the shell screen bounds all equal the capacity the MagTag
+  derives, because the two boards share no import; that the glyph cache cannot
+  grow past the alphabet; and that every screen — editor, menu, drafts, startup,
+  waiting, error, and one filled to the last row and column — carries the footer,
+  draws nothing in the gap above it, and renders it **pixel for pixel identically**,
+  which is what lets a partial refresh leave it alone.
 
 No test asserts a bound as a literal. Every size is derived from the editor's own
 constants, so these keep testing the property the next time the bounds move --
@@ -100,4 +113,4 @@ Run the current feasibility suite from the repository root:
 python -m unittest discover -s host-tests -p "test_*.py" -v
 ```
 
-The current suite contains 1,185 tests and has no third-party host dependencies.
+The current suite contains 1,226 tests and has no third-party host dependencies.

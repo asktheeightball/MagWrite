@@ -57,8 +57,9 @@ both bounded:
 - **layout.** `Layout.locate` runs per keystroke and is linear in the characters
   *before the cursor*. `Layout.rows` is linear in the whole document but runs
   only when a viewport is built, which pacing already holds to roughly one a
-  second. What crosses the UART is unchanged: a five-row window is the same size
-  whatever is behind it.
+  second. What crosses the UART does not grow with the document: one window is
+  one window, whatever is behind it. (It is six rows of 48 from V1.7, five of 28
+  before, which is a change to the panel and not to this argument.)
 
 `document_store.RESERVE_BYTES` went from 32 KB to 128 KB to match, so "refuse
 before exhaustion" does not degrade into "refuse during exhaustion" exactly when
@@ -112,7 +113,7 @@ that never asks a question, because the entire value of it is the interval
 between deciding to write something down and being able to.
 
 **Drafts** — the working set, most recently opened first, one document a row on a
-five-row panel with the window following the selection. The only item that shows
+six-row panel with the window following the selection. The only item that shows
 a screen, because it is the only one whose answer the device cannot know.
 
 **Recent** — the document with the highest open ordinal, which is the one that

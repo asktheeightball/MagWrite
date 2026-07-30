@@ -15,16 +15,16 @@ Offset  Size  Field
 3       1     Type (see message types below)
 4       4     Sequence
 8       4     Document/view revision
-12      2     Payload length (0..192)
+12      2     Payload length (0..384)
 14      N     Payload
 14+N    4     IEEE CRC-32 of bytes 0 through 13+N
 ```
 
 CRC-32 uses polynomial `0xEDB88320`, initial value `0xFFFFFFFF`, reflected
 input/output processing, and final XOR `0xFFFFFFFF`. The `123456789` check
-vector is `0xCBF43926`. Maximum frame size is 210 bytes. The incremental
-parser accumulator is capped at 512 bytes, safely holding a maximum 210-byte
-frame remainder plus one 256-byte hardware read. It searches for the `MW` prefix after
+vector is `0xCBF43926`. Maximum frame size is 402 bytes. The incremental
+parser accumulator is capped at 1024 bytes, safely holding a maximum 402-byte
+frame remainder plus one 512-byte hardware read. It searches for the `MW` prefix after
 noise or rejection and explicitly counts invalid version, type, length, CRC,
 and buffer-overflow events.
 
@@ -41,17 +41,28 @@ Size  Field
 N     title
 1     status length (0..20)
 N     status
-1     visible line count (1..5)
+1     visible line count (1..6)
 repeat line count:
-  1   line length (0..28)
+  1   line length (0..48)
   N   line
 ```
 
-The visible line ceiling was three for the one-way and acknowledgement runs and
-was raised to five for the multiline editor. Worst case payload is
-`4 + 20 + 1 + 20 + 1 + 5 * (1 + 28) = 191` bytes, still inside the unchanged
-192-byte maximum, so the frame format, CRC, and parser bounds are untouched and
-earlier three-line frames remain valid.
+The visible line ceiling was three for the one-way and acknowledgement runs,
+five for the multiline editor, and six from V1.7 — when the MagTag UI moved to
+CircuitPython's built-in `terminalio.FONT` and the panel's real capacity became
+**48 columns by 6 rows**. Worst case payload is
+`4 + 20 + 1 + 20 + 1 + 6 * (1 + 48) = 340` bytes, which is what raised the
+payload maximum from 192 to 384 and the parser accumulator from 512 to 1024.
+The frame format, CRC, and framing rules are untouched, and widening a bound
+accepts every frame the narrower one did — so three-line and five-line frames
+from every earlier proven run remain valid.
+
+The panel geometry is **derived, not declared**: `viewport_renderer.capacity()`
+computes it from the bounding box the font itself reports. The line and row
+ceilings above are what that derivation currently produces with the 6×12
+built-in font, mirrored into the Fruit Jam's `editor_layout` constants because
+the two boards share no import. A host test asserts every copy against the
+derivation.
 
 The cursor column may equal the selected line length (the insertion cell after
 the final character). Oversized or malformed payloads are rejected; they are

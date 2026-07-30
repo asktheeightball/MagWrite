@@ -39,7 +39,8 @@ this list wins.
 | 5 | Shell UX: one-gesture exit, and MagTag buttons | V1.5 | PHYSICALLY VERIFIED 2026-07-30 |
 | 6 | One-cable bench power | One-cable bench power | PHYSICALLY VERIFIED 2026-07-30 |
 | 7 | Minimum standalone workflow | V1.6 | PHYSICALLY VERIFIED 2026-07-30 |
-| 8 | Battery, enclosure, and hardening | Priorities 6 and 7 | Not started |
+| 8 | MagTag font and button footer | V1.7 | Host-verified; physical check outstanding |
+| 9 | Battery, enclosure, and hardening | Priorities 6 and 7 | Not started |
 
 Writing must feel right before anything is stored, and storage must be
 trustworthy before a shell is built on top of it.
@@ -1512,7 +1513,7 @@ built from an exception message containing characters the panel has no glyph for
   sequence. The device is on while it has power and off when it is not, and every
   editor exit checkpoints, so removing power is safe at any moment. Predictable
   startup was the part of that item this phase owed; power management belongs to
-  V1.7, where there is something to manage;
+  V1.8, where there is something to manage;
 - **the 30-minute *writing* session.** The physical run sat idle past the 1800 s
   bound V1.6 removed and was still live afterwards, so the device is confirmed
   not to stop itself. That is not thirty minutes of sustained writing, and
@@ -1546,7 +1547,137 @@ count, or character total is claimed, because nothing measured any. That is a
 weaker form of evidence than the earlier phases carry and the correct form for
 this one.
 
-## Priority 6 — Unified single-battery power — V1.7
+## V1.7 — MagTag font and button footer — HOST-VERIFIED, PHYSICAL CHECK OUTSTANDING
+
+Two changes to what the writer looks at, and none to what the device does. The
+editor, shell, persistence, UART, keyboard, and standalone behaviour are all
+unchanged; every one of their host tests passes untouched except where a test
+asserted a panel dimension as a literal.
+
+### 1. The panel draws with CircuitPython's built-in font
+
+`terminalio.FONT` — Terminus, a 6×12 monospace cell — at **native scale 1**,
+everywhere: editor text, menus, titles, the startup and waiting screens, status,
+error text, and the footer. One path, `magtag/magwrite/font.py`.
+
+It replaced a 3×5 bitmap table maintained by hand in
+`magtag/magwrite/test_pattern.py`. That table worked. It also meant that every
+apostrophe, semicolon, and the whole lowercase alphabet arrived as a separate act
+of type design; that a character with no entry raised `KeyError` on the first
+frame that carried it, which is a fault that reaches the writer as a dead panel;
+and that the sanitizers on **both** boards existed largely to prevent that. The
+built-in font ships with the firmware, covers printable ASCII and beyond, and
+costs no flash and no maintenance.
+
+**Scale 1 is not a compromise.** The built-in font's 6 px advance is exactly what
+the old table drew at scale 2, so the apparent size is the size the bench already
+read comfortably — two pixels taller, with real letterforms instead of a 3×5
+approximation of them. No larger integer scale fits a usable number of rows on a
+128 px panel. Non-integer scaling and simulated bold are both refused: this is a
+1-bit panel with no antialiasing, and both produce mush.
+
+**The alphabet widened, and that is a visible change.** `SAFE_CHARACTERS` on both
+boards is now printable ASCII rather than a hand-written subset, so `@ # $ % ^ &
+* _ + = [ ] { } \ | ~` and the backtick are drawn instead of being replaced with
+a space. A wider alphabet is not a complete one — an accented letter in an
+exception message still has no glyph, is still replaced, and the renderer still
+**refuses** a character it cannot draw rather than leaving a hole in a word.
+
+**The 3×5 table is kept, not deleted.** The one-shot hardware harnesses that
+produced this project's physical evidence still draw with it. Re-rendering a
+proven harness to match a later font would change what those runs measured.
+Nothing the writer sees comes from it any more.
+
+### The layout is derived, not declared
+
+The brief asked for the arbitrary five-row layout to be recomputed from the real
+font metrics rather than preserved, and that is literally what the code does:
+`viewport_renderer.geometry()` asks the font for its own bounding box and derives
+the row pitch, the row count, and the column count from it. Nothing in the layout
+is a written-down number. With the 6×12 built-in font:
+
+| Band | y | Height |
+| --- | --- | --- |
+| Title and right-aligned status | 2 | 12 |
+| Header rule | 16 | 1 |
+| Body rows 0–5, 14 px pitch | 19 | 6 × 12 |
+| Cursor underline | row + 12 | 2 |
+| Footer rule | 112 | 1 |
+| Button footer | 115 | 12 |
+
+**48 columns by 6 rows**, against 28 by 5 — roughly double the visible text at
+the same apparent size, because the panel's width is finally used. The cursor
+underline lives in the 2 px leading between rows, so it costs no height and
+cannot overlap the row below. The last body row ends at y=102, ten pixels clear
+of the footer rule; a host test asserts that one more row, and one more column,
+would not fit.
+
+That capacity is the one number the two boards must agree on, and they share no
+import by design. The Fruit Jam wraps to `editor_layout.VIEWPORT_COLUMNS` and
+`VIEWPORT_ROWS`; the MagTag derives it; a host test asserts those constants, the
+viewport message bounds, and the shell screen bounds all against the derivation.
+It is the same argument the button action tables get, for the same reason.
+
+**The protocol bound moved, and only widened.** Six rows of 48 is a 340-byte
+worst-case viewport, so `MAX_PAYLOAD_SIZE` went 192 → 384 and the parser
+accumulator 512 → 1024, with the MagTag's UART receive buffer 256 → 512 to stay
+above one whole frame. The frame format, CRC, sequence discipline, and framing
+rules are untouched, and a widened bound accepts every frame the narrower one
+did — so nothing already proven on the wire is invalidated.
+
+### 2. A persistent button footer
+
+A strip directly above the four bezel buttons, on **every** screen — editor,
+menu, drafts, startup, waiting, status, and error — reading `MENU`, ▲, ▼,
+`SELECT`, each centred on the quarter-centre of the panel its button sits under.
+The mapping is unchanged (A `MENU`, B `UP`, C `DOWN`, D `SELECT`) and so is every
+button's behaviour. What changed is that the panel now says what they are; until
+V1.7 the only place that mapping was written down was a table in `HARDWARE.md`,
+which is no use to someone who has just picked the device up.
+
+**It knows nothing**, and that is deliberate. Four fixed labels for the four
+fixed normalized actions this board already sends. It does not know the shell
+state, whether an action is available, or what it will do — the Fruit Jam owns
+all of that — so the footer can never disagree with the shell. It is drawn
+locally rather than sent as viewport lines: a label the Fruit Jam transmitted on
+every frame would be payload spent repeating itself forever, and a second place
+for the two boards to disagree about the bezel.
+
+Because it carries no state it is **identical on every screen**, which is what
+lets a partial refresh leave it alone; a host test asserts that identity pixel
+for pixel across seven screens, including one filled to the last row and column.
+
+**The arrows are drawn, not set.** Filled triangles from display primitives, nine
+pixels across. The built-in font has no arrow glyph in the printable-ASCII range
+both boards restrict themselves to, and `^` and `v` are a caret and a letter —
+readable as arrows only by someone who has already been told they are arrows.
+
+### Coverage
+
+1,226 host tests pass, 41 of them new in `host-tests/test_panel_layout.py`, plus
+`compileall`, the UART validator, the CircuitPython compatibility sweep, and
+`git diff --check`. The new tests cover the font resolution rule, the derived
+geometry including the two "one more would not fit" bounds, the cross-board
+capacity agreement, the bounded glyph cache, and the footer on every screen.
+
+The renderer's cost was measured on the host before and after, because a panel
+that is 2.4× more text is 2.4× more pixel work on an ESP32-S2: the naive glyph
+blit was 4.3× the old table's, and caching each glyph's rows as integer bitmasks
+brought the worst case back to 2× for twice the characters. The cache is bounded
+by the alphabet, because every character outside it raises before it is cached.
+
+### What is not claimed
+
+Everything physical. Whether scale 1 is comfortable to read at arm's length,
+whether the labels sit over the right buttons, whether the arrows read as arrows
+on e-paper, and whether a partial refresh leaves the footer clean are all
+questions only the device answers. The panel's left-to-right order being the
+bezel's is the one that has a cheap fix if it is wrong:
+`button_footer.FOOTER_ACTIONS` is a single line to reverse.
+
+Battery work is paused until this is verified on hardware.
+
+## Priority 6 — Unified single-battery power — V1.8
 
 Replace separate bench USB power with one internal battery and one charging input.
 
@@ -1564,7 +1695,7 @@ Requirements:
 
 **Exit:** both boards, keyboard receiver where applicable, storage, and display run reliably from one rechargeable battery through one external charging port.
 
-## Priority 7 — Enclosure and product hardening — V1.7
+## Priority 7 — Enclosure and product hardening — V1.9
 
 - enclosure and internal mounting;
 - cable strain relief and serviceability;

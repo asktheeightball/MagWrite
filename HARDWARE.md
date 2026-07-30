@@ -212,6 +212,18 @@ Fruit Jam action mapping
 Back-to-menu and select are the outer two so a thumb cannot confuse either with
 the movement pair between them.
 
+From V1.7 the panel says so. A persistent footer sits directly above the bezel on
+every screen — editor, menus, drafts, startup, waiting, status, and error — with
+`MENU`, an up arrow, a down arrow, and `SELECT` centred on the four
+quarter-centres of the panel's long axis, left to right in the pin order above.
+It changes no button behaviour and carries no state; it is drawn locally by the
+MagTag and costs no protocol. See `ARCHITECTURE.md`, "The button footer".
+
+Left-to-right on the panel must be left-to-right on the bezel, and that is a
+claim only the physical device can settle. `button_footer.FOOTER_ACTIONS` is the
+panel's order and is the single line to reverse if a check ever shows the labels
+the other way round.
+
 The MagTag reports only:
 
 - a **normalized action** — `MENU`, `UP`, `DOWN`, `SELECT` — never which physical

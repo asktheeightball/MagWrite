@@ -34,7 +34,11 @@ magwrite/uart_protocol.py bounded binary parser and CRC-32
 magwrite/uart_receiver.py sequence validation and newest-viewport coalescer
 magwrite/transport_scheduler.py drain-first single-refresh scheduler
 magwrite/viewport_message.py bounded semantic viewport model
-magwrite/viewport_renderer.py display-only complete-snapshot renderer
+magwrite/viewport_renderer.py display-only renderer, geometry derived from the font
+magwrite/font.py         the UI's one font: terminalio.FONT at native scale 1
+magwrite/button_footer.py the persistent strip naming the four bezel actions
+magwrite/mono_canvas.py  1-bit framebuffer and the landscape drawing primitives
+magwrite/test_pattern.py the superseded 3x5 table, kept for the proven harnesses
 magwrite/buttons.py      debounced four-button pad and normalized actions
 magwrite/startup_screens.py the two local screens drawn before the link is up
 dev_display_runtime.py   the runtime, in the STANDALONE or DEVELOPMENT profile

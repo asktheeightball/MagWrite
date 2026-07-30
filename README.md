@@ -51,7 +51,8 @@ The project has physically verified:
 - bidirectional UART display acknowledgements;
 - stale-frame coalescing;
 - physical displayed-revision and viewport-hash reconciliation;
-- the multiline editor and five-line MagTag layout;
+- the multiline editor and the MagTag layout, five rows at the time and six from
+  V1.7;
 - one wired USB HID keyboard directly on the Fruit Jam;
 - microSD autosave and forced-power-loss recovery;
 - the MagWrite Shell;
@@ -79,8 +80,10 @@ The project has physically verified:
    input; see [docs/BENCH_POWER.md](docs/BENCH_POWER.md).
 7. ~~Build the minimum standalone writing workflow.~~ Physically verified
    2026-07-30 — see [docs/STANDALONE_CHECK.md](docs/STANDALONE_CHECK.md).
-8. Integrate one rechargeable battery and one charging port. **<- current.**
-9. Complete enclosure and product hardening.
+8. Draw the MagTag UI in CircuitPython's built-in font and label the four
+   buttons on the panel. **<- current**, awaiting physical verification.
+9. Integrate one rechargeable battery and one charging port.
+10. Complete enclosure and product hardening.
 
 ## Running it
 
