@@ -26,7 +26,7 @@ one string on the device that comes from an exception rather than from a literal
 from magwrite_transport import save_state as save_state_module
 from magwrite_transport.deterministic_viewports import encode_viewport
 from magwrite_transport.shell import (
-    STATE_ERROR, STATE_EXIT, STATE_MAIN_MENU, STATE_SAVE_STATUS,
+    STATE_DRAFTS, STATE_ERROR, STATE_EXIT, STATE_MAIN_MENU, STATE_SAVE_STATUS,
 )
 
 # Distinct from the editor's scenario id so a shell frame is never mistaken for a
@@ -41,6 +41,8 @@ MENU_TITLE = "MAGWRITE MENU"
 SAVE_TITLE = "MAGWRITE SAVE"
 ERROR_TITLE = "MAGWRITE ERROR"
 EXIT_TITLE = "MAGWRITE"
+DRAFTS_TITLE = "MAGWRITE DRAFTS"
+NO_DRAFTS = "NO DRAFTS YET"
 
 SELECTED_PREFIX = "> "
 UNSELECTED_PREFIX = "  "
@@ -148,6 +150,35 @@ def menu_payload(shell, save_indicator=None):
     return _encode(MENU_TITLE, tuple(lines), row, 0, status)
 
 
+def drafts_payload(shell, save_indicator=None):
+    """The working set: one document a row, the selected one marked.
+
+    The catalogue is bounded well above five, so the panel shows a window and the
+    status field says where in the list the writer is. Scrolling a list of titles
+    is the same problem as scrolling a document and gets the same answer -- the
+    window follows the cursor, and it is a pure function of the selection rather
+    than of how the writer arrived at it.
+    """
+    visible = shell.visible_drafts()
+    if not visible:
+        lines = (NO_DRAFTS, "", "ESC  MENU")
+        return _encode(DRAFTS_TITLE, lines, 0, 0, _status("0/0", save_indicator))
+    lines = []
+    for offset, entry in enumerate(visible):
+        index = shell.draft_top + offset
+        prefix = SELECTED_PREFIX if index == shell.draft_selection else (
+            UNSELECTED_PREFIX
+        )
+        lines.append(prefix + entry.title)
+    row = shell.draft_selection - shell.draft_top
+    if not 0 <= row < len(lines):
+        row = 0
+    status = _status(
+        "%d/%d" % (shell.draft_selection + 1, shell.draft_count), save_indicator
+    )
+    return _encode(DRAFTS_TITLE, tuple(lines), row, 0, status)
+
+
 def save_payload(shell, editor, save_indicator=None, state=None):
     """What leaving the editor did, and both ways back out of this screen.
 
@@ -161,7 +192,9 @@ def save_payload(shell, editor, save_indicator=None, state=None):
         headline = "NOT SAVING"
     else:
         headline = save_state_module.label(state)
-    label = shell.mode_label()
+    # The document's own title when there is one, so a writer with four journal
+    # entries and three notes can tell which one they just left.
+    label = shell.panel_title()
     lines = [
         headline,
         "%d CHARS  %d LINES" % (editor.character_count(), len(editor.lines)),
@@ -200,6 +233,8 @@ def payload(shell, editor, save_indicator=None):
     state = shell.state
     if state == STATE_MAIN_MENU:
         return menu_payload(shell, save_indicator)
+    if state == STATE_DRAFTS:
+        return drafts_payload(shell, save_indicator)
     if state == STATE_SAVE_STATUS:
         return save_payload(shell, editor, save_indicator)
     if state == STATE_ERROR:

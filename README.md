@@ -58,7 +58,7 @@ The multiline Fruit Jam editor is implemented and host-tested. Its integrated ph
 1. Physically verify the integrated multiline editor and five-line MagTag layout.
 2. Add MagTag button events over the existing return UART link.
 3. Integrate one known USB HID keyboard directly on the Fruit Jam.
-4. Add one-document microSD autosave and forced-power-loss recovery.
+4. Add microSD autosave, forced-power-loss recovery, and the four writing modes.
 5. Build the minimum standalone writing workflow.
 6. Integrate one rechargeable battery and one charging port.
 7. Complete enclosure and product hardening.
@@ -73,7 +73,7 @@ docs/               build, wiring, testing, reports, and research notes
 keyboard-bridge/    deferred LOLIN32 Bluetooth adapter work, if later required
 ```
 
-See [PRODUCT.md](PRODUCT.md), [ROADMAP.md](ROADMAP.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [HARDWARE.md](HARDWARE.md) for the current specification and decisions. [docs/PERSISTENCE.md](docs/PERSISTENCE.md) and [docs/SHELL.md](docs/SHELL.md) carry the storage and shell designs.
+See [PRODUCT.md](PRODUCT.md), [ROADMAP.md](ROADMAP.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [HARDWARE.md](HARDWARE.md) for the current specification and decisions. [docs/PERSISTENCE.md](docs/PERSISTENCE.md), [docs/SHELL.md](docs/SHELL.md), and [docs/MODES.md](docs/MODES.md) carry the storage, shell, and writing-mode designs.
 
 ## Related research
 

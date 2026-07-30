@@ -1,10 +1,15 @@
 # MagWrite Persistence and Recovery
 
-V1.2. One document, on the microSD card, that survives forced power loss.
+V1.2. Documents on the microSD card that survive forced power loss.
 
 Status: **physically verified on 2026-07-30.** A writing session survived a
 forced power loss with the final acknowledged edit recovered exactly. See
 [Hardware findings](#hardware-findings--2026-07-30).
+
+**Updated in V1.4**, which generalised one document to many. Every argument below
+is unchanged and now applies per document; the file names gained a document id
+and the character bound grew from 512 to 8192. The catalogue that decides *which*
+document is in `docs/MODES.md`.
 
 ## What acknowledged means
 
@@ -28,24 +33,32 @@ and a dead panel costs visibility, never words.
 ## Layout
 
 ```text
-/sd/magwrite/documents/active.md         plain text, readable on any computer
-/sd/magwrite/documents/active.prev.md    the previous plain-text mirror
-/sd/magwrite/documents/active.new.md     a mirror being written
-/sd/magwrite/recovery/active.log         append-only journal of snapshots
-/sd/magwrite/recovery/checkpoint.log     append-only checkpoint records
+/sd/magwrite/index.log                   append-only catalogue (V1.4)
+/sd/magwrite/documents/<id>.md           plain text, readable on any computer
+/sd/magwrite/documents/<id>.prev.md      the previous plain-text mirror
+/sd/magwrite/documents/<id>.new.md       a mirror being written
+/sd/magwrite/recovery/<id>.log           append-only journal of snapshots
+/sd/magwrite/recovery/<id>.ckpt.log      append-only checkpoint records
 ```
 
-**The recovery logs are authoritative.** `active.md` is a mirror, maintained so
-the writer's work is a real file on a real card that opens in any editor. It is
-never what recovery trusts.
+**The recovery logs are authoritative.** `<id>.md` is a mirror, maintained so the
+writer's work is a real file on a real card that opens in any editor. It is never
+what recovery trusts.
 
 That split is what keeps the design small. Making the `.md` file authoritative
 needs either a metadata header inside it — which stops it being a plain-text
 document — or a sidecar, which reintroduces the two-file atomicity problem the
-append-only log already solves. The document is bounded at 512 characters, so
-mirroring it costs a few hundred bytes and buys a recovery path containing
-exactly one kind of write: an append that either lands whole or is rejected by
-its own CRC.
+append-only log already solves. The document is bounded, so mirroring it costs a
+bounded number of bytes and buys a recovery path containing exactly one kind of
+write: an append that either lands whole or is rejected by its own CRC.
+
+Through V1.3 these names were literal — `active.md`, `active.log`,
+`checkpoint.log`. `active` is now simply a document id, and it is the one an
+earlier build already used, so a card written by V1.2 or V1.3 needs nothing moved
+or rewritten. The single exception is `recovery/checkpoint.log`, whose per-id name
+would be `active.ckpt.log`: it is **read at its old name** whenever the new one
+does not yet exist, and never renamed. A rename is a write, and writing to
+somebody's only copy in order to upgrade it is how upgrades lose documents.
 
 ## Snapshots, not deltas
 
@@ -90,10 +103,10 @@ header resurrect a stale document.
 
 ## The checkpoint sequence, and every way it can be interrupted
 
-1. append the newest snapshot to `checkpoint.log` and sync;
-2. truncate `active.log`;
-3. rewrite the mirror: write `active.new.md`, rotate `active.md` to
-   `active.prev.md`, rename `active.new.md` to `active.md`.
+1. append the newest snapshot to `<id>.ckpt.log` and sync;
+2. truncate `<id>.log`;
+3. rewrite the mirror: write `<id>.new.md`, rotate `<id>.md` to `<id>.prev.md`,
+   rename `<id>.new.md` to `<id>.md`.
 
 | Power lost | What survives | Cost |
 | --- | --- | --- |

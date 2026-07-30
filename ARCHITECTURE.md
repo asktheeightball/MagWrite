@@ -131,8 +131,12 @@ decides where the writer is and where input goes.
 
 ```text
 MAIN_MENU --Enter--> EDITOR --Esc--> SAVE_STATUS --Enter--> MAIN_MENU
-    |                                     |
-   Esc                                   Esc --> EDITOR
+    |    |                                |
+    |   Enter (Drafts)                   Esc --> EDITOR
+    |    v
+    |  DRAFTS --Enter--> EDITOR
+    |    |
+   Esc  Esc --> MAIN_MENU
     v
   EXIT                    any fault --> ERROR --Enter--> MAIN_MENU
 ```
@@ -155,9 +159,24 @@ The rules that keep it safe:
   cannot make sense of becomes a recoverable error screen. The shell does not
   raise.
 
-For this phase the four menu items — Journal, Quick Note, Drafts, Recent — all
-route into the one document. The mode is carried and drawn, and is the seam V1.4
-attaches its per-mode policy to.
+### Modes
+
+Added in V1.4; `docs/MODES.md` carries the design and the reasoning.
+
+Each of the four menu items is a *choice of document*, and that is all a mode is.
+Every one resolves to the same two operations — record the open in the catalogue,
+and point the proven store at that document id. No mode owns a document format,
+a record format, a recovery rule, a renderer, a transport, or a pacing policy.
+
+The shell may not touch a card, so it does not: it records at most one bounded
+request and the session performs it, in the same loop iteration, before any frame
+is built. A document switch is a **handover, not a close** — the outgoing
+document is checkpointed before anything is rebound, and there is still exactly
+one `MultilineEditor` for the life of the session.
+
+A document's **kind** — `JOURNAL`, `NOTE`, or `DRAFT` — is a property of the
+document, not of the menu item it was reached through. That is what makes a
+restored session restore its mode, which V1.3 could not do.
 
 ## Responsibility boundaries
 
@@ -175,6 +194,8 @@ The Fruit Jam owns:
 - document and viewport revisions;
 - acknowledgement tracking and timeout policy;
 - microSD autosave, checkpoints, and recovery;
+- the document catalogue: identity, kind, title, and last-opened ordering;
+- which document each mode opens, and making the outgoing one durable first;
 - document metadata and application workflow;
 - interpretation of MagTag button events;
 - battery, keyboard, storage, and save-state indicators.
@@ -319,29 +340,56 @@ alongside the constants they justify.
 
 ## Storage model
 
-One open document, on the microSD card, on the Fruit Jam. Implemented in V1.2;
-`docs/PERSISTENCE.md` carries the full reasoning and the recovery argument.
+Documents on the microSD card, on the Fruit Jam. Implemented in V1.2 for one
+document and generalised to many in V1.4; `docs/PERSISTENCE.md` carries the
+durability and recovery argument, `docs/MODES.md` the catalogue.
 
 ```text
-/sd/magwrite/documents/active.md         plain text, readable on any computer
-/sd/magwrite/documents/active.prev.md    the previous plain-text mirror
-/sd/magwrite/documents/active.new.md     a mirror being written
-/sd/magwrite/recovery/active.log         append-only journal of snapshots
-/sd/magwrite/recovery/checkpoint.log     append-only checkpoint records
+/sd/magwrite/index.log                   append-only catalogue
+/sd/magwrite/documents/<id>.md           plain text, readable on any computer
+/sd/magwrite/documents/<id>.prev.md      the previous plain-text mirror
+/sd/magwrite/documents/<id>.new.md       a mirror being written
+/sd/magwrite/recovery/<id>.log           append-only journal of snapshots
+/sd/magwrite/recovery/<id>.ckpt.log      append-only checkpoint records
 ```
 
-**The recovery logs are authoritative.** `documents/active.md` is a plain-text
+**The recovery logs are authoritative.** `documents/<id>.md` is a plain-text
 mirror kept for the writer and for any computer the card is later plugged into;
 recovery never trusts it. Making the `.md` file authoritative would require
 either a metadata header inside it, which stops it being a plain-text document,
 or a sidecar, which reintroduces the two-file atomicity problem an append-only
 log already solves.
 
+The catalogue is the same append-only discipline applied to metadata: identity,
+kind, title, and a monotonic open ordinal. The **highest ordinal is the active
+document**, so there is no separate pointer file that could disagree with the
+catalogue after a power cut.
+
+`active` is a legal id and is the one V1.2 and V1.3 already wrote, so a card from
+an earlier build is adopted by appending one catalogue record. Nothing the writer
+owns is moved, renamed, or rewritten.
+
 Journal records are **full document snapshots, not deltas**. The document is
-bounded at 512 characters, so a snapshot costs a few hundred bytes; a delta
-journal would need a replay engine that separately models what BACKSPACE and
-ENTER mean, and two models of editor semantics that must agree forever is how a
-recovery format ends up unable to reproduce the document it recorded.
+bounded, so a snapshot has a fixed worst case in bytes; a delta journal would
+need a replay engine that separately models what BACKSPACE and ENTER mean, and
+two models of editor semantics that must agree forever is how a recovery format
+ends up unable to reproduce the document it recorded. That argument gets stronger
+as the document grows, not weaker — a longer history is more replay to be wrong
+about.
+
+### Document bounds
+
+| Bound | Value | What it is for |
+| --- | --- | --- |
+| `MAX_DOCUMENT_CHARS` | 8192 | the practical limit, roughly 1,400 words |
+| `MAX_LINE_CHARS` | 1024 | a long paragraph; the editor wraps, so a paragraph is one logical line |
+| `MAX_DOCUMENT_LINES` | 512 | structural, not a writing bound |
+
+Raised in V1.4 from 512/96/32, which were sized for a transport experiment. The
+binding one was the *line* bound: the V1.3 bench session refused ordinary prose
+four times because 96 characters is about a sentence and a half. `config.py`
+mirrors these and `journal.MAX_RECORD_BYTES` is derived from the character bound,
+so no two places can disagree about how large a document may be.
 
 Storage rules, as implemented:
 

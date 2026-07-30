@@ -107,6 +107,14 @@ document's title, because a menu that gives no sign of which item was chosen is 
 menu that is lying about having four items. It is also the seam V1.4 attaches its
 per-mode policy to.
 
+> **V1.4 update.** The four items now open four different things, so something
+> has to change the editor's contents. The invariant is kept and made precise
+> rather than dropped: there is still exactly one editor, the shell still never
+> touches it, and a document switch is a **handover, not a close** — the outgoing
+> document is checkpointed *before* anything is rebound. The shell may not open a
+> card, so it records a bounded request and the session performs it in the same
+> loop iteration, before any frame is built. See `docs/MODES.md`.
+
 ## Failing closed
 
 Requirement: an invalid transition must show a recoverable error state rather
@@ -142,14 +150,23 @@ There is nothing to keep in step here: a recovered document means the writer was
 writing, so the shell opens where their words are rather than making them find
 their way back through a menu.
 
-The **mode** is not restored with the state — `shell_restored` reports `JOURNAL`
-after a session that ended in `RECENT`, as the 2026-07-30 bench run shows. In
-V1.3 that is cosmetic, because all four items route into the one document, and it
-follows from the same refusal: the mode is not derivable from what the card
-returned, so restoring it would need the second file this section just declined.
-V1.4 gives modes their own policy and has to decide what a restored mode means —
-either the mode becomes a property of the recovered document, which is where it
-belongs, or the writer picks it again. That decision is V1.4's, not this phase's.
+The **mode** was not restored with the state in V1.3 — `shell_restored` reported
+`JOURNAL` after a session that ended in `RECENT`, as the 2026-07-30 bench run
+shows. It was cosmetic then, because all four items routed into the one document,
+and it followed from the same refusal: the mode was not derivable from what the
+card returned, so restoring it would have needed the second file this section
+just declined.
+
+> **V1.4 update — this is closed.** It took the first of the two options this
+> section named: the mode became a property of the recovered document, which is
+> where it belongs. A document has a **kind** — `JOURNAL`, `NOTE`, or `DRAFT` —
+> recorded in the catalogue alongside its identity and title, and the kind comes
+> back with the words. Crucially this needed *no* second file to keep in step:
+> the catalogue already had to exist for Drafts and Recent, and it is the same
+> append-only, CRC-protected discipline as the recovery journal, with its own
+> highest open ordinal standing in for the "active document" pointer this design
+> would otherwise have had to invent. The *state* is still derived, exactly as
+> above.
 
 ## Drawing: the same renderer, the same pacing
 
@@ -210,8 +227,10 @@ an accidental double press must not silently skip a level.
 
 ## What this phase is not
 
-- no document browser;
-- no per-mode storage format, and no per-mode recovery rules;
+- no document browser — *added in V1.4 as the Drafts list, which is the one menu
+  item whose answer the device cannot know for the writer*;
+- no per-mode storage format, and no per-mode recovery rules — *still true in
+  V1.4, and stated there as the rule rather than as a deferral*;
 - no MagTag button work — the shell is keyboard-only by requirement, and the
   buttons remain a later phase that maps onto the same signals;
 - no new certification harness. The development runtime already brings the shell

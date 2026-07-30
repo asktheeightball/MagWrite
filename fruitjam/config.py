@@ -91,8 +91,11 @@ SD_MOUNT_POINT = "/sd"
 DOCUMENT_ROOT = "/sd/magwrite"
 # Refuse to append below this much free space. A journal append that fails
 # halfway is recoverable by design; a full card is not a state to discover one
-# record at a time.
-DOCUMENT_RESERVE_BYTES = 32768
+# record at a time. Raised in V1.4 with the document bound: the reserve has to
+# stay comfortably above one worst-case record plus a mirror rewrite, or the
+# promise degrades from "refuse before exhaustion" to "refuse during it" exactly
+# when the document is at its largest. Mirrors document_store.RESERVE_BYTES.
+DOCUMENT_RESERVE_BYTES = 131072
 # These mirror magwrite_transport/persistence.py, which is the single source of
 # truth and carries the reasoning behind each value; a host test asserts the two
 # agree. Nothing may hard-code an autosave interval anywhere else.
@@ -118,3 +121,18 @@ ENABLE_SHELL = True
 # because losing work to a mode switch is the failure this phase exists to
 # prevent.
 DOCUMENT_OPEN_MODE = "LATEST"
+# ------------------------------------ V1.4 modes, catalogue, and the document
+# The catalogue is bounded, because an unbounded one on a microcontroller is a
+# bug that takes a few months to appear. Far more than the minimum standalone
+# workflow needs, and small enough to hold whole in RAM. Mirrors
+# magwrite_transport/document_index.py, which is the single source of truth.
+MAX_DOCUMENTS = 64
+# The practical document limit, restated here for the operator rather than
+# configured here: magwrite_transport/editor.py owns these and a host test
+# asserts the two agree. 8192 characters is roughly 1,400 words -- a journal
+# entry, a scene, or a short essay whole. The V1.3 bounds (512 characters over
+# 32 lines of 96) were sized for a transport experiment and refused ordinary
+# prose on the bench, four times, in one session.
+MAX_DOCUMENT_CHARS = 8192
+MAX_DOCUMENT_LINES = 512
+MAX_LINE_CHARS = 1024

@@ -40,8 +40,9 @@ from magwrite_transport.live_session import LIVE_SCENARIO_ID
 from magwrite_transport.persistence import PersistenceController
 from magwrite_transport.shell import (
     MENU_ITEMS, MODE_DRAFTS, MODE_JOURNAL, MODE_QUICK_NOTE, MODE_RECENT,
-    ROUTE_CONSUMED, ROUTE_EDITOR, STATE_EDITOR, STATE_ERROR, STATE_EXIT,
-    STATE_MAIN_MENU, STATE_SAVE_STATUS, STATES, Shell,
+    REQUEST_JOURNAL, REQUEST_OPEN, REQUEST_QUICK_NOTE, REQUEST_RECENT,
+    ROUTE_CONSUMED, ROUTE_EDITOR, STATE_DRAFTS, STATE_EDITOR, STATE_ERROR,
+    STATE_EXIT, STATE_MAIN_MENU, STATE_SAVE_STATUS, STATES, Shell,
 )
 
 STORE_ROOT = "/sd/magwrite"
@@ -69,8 +70,8 @@ class StateModelTests(unittest.TestCase):
     def test_the_state_set_is_closed_and_named(self):
         self.assertEqual(
             STATES,
-            (STATE_MAIN_MENU, STATE_EDITOR, STATE_SAVE_STATUS, STATE_ERROR,
-             STATE_EXIT),
+            (STATE_MAIN_MENU, STATE_EDITOR, STATE_SAVE_STATUS, STATE_DRAFTS,
+             STATE_ERROR, STATE_EXIT),
         )
 
     def test_the_main_menu_exposes_exactly_the_four_required_items(self):
@@ -144,21 +145,50 @@ class MenuNavigationTests(unittest.TestCase):
         self.assertEqual(self.shell.ignored_events, 1)
 
     def test_enter_opens_the_selected_mode_in_the_editor(self):
-        self.shell.route(key(DOWN))
-        self.shell.route(key(DOWN))
         self.shell.route(key(ENTER))
         self.assertEqual(self.shell.state, STATE_EDITOR)
-        self.assertEqual(self.shell.mode, MODE_DRAFTS)
-        self.assertEqual(self.shell.mode_label(), "DRAFTS")
+        self.assertEqual(self.shell.mode, MODE_JOURNAL)
+        self.assertEqual(self.shell.mode_label(), "JOURNAL")
 
-    def test_every_menu_item_routes_into_the_one_editor(self):
+    def test_every_menu_item_selects_its_mode(self):
         for index, (mode, _) in enumerate(MENU_ITEMS):
             shell = Shell()
             for _ in range(index):
                 shell.route(key(DOWN))
             shell.route(key(ENTER))
-            self.assertEqual(shell.state, STATE_EDITOR)
             self.assertEqual(shell.mode, mode)
+
+    def test_three_items_enter_the_editor_and_drafts_shows_a_list(self):
+        # V1.4 divides the four. Journal, Quick Note, and Recent all resolve to
+        # exactly one document, so there is nothing to ask and the writer goes
+        # straight to the words. Drafts is the only one whose answer the device
+        # cannot know, so it is the only one that shows a screen.
+        for index, (mode, _) in enumerate(MENU_ITEMS):
+            shell = Shell()
+            for _ in range(index):
+                shell.route(key(DOWN))
+            shell.route(key(ENTER))
+            expected = STATE_DRAFTS if mode == MODE_DRAFTS else STATE_EDITOR
+            self.assertEqual(shell.state, expected)
+
+    def test_the_three_opening_items_ask_the_session_to_open_something(self):
+        # The shell may not touch a card, so it asks. Requests are the entire
+        # mechanism by which a mode reaches a document, and each is taken once.
+        expected = {
+            MODE_JOURNAL: REQUEST_JOURNAL,
+            MODE_QUICK_NOTE: REQUEST_QUICK_NOTE,
+            MODE_RECENT: REQUEST_RECENT,
+        }
+        for index, (mode, _) in enumerate(MENU_ITEMS):
+            shell = Shell()
+            for _ in range(index):
+                shell.route(key(DOWN))
+            shell.route(key(ENTER))
+            if mode == MODE_DRAFTS:
+                self.assertIsNone(shell.take_request())
+                continue
+            self.assertEqual(shell.take_request(), (expected[mode], None))
+            self.assertIsNone(shell.take_request())
 
 
 class RoutingTests(unittest.TestCase):
@@ -582,14 +612,32 @@ class ShellSessionTests(unittest.TestCase):
         self.assertIn("finish_requests_serviced", self.summary)
 
     def test_arrow_navigation_opens_the_item_the_writer_selected(self):
+        # One Down, so the item opened is Quick Note rather than the first item,
+        # which is what makes this a test of the selection rather than of Enter.
         shell = Shell()
         KeyboardLink(
-            reports=press_kind("DOWN") * 2 + press_kind("ENTER")
-            + type_characters("drafted") + finish() + press_kind("ENTER")
+            reports=press_kind("DOWN") + press_kind("ENTER")
+            + type_characters("noted") + finish() + press_kind("ENTER")
             + finish(),
             shell=shell, typing_interval_seconds=0.05,
         ).run()
+        self.assertEqual(shell.mode, MODE_QUICK_NOTE)
+        self.assertEqual(shell.state, STATE_EXIT)
+
+    def test_the_drafts_list_is_a_screen_the_writer_can_back_out_of(self):
+        # Drafts is the one item that does not go straight to the words, so the
+        # thing worth asserting is that it is still a dead end no keystroke
+        # escapes: typing at the list reaches no document, and the finish
+        # gesture returns to the menu rather than to the editor.
+        shell = Shell()
+        KeyboardLink(
+            reports=press_kind("DOWN") * 2 + press_kind("ENTER")
+            + type_characters("stray") + finish() + finish(),
+            shell=shell, typing_interval_seconds=0.05,
+        ).run()
         self.assertEqual(shell.mode, MODE_DRAFTS)
+        self.assertEqual(shell.state, STATE_EXIT)
+        self.assertGreaterEqual(shell.ignored_events, len("stray"))
 
     def test_the_pacing_and_acknowledgement_paths_were_the_proven_ones(self):
         self.assertGreater(self.summary["refresh_completed_received"], 0)

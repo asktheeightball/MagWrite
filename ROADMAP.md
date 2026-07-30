@@ -35,7 +35,7 @@ this list wins.
 | 1 | Responsiveness and keyboard completeness | V1.1 | Host-verified; one physical attempt FAILED, certification retired |
 | 2 | microSD persistence and forced-power-loss recovery | Priority 4 | PHYSICALLY VERIFIED 2026-07-30 |
 | 3 | MagWrite Shell | V1.3 | PHYSICALLY VERIFIED 2026-07-30 |
-| 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | Not started |
+| 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | Host-verified; physical run not yet performed |
 | 5 | Standalone workflow | Priority 5 | Not started |
 | 6 | Optional MagTag buttons | Priority 2 | Not started, optional |
 | 7 | Battery, enclosure, and hardening | Priorities 6 and 7 | Not started |
@@ -595,6 +595,128 @@ Requirements:
 
 **Exit:** a real writing session that starts in the shell, captures in two
 different modes, and recovers correctly after a forced power loss.
+
+### Implementation — host-verified, physical run not yet performed
+
+`docs/MODES.md` carries the design and the reasoning. Two changes ship together
+and the order was deliberate: **the document bound was raised first**, because a
+mode that opens a document you cannot write a page into is not worth building.
+
+#### The document bound
+
+| Bound | V1.3 | V1.4 |
+| --- | --- | --- |
+| `MAX_DOCUMENT_CHARS` | 512 | **8192**, roughly 1,400 words |
+| `MAX_LINE_CHARS` | 96 | **1024** |
+| `MAX_DOCUMENT_LINES` | 32 | **512** |
+
+The binding bound was not the document limit and not the line count — it was
+`MAX_LINE_CHARS`. The editor word-wraps, so **a paragraph is one logical line**,
+and 96 characters is about a sentence and a half. That is the same fact recorded
+above as "bounded failure is recoverable": the four `document line capacity
+reached` faults in the V1.3 bench session were the device refusing the fifth
+sentence of a paragraph, recovering correctly from a refusal it should not have
+been making.
+
+No architectural change was needed to support it, which is the answer to the "do
+not introduce file-backed editing unless the design truly cannot" constraint:
+
+- `journal.MAX_RECORD_BYTES` is now *derived* from `MAX_DOCUMENT_CHARS` rather
+  than written down beside it. The two drifting apart would mean a document the
+  editor accepts and the journal refuses to encode;
+- `Layout.locate` is linear in the characters *before the cursor* and runs per
+  keystroke; `Layout.rows` is linear in the document but runs only per viewport
+  build, which pacing already holds to roughly one a second;
+- what crosses the UART is unchanged. A five-row window is the same size whatever
+  is behind it;
+- `RESERVE_BYTES` went 32 KB → 128 KB so "refuse before exhaustion" does not
+  degrade into "refuse during exhaustion" when the document is at its largest.
+
+Another order of magnitude *would* need a different architecture. That is the
+line and it has not been crossed.
+
+#### The four modes
+
+Each mode is a *choice of document* and nothing else. Every one resolves to
+recording the open in an append-only catalogue and pointing the proven store at a
+document id. One editor, one storage format, one recovery system, one shell, one
+renderer, one UART, one pacing path.
+
+- **Journal** continues the newest entry with the cursor at the end of the
+  writer's last words, and rolls over to the next numbered entry when fewer than
+  512 characters remain;
+- **Quick Note** always creates a new empty document and opens it immediately;
+- **Drafts** lists the working set, newest first, five rows with the window
+  following the selection;
+- **Recent** opens the document with the highest open ordinal.
+
+**Dating is deferred and stated as such.** The prototype has no RTC and no
+network, so entries are numbered rather than dated. The alternative was a date
+derived from `time.monotonic`, which is a fabricated date printed next to a
+writer's own words. `PRODUCT.md` asks for dated journal entries and this does not
+yet deliver them.
+
+#### Metadata, and the V1.3 hand-forward
+
+The catalogue is `/sd/magwrite/index.log`, `MWX1` records with the same three
+corruption defences the recovery journal has. It persists document identity,
+kind, title, and a monotonic open ordinal. **The highest ordinal is the active
+document**, so there is no separate pointer file to disagree with the catalogue
+after a power cut — the two-file atomicity problem this design already refused
+once.
+
+That closes the item V1.3 recorded: a restored session now restores its mode,
+because the mode is a property of the document. A document's kind is `JOURNAL`,
+`NOTE`, or `DRAFT`; Drafts and Recent are ways of *reaching* a document, and a
+note opened through Drafts is still a note.
+
+#### Migration
+
+A card written by V1.2 or V1.3 is adopted by appending **one catalogue record**.
+`active` is a legal document id and is the one those builds already used, so
+`documents/active.md` and `recovery/active.log` are already correct under the
+per-document naming and are not touched. `recovery/checkpoint.log` is read at its
+old name whenever `active.ckpt.log` does not exist, and is never renamed: a
+rename is a write, and writing to somebody's only copy in order to upgrade it is
+how upgrades lose documents. A host test asserts every pre-existing file is
+byte-identical afterwards and that the only new file is `index.log`.
+
+#### Switching documents
+
+V1.3's invariant was "one editor, never closed". V1.4 keeps it and makes it
+precise. A switch is a handover, ordered: checkpoint the outgoing document, then
+select, then load into the same editor, then tell the shell. Step one is
+unconditional — a threshold that has not been reached is not a reason to hand a
+document over with work only in RAM. `document_revision` stays session-monotonic
+across the switch, because the acknowledgement tracker and the save state both
+assume it never goes backwards; per-document recency still holds, because a
+stored revision is the highest ever written to that document.
+
+#### Coverage
+
+1,056 host tests pass, up from 929. `test_document_bounds.py` (42) covers
+documents far longer than 32 lines, scrolling at the beginning, middle, and end,
+editing at the very edge of the bound, and clean refusal at the real limit with
+the text, cursor, both revisions, and the recovered document asserted unchanged.
+`test_library.py` (82) covers the record format, the catalogue, the four modes,
+migration file-by-file, and two full sessions — two modes captured in one run,
+and a forced power loss that recovers the words, the identity, and the mode.
+
+No test uses a literal bound; every size is derived from the editor's constants,
+so they keep testing the property the next time the bounds move. That is a
+correction of a real defect found in the existing suite: a test asserting that
+5,000 characters were refused stopped testing anything the moment the bound moved
+past it.
+
+#### Recorded, not chased
+
+- an 8 KB document journaled every twelve revisions writes appreciably more per
+  session than a 512-byte one did. The per-append SPI cost has not been measured
+  on hardware and belongs to the physical run;
+- `PRODUCT.md`'s "dated journal entry creation" is not delivered; see above;
+- there is no way to delete or rename a document from the device. The catalogue
+  is bounded at 64 and refuses cleanly past it. Renaming and archiving are V1.5
+  scope and the record format already supports both as one append.
 
 ## Priority 5 — Minimum standalone workflow — V1.5
 

@@ -172,9 +172,16 @@ try:
         max_protocol_frames=DEV_MAX_PROTOCOL_FRAMES,
         persistence=persistence,
         shell=shell,
+        # V1.4. ``None`` on a degraded card, which is a supported mode: the four
+        # menu items then route into the one document exactly as they did in
+        # V1.3, and the writer is told NO CARD rather than misled.
+        library=persistence.library,
     )
     if persistence.recovery is not None and persistence.recovery.recovered:
-        session.restore(persistence.recovery.snapshot)
+        # The catalogue entry travels with the snapshot, so the restored session
+        # comes back in the mode the document belongs to rather than in whatever
+        # the menu was pointing at -- the one gap V1.3 recorded and deferred.
+        session.restore(persistence.recovery.snapshot, persistence.document_entry)
     elif shell is not None:
         # Nothing survived, so the writer was not writing. Open at the menu.
         shell.restore(False)

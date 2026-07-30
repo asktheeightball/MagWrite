@@ -21,7 +21,11 @@ summary.
 
 from magwrite_transport import persistence as persistence_module
 from magwrite_transport import sd_storage
+from magwrite_transport.document_index import (
+    DocumentIndex, MAX_DOCUMENTS,
+)
 from magwrite_transport.document_store import DocumentStore, StoreError
+from magwrite_transport.library import Library
 from magwrite_transport.persistence import PersistenceController
 
 OPEN_LATEST = "LATEST"
@@ -41,6 +45,11 @@ def bring_up(
     ``filesystem`` overrides the real backend, which is how host tests drive the
     whole path with no hardware module present at all. When it is supplied the
     card detection step is skipped, because there is nothing to detect.
+
+    From V1.4 the controller also carries ``library`` and ``index`` when the
+    catalogue could be brought up. Both are ``None`` on a degraded card, and a
+    ``None`` library is a first-class state: the shell's four items then route
+    into the one document exactly as they did in V1.3.
     """
     if not _setting(config, "ENABLE_PERSISTENCE", False):
         detail = "persistence disabled in config"
@@ -102,6 +111,41 @@ def bring_up(
     else:
         log(dict(recovery.summary(), event="document_recovery"))
 
+    # ------------------------------------------------------------- catalogue
+    # Step 5 of the bring-up order, added in V1.4: which documents exist, and
+    # which one was open last. It runs after recovery rather than before,
+    # because the one question it might have to answer on a card written by an
+    # earlier build is "is there an existing document to adopt", and only
+    # recovery can answer that.
+    index = DocumentIndex(
+        filesystem, _setting(config, "DOCUMENT_ROOT", mount_point + "/magwrite"),
+        max_documents=_setting(config, "MAX_DOCUMENTS", MAX_DOCUMENTS),
+    )
+    index.load()
+    library = Library(store, index, log)
+
+    # Migration. The V1.2/V1.3 files are already correct under the per-document
+    # naming, so adopting an existing document is one catalogue append and no
+    # rewrite of anything the writer owns. Their draft keeps its id, its journal,
+    # its checkpoints, and its mirror.
+    library.migrate(recovery)
+
+    entry = index.active()
+    if entry is not None and entry.document_id != store.document_id:
+        # A card written by this build: open whatever was open last rather than
+        # whatever happens to be called ``active``.
+        try:
+            recovery = store.select(entry.document_id)
+        except StoreError as error:
+            detail = "cannot open the last document: " + str(error)
+            log({"event": "document_store_failed", "detail": detail})
+            return _degraded(now, log, detail), result
+        log(dict(recovery.summary(), event="document_recovery",
+                 document_id=entry.document_id))
+    if entry is not None:
+        log(dict(entry.summary(), event="document_active"))
+    log(dict(index.summary(), event="document_catalogue"))
+
     controller = PersistenceController(
         store, now, log,
         autosave_idle_seconds=_setting(
@@ -128,6 +172,9 @@ def bring_up(
         storage_detail=result.mount_point,
     )
     controller.recovery = recovery
+    controller.index = index
+    controller.library = library
+    controller.document_entry = entry
     return controller, result
 
 

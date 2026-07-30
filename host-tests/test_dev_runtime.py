@@ -802,7 +802,13 @@ class ShellWiringTest(unittest.TestCase):
 
     def test_the_opening_state_is_decided_from_what_the_card_returned(self):
         source = read(*FRUITJAM_ENTRY)
-        self.assertIn("session.restore(persistence.recovery.snapshot)", source)
+        # The catalogue entry travels with the snapshot from V1.4, so the
+        # restored session comes back in the mode the *document* belongs to.
+        self.assertIn(
+            "session.restore(persistence.recovery.snapshot, "
+            "persistence.document_entry)",
+            source,
+        )
         self.assertIn("shell.restore(False)", source)
 
     def test_the_runtime_still_names_a_stop_control(self):

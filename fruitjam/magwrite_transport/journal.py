@@ -11,10 +11,16 @@ means a second implementation of what BACKSPACE, ENTER, and a refused edit mean.
 Two models of editor semantics that must agree forever is the standard way a
 recovery format ends up unable to reproduce the document it recorded.
 
-The authoritative document is bounded at ``MAX_DOCUMENT_CHARS`` (512), so a full
-snapshot costs at most a few hundred bytes. Recovery is then "keep the last
-record that validates", which needs no replay engine and no agreement with the
-editor beyond the text itself.
+The authoritative document is bounded at ``MAX_DOCUMENT_CHARS``, so a full
+snapshot has a fixed worst case in bytes. Recovery is then "keep the last record
+that validates", which needs no replay engine and no agreement with the editor
+beyond the text itself.
+
+That bound grew eightfold in V1.4, which changes the cost of this decision and
+not the decision. A snapshot is still one append that either lands whole or is
+rejected by its own CRC; it is simply a larger one. The alternative a larger
+document might seem to argue for -- deltas -- gets *worse* as the document grows,
+not better, because a longer history is more replay to be wrong about.
 
 Record layout
 -------------
@@ -43,14 +49,22 @@ backslash and newline. That makes the transform total and reversible without
 importing anything.
 """
 
+from magwrite_transport.editor import MAX_DOCUMENT_CHARS
 from magwrite_transport.protocol import crc32
 
 MAGIC = "MWJ1"
 FIELDS = 8
-# A record is at most the escaped worst case: every one of 512 characters a
-# backslash, doubled, plus the header. The bound exists so a corrupt length
-# field can never make the reader allocate or scan without limit.
-MAX_RECORD_BYTES = 1200
+# The header: magic, four decimal fields, an eight-digit CRC, six spaces, and the
+# terminating newline. Rounded up generously -- it is a constant, not a budget.
+RECORD_HEADER_BYTES = 64
+# A record is at most the escaped worst case: every character of the document a
+# backslash, doubled, plus the header. *Derived* from the editor's bound rather
+# than written down beside it, because the two drifting apart would mean records
+# the writer's own editor can produce and this module refuses to encode -- a
+# document that saves until it doesn't. The bound still exists for its original
+# reason: a corrupt length field must never make the reader allocate or scan
+# without limit.
+MAX_RECORD_BYTES = 2 * MAX_DOCUMENT_CHARS + RECORD_HEADER_BYTES
 
 
 class JournalRecordError(Exception):

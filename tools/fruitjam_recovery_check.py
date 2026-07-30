@@ -17,6 +17,7 @@ try:
 except ImportError:
     import ujson as json
 
+from magwrite_transport.document_index import DocumentIndex
 from magwrite_transport.document_store import DocumentStore
 from magwrite_transport.sd_storage import RealFileSystem
 
@@ -30,10 +31,25 @@ def emit(event, **fields):
 
 emit("recovery_check_started", root=ROOT)
 
-store = DocumentStore(RealFileSystem(root="/sd"), root=ROOT)
+filesystem = RealFileSystem(root="/sd")
+store = DocumentStore(filesystem, root=ROOT)
 recovery = store.open()
 
-emit("recovery_check_result", **recovery.summary())
+# The catalogue, from V1.4. Read before the document is reported, because on a
+# card this build wrote the document worth reporting is the one the catalogue
+# says was open last rather than the one called ``active``.
+index = DocumentIndex(filesystem, ROOT)
+index.load()
+emit("recovery_check_catalogue", **index.summary())
+for entry in index.ordered():
+    emit("recovery_check_entry", **entry.summary())
+
+active = index.active()
+if active is not None and active.document_id != store.document_id:
+    recovery = store.select(active.document_id)
+
+emit("recovery_check_result",
+     document_id=store.document_id, **recovery.summary())
 
 snapshot = recovery.snapshot
 if snapshot is None:

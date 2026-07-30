@@ -60,7 +60,8 @@ from magwrite_transport.protocol import (
     END_OF_TEST, HELLO, VIEWPORT, FrameParser, crc32, encode_frame,
 )
 from magwrite_transport.shell import (
-    ROUTE_EDITOR, STATE_EDITOR, STATE_SAVE_STATUS,
+    REQUEST_JOURNAL, REQUEST_OPEN, REQUEST_QUICK_NOTE, REQUEST_RECENT,
+    ROUTE_EDITOR, STATE_DRAFTS, STATE_EDITOR, STATE_SAVE_STATUS,
 )
 from magwrite_transport.shell_viewport import payload as shell_payload
 from magwrite_transport.usb_keyboard_adapter import (
@@ -120,6 +121,7 @@ class LiveTypingSession:
         viewport=None, tracker=None, editor=None, pacer=None, latency=None,
         max_viewport_frames=MAX_VIEWPORT_FRAMES,
         max_protocol_frames=MAX_PROTOCOL_FRAMES, persistence=None, shell=None,
+        library=None,
     ):
         self.monotonic = monotonic
         self.log = log
@@ -158,8 +160,17 @@ class LiveTypingSession:
         # *back*, the shell decides which screen is on the panel, and input is
         # routed rather than assumed to belong to the editor.
         self.shell = shell
+        # Optional on the same terms again. With it absent the shell's four items
+        # all route into the one document exactly as they did in V1.3, which is
+        # what a card-less or persistence-disabled build gets, and what keeps the
+        # V1.3 evidence reproducible.
+        self.library = library
+        self.documents_opened = 0
+        self.document_switches = 0
+        self.document_open_failures = 0
         self.finish_requests_serviced = 0
         self.shell_visible_revision = None if shell is None else shell.visible_revision
+        self.shell_state_seen = None if shell is None else shell.state
         if shell is not None:
             # The shell has a screen from the moment it exists, and the send path
             # treats viewport revision 0 as "nothing has ever been visible" and
@@ -349,7 +360,7 @@ class LiveTypingSession:
                 return revision, screen
             return revision, self.viewport.payload(
                 self.editor, LIVE_SCENARIO_ID, self.save_indicator,
-                self.shell.mode_label(),
+                self.shell.panel_title(),
             )
         return revision, self.viewport.payload(
             self.editor, LIVE_SCENARIO_ID, self.save_indicator
@@ -412,13 +423,18 @@ class LiveTypingSession:
 
     # ------------------------------------------------------ persistence stage
 
-    def restore(self, snapshot):
+    def restore(self, snapshot, entry=None):
         """Load a recovered document into the authoritative editor.
 
         Called once, before the session starts, when the store returned a
         snapshot. The persistence controller then adopts the restored revision so
         the first thing a recovered session does is *not* to rewrite the state it
         was just recovered from.
+
+        ``entry`` is the document's catalogue entry when there is a catalogue.
+        It carries the identity, kind, and title back with the words, which is
+        what makes a restored session restore its *mode* as well as its text --
+        the gap V1.3 recorded and handed to this phase.
         """
         self.editor.load(
             snapshot.text, snapshot.row, snapshot.column, snapshot.revision
@@ -430,7 +446,12 @@ class LiveTypingSession:
             # Requirement 10, and the whole of it: a recovered document means the
             # writer was writing, so the shell opens where their words are rather
             # than making them find their way back through a menu.
-            self.shell.restore(True, snapshot.revision)
+            self.shell.restore(
+                True, snapshot.revision,
+                None if entry is None else entry.document_id,
+                None if entry is None else entry.kind,
+                None if entry is None else entry.title,
+            )
             self.shell_visible_revision = self.shell.visible_revision
             self.editor.note_visible_change()
         self.log({
@@ -438,6 +459,9 @@ class LiveTypingSession:
             "revision": snapshot.revision, "characters": len(snapshot.text),
             "lines": len(self.editor.lines), "cursor_row": self.editor.row,
             "cursor_column": self.editor.column,
+            "document_id": None if entry is None else entry.document_id,
+            "kind": None if entry is None else entry.kind,
+            "title": None if entry is None else entry.title,
         })
 
     def _service_persistence(self, now):
@@ -506,9 +530,15 @@ class LiveTypingSession:
                     self.persistence.save_now(now, self.editor)
                 self.log({
                     "event": "shell_left_editor",
+                    "document_id": self.shell.document_id,
                     "document_revision": self.editor.document_revision,
                     "characters": self.editor.character_count(),
                 })
+        # V1.4. Serviced here, in the same iteration the writer's keystroke was
+        # routed and before any frame is built, so a mode never puts a stale
+        # document on the panel for even one refresh.
+        self._service_document_request(now)
+        self._service_drafts_list()
         self._refresh_save_indicator()
         if self.shell.visible_revision != self.shell_visible_revision:
             self.shell_visible_revision = self.shell.visible_revision
@@ -517,6 +547,105 @@ class LiveTypingSession:
             # save indicator uses. The editor stays the only owner of both
             # revision numbers.
             self.editor.note_visible_change()
+
+    # ---------------------------------------------------------- library stage
+
+    def _service_document_request(self, now):
+        """Perform the shell's pending open, if there is one. V1.4.
+
+        The shell may not touch a card, so it asks; this is where the asking is
+        answered. The order below is the safety argument and is not rearranged:
+
+        1. **checkpoint the outgoing document first.** A switch is the only
+           operation in the system that replaces the contents of the editor, so
+           the words being replaced are made durable before anything is rebound.
+           Nothing is closed -- there is still exactly one editor -- but something
+           is handed over, and a handover with unsaved work in it is the failure
+           the whole shell was built to make impossible;
+        2. ask the library which document, and let it select it in the store;
+        3. load it into the one editor, which validates it against the same
+           bounds an interactive edit gets, because a card is not trusted input;
+        4. only then tell the shell what it is now holding.
+
+        Every failure between (2) and (4) becomes a recoverable error screen with
+        the outgoing document already durable behind it.
+        """
+        if self.shell is None or self.library is None:
+            return False
+        taken = self.shell.take_request()
+        if taken is None:
+            return False
+        request, argument = taken
+        if self.persistence is not None and self.shell.document_id is not None:
+            # Step 1. Unconditional: a threshold that has not been reached is not
+            # a reason to hand a document over with work only in RAM.
+            self.manual_saves += 1
+            self.persistence.save_now(now, self.editor)
+        if request == REQUEST_JOURNAL:
+            opening = self.library.open_journal()
+        elif request == REQUEST_QUICK_NOTE:
+            opening = self.library.new_note()
+        elif request == REQUEST_RECENT:
+            opening = self.library.open_recent()
+        elif request == REQUEST_OPEN:
+            opening = self.library.open_document(argument)
+        else:
+            self.shell.fault("unknown document request: " + str(request))
+            return False
+        if opening is None:
+            self.document_open_failures += 1
+            self.shell.fault(
+                self.library.last_error or "the document could not be opened"
+            )
+            return False
+        return self._adopt_document(opening)
+
+    def _adopt_document(self, opening):
+        """Put an opened document into the one editor and tell the shell."""
+        row, column = opening.cursor()
+        try:
+            self.editor.open_document(opening.text, row, column)
+        except EditRejected as error:
+            # The store is now pointed at a document the editor will not hold.
+            # The words in RAM were checkpointed before any of this began, so the
+            # writer loses nothing but the switch, and the error screen says why.
+            self.document_open_failures += 1
+            self.shell.fault(str(error))
+            return False
+        self.shell.opened(opening.document_id, opening.kind, opening.title)
+        self.documents_opened += 1
+        if not opening.created:
+            self.document_switches += 1
+        # The save state deliberately reads UNSAVED for the moment after a
+        # switch, until the first autosave lands. What is on the card is durable,
+        # but it is durable at the *stored* revision and this session's counter is
+        # already past it. Erring toward "not yet saved" is the only direction
+        # this indicator is ever allowed to be wrong in.
+        self.log({
+            "event": "live_document_opened",
+            "document_id": opening.document_id, "kind": opening.kind,
+            "title": opening.title, "created": opening.created,
+            "characters": len(opening.text), "lines": len(self.editor.lines),
+            "cursor_row": self.editor.row, "cursor_column": self.editor.column,
+            "document_revision": self.editor.document_revision,
+        })
+        return True
+
+    def _service_drafts_list(self):
+        """Hand the shell the catalogue when it opens the Drafts list.
+
+        On entry to the list only. The catalogue is re-read from RAM rather than
+        from the card, and sorting it on every loop iteration would be work done
+        thousands of times to answer a question asked once.
+        """
+        if self.shell is None or self.library is None:
+            return False
+        state = self.shell.state
+        if state != STATE_DRAFTS or self.shell_state_seen == STATE_DRAFTS:
+            self.shell_state_seen = state
+            return False
+        self.shell_state_seen = state
+        return self.shell.set_documents(self.library.drafts())
 
     def _final_viewport_displayed(self):
         if self.last_sent_payload is None:
@@ -686,4 +815,9 @@ class LiveTypingSession:
             record["shell_routed_events"] = self.shell_events
             record["finish_requests_serviced"] = self.finish_requests_serviced
             record.update(self.shell.summary())
+        if self.library is not None:
+            record["documents_opened"] = self.documents_opened
+            record["document_switches"] = self.document_switches
+            record["document_open_failures"] = self.document_open_failures
+            record.update(self.library.summary())
         return record

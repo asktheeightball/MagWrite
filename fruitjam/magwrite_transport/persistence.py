@@ -140,6 +140,14 @@ class PersistenceController:
         self.manual_saves = 0
         self.last_action = ACTION_NONE
         self.recovery = None
+        # V1.4. Set by ``storage_bringup`` when a catalogue could be brought up,
+        # and carried here rather than constructed here for the same reason
+        # ``recovery`` is: this class owns *when to write*, and knows nothing
+        # about which document it is writing. The entry point reads them across
+        # into the session.
+        self.index = None
+        self.library = None
+        self.document_entry = None
 
     # ---------------------------------------------------------------- queries
 

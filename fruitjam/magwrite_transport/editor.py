@@ -17,14 +17,50 @@ Revision rules:
 
 Edits are never silently dropped. Anything that would exceed a bound raises
 ``EditRejected`` so the caller can emit an explicit structured diagnostic.
+
+The document bound, and why it is a character bound
+---------------------------------------------------
+
+Through V1.3 the document was 512 characters over 32 lines of 96. Those numbers
+were sized for a transport experiment and they are wrong for a writing tool: the
+editor word-wraps, so a **paragraph is one logical line**, and 96 characters is
+about a sentence and a half. The V1.3 bench session hit
+``document line capacity reached`` four times in ordinary prose. A writing
+appliance whose first real session refuses the fifth sentence is not bounded, it
+is broken.
+
+So the bound is now a **character** bound, which is the one a writer can predict
+and the one that actually governs cost:
+
+* ``MAX_DOCUMENT_CHARS`` -- 8192, roughly 1,400 words. A journal entry, a scene,
+  or a short essay fits whole. It is the bound that binds in practice;
+* ``MAX_LINE_CHARS`` -- 1024, a long paragraph, so Enter stays a paragraph break
+  rather than something the writer has to remember to press;
+* ``MAX_DOCUMENT_LINES`` -- 512, a structural safety bound rather than a writing
+  one. 8192 characters of prose is nowhere near 512 paragraphs; it is reachable
+  only by holding Enter, and reaching it is refused as cleanly as any other bound.
+
+Why these and not larger. The document is held whole in RAM and journaled as a
+whole snapshot, so every bound here is multiplied through the storage path:
+
+* one journal record is the escaped document, so the worst case is
+  ``2 * MAX_DOCUMENT_CHARS`` bytes plus a header. ``journal.MAX_RECORD_BYTES`` is
+  derived from this constant rather than written down beside it;
+* ``Layout.locate`` runs per keystroke and is linear in the characters before the
+  cursor; ``Layout.rows`` is linear in the whole document but runs only when a
+  viewport is built, which pacing already holds to roughly one a second.
+
+Both stay comfortably bounded at 8192 and neither needs file-backed editing or a
+second document model to get there. Growing the bound by another order of
+magnitude would; that is the line, and it has not been crossed.
 """
 
 from magwrite_transport.editor_layout import Layout
 
 MAX_EDITOR_EVENTS = 400
-MAX_DOCUMENT_CHARS = 512
-MAX_DOCUMENT_LINES = 32
-MAX_LINE_CHARS = 96
+MAX_DOCUMENT_CHARS = 8192
+MAX_DOCUMENT_LINES = 512
+MAX_LINE_CHARS = 1024
 
 CHAR = "CHAR"
 ENTER = "ENTER"
@@ -197,6 +233,42 @@ class MultilineEditor:
             self.viewport_revision += 1
         return changed
 
+    def _validate_document(self, text, row, column, what):
+        """Return the validated line list for stored text, or reject explicitly.
+
+        Bounds are enforced exactly as they are for an interactive edit, because
+        a card is not a trusted input: a file that would exceed the editor's
+        limits is refused rather than loaded into a state no edit could have
+        produced. ``what`` names the source so the diagnostic says whether a
+        recovery or a document switch was refused.
+        """
+        lines = text.split("\n")
+        if len(lines) > self.max_lines:
+            self._reject(what + " document exceeds line capacity")
+        for line in lines:
+            if len(line) > self.max_line_chars:
+                self._reject(what + " line exceeds line capacity")
+            for char in line:
+                if not 32 <= ord(char) <= 126:
+                    self._reject(what + " document contains an unsupported character")
+        total = sum(len(line) for line in lines) + len(lines) - 1
+        if total > self.max_chars:
+            self._reject(what + " document exceeds document capacity")
+        if not 0 <= row < len(lines):
+            self._reject(what + " cursor row is outside the document")
+        if not 0 <= column <= len(lines[row]):
+            self._reject(what + " cursor column is outside its line")
+        return lines
+
+    def _adopt(self, lines, row, column, revision):
+        self.lines = lines
+        self.row = row
+        self.column = column
+        self.document_revision = revision
+        self.preferred_column = self.cursor_visual_position()[1]
+        self.viewport_revision += 1
+        return revision
+
     def load(self, text, row=0, column=0, revision=None):
         """Adopt a recovered document, cursor, and revision.
 
@@ -205,39 +277,40 @@ class MultilineEditor:
         numbers remain a continuous history of the document through a power loss;
         a restart would make the recovery journal impossible to read afterwards
         and would let a stale record outrank a newer one.
-
-        Bounds are enforced exactly as they are for an interactive edit, because
-        a card is not a trusted input: a file that would exceed the editor's
-        limits is refused explicitly rather than loaded into a state no edit
-        could have produced.
         """
-        lines = text.split("\n")
-        if len(lines) > self.max_lines:
-            self._reject("recovered document exceeds line capacity")
-        for line in lines:
-            if len(line) > self.max_line_chars:
-                self._reject("recovered line exceeds line capacity")
-            for char in line:
-                if not 32 <= ord(char) <= 126:
-                    self._reject("recovered document contains an unsupported character")
-        total = sum(len(line) for line in lines) + len(lines) - 1
-        if total > self.max_chars:
-            self._reject("recovered document exceeds document capacity")
-        if not 0 <= row < len(lines):
-            self._reject("recovered cursor row is outside the document")
-        if not 0 <= column <= len(lines[row]):
-            self._reject("recovered cursor column is outside its line")
+        lines = self._validate_document(text, row, column, "recovered")
         if revision is None:
             revision = self.document_revision + 1
         if revision < self.document_revision:
             self._reject("recovered revision is older than the current one")
-        self.lines = lines
-        self.row = row
-        self.column = column
-        self.document_revision = revision
-        self.preferred_column = self.cursor_visual_position()[1]
-        self.viewport_revision += 1
-        return revision
+        return self._adopt(lines, row, column, revision)
+
+    def open_document(self, text="", row=0, column=0):
+        """Adopt a *different* document into this same editor. V1.4.
+
+        This is the one operation that replaces the contents of the editor, and
+        it exists because V1.4 has four modes and therefore more than one
+        document. It does not weaken the V1.3 invariant it appears to touch --
+        there is still exactly one ``MultilineEditor`` for the life of the
+        session, and the shell still never calls this. The session does, and only
+        after the outgoing document has been checkpointed, so a switch is a
+        deliberate, durable handover rather than a close.
+
+        The revision does **not** restart at the stored document's own revision,
+        it continues from wherever this session already is. Two properties depend
+        on that:
+
+        * ``document_revision`` feeds the acknowledgement tracker and the save
+          state, both of which assume it never goes backwards within a session;
+        * per-document recency still works, because a document's stored revision
+          is the highest ever written to it, and continuing from a session
+          counter can only ever make the next record higher.
+
+        A revision therefore identifies a state of *this session's* document
+        history, and "higher wins" stays true inside every document's own log.
+        """
+        lines = self._validate_document(text, row, column, "opened")
+        return self._adopt(lines, row, column, self.document_revision + 1)
 
     def note_visible_change(self):
         """Advance ``viewport_revision`` for visible state the editor does not own.

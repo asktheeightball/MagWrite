@@ -303,10 +303,21 @@ class EditorLoadTests(unittest.TestCase):
         self.assertEqual(self.editor.text, "abcd")
 
     def test_a_document_that_exceeds_the_editor_bounds_is_refused(self):
+        # Written against the editor's own bounds rather than literals, so it
+        # keeps asserting the property when the bounds are next revised. The
+        # first version of this test used 5000 and 200, and silently stopped
+        # testing anything the moment V1.4 raised the document bound past them.
+        from magwrite_transport.editor import (
+            MAX_DOCUMENT_CHARS, MAX_DOCUMENT_LINES, MAX_LINE_CHARS,
+        )
         with self.assertRaises(EditRejected):
-            self.editor.load("a" * 5000)
+            self.editor.load("a" * (MAX_LINE_CHARS + 1))
         with self.assertRaises(EditRejected):
-            self.editor.load("\n".join("x" for _ in range(200)))
+            self.editor.load("\n".join("x" for _ in range(MAX_DOCUMENT_LINES + 1)))
+        paragraph = "b" * MAX_LINE_CHARS
+        count = MAX_DOCUMENT_CHARS // (MAX_LINE_CHARS + 1) + 2
+        with self.assertRaises(EditRejected):
+            self.editor.load("\n".join(paragraph for _ in range(count)))
 
     def test_an_unsupported_character_is_refused(self):
         with self.assertRaises(EditRejected):
