@@ -465,8 +465,24 @@ class ConfiguredRetryIntervalTest(unittest.TestCase):
         path = os.path.join(ROOT, "fruitjam", "dev_runtime.py")
         with open(path, "r") as handle:
             source = handle.read()
-        self.assertIn(
-            "hello_retry_seconds=config.DISPLAY_HANDSHAKE_RETRY_SECONDS", source
+        self.assertIn('"DISPLAY_HANDSHAKE_RETRY_SECONDS", HELLO_RETRY_SECONDS',
+                      source)
+        self.assertIn("hello_retry_seconds=getattr(", source)
+
+    def test_a_board_config_predating_the_setting_still_starts(self):
+        """The fix for "it does not switch on" must not refuse to switch on.
+
+        Board ``config.py`` files are edited by hand and lag the repository; one
+        that has not been updated has to fall back to the module default rather
+        than fail construction.
+        """
+        class OldConfig:
+            pass
+
+        self.assertEqual(
+            getattr(OldConfig, "DISPLAY_HANDSHAKE_RETRY_SECONDS",
+                    HELLO_RETRY_SECONDS),
+            HELLO_RETRY_SECONDS,
         )
 
 

@@ -74,7 +74,9 @@ import time
 import config
 from magwrite_transport.diagnostics import log
 from magwrite_transport.latency import LatencyRecorder
-from magwrite_transport.live_session import LiveTypingSession
+from magwrite_transport.live_session import (
+    HELLO_RETRY_SECONDS, LiveTypingSession,
+)
 from magwrite_transport.pacing import DisplayPacer
 from magwrite_transport.protocol import MAX_PAYLOAD_SIZE, VERSION
 from magwrite_transport.shell import Shell
@@ -184,7 +186,12 @@ try:
         # cannot be started first and both boards come up together. The
         # handshake is retried at this interval until the panel answers, rather
         # than failed after one attempt.
-        hello_retry_seconds=config.DISPLAY_HANDSHAKE_RETRY_SECONDS,
+        # ``getattr`` with the module's own default rather than a direct read: a
+        # board whose config.py predates this setting must still start by itself,
+        # which is the entire point of the phase. It would be perverse for the
+        # fix for "the device does not switch on" to refuse to switch on.
+        hello_retry_seconds=getattr(
+            config, "DISPLAY_HANDSHAKE_RETRY_SECONDS", HELLO_RETRY_SECONDS),
         idle_timeout_seconds=config.DEV_RUNTIME_IDLE_TIMEOUT_SECONDS,
         session_timeout_seconds=config.DEV_RUNTIME_SESSION_TIMEOUT_SECONDS,
         max_viewport_frames=DEV_MAX_VIEWPORT_FRAMES,
@@ -213,8 +220,7 @@ if session is not None:
     ready = {"event": "dev_runtime_ready", "tx_alias": config.UART_TX_PIN_ALIAS,
              "rx_alias": config.UART_RX_PIN_ALIAS, "baud": config.UART_BAUD,
              "startup_delay_seconds": config.STARTUP_DELAY_SECONDS,
-             "display_handshake_retry_seconds": (
-                 config.DISPLAY_HANDSHAKE_RETRY_SECONDS),
+             "display_handshake_retry_seconds": session.hello_retry_seconds,
              "display_handshake": "RETRIES_UNTIL_READY",
              "keyboard_layout": config.USB_KEYBOARD_LAYOUT,
              "stop_key": "ESCAPE", "stop_key_alternate": "APPLICATION",
