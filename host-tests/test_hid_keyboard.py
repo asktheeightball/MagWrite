@@ -185,11 +185,13 @@ class KeymapTranslationTest(unittest.TestCase):
         for character in supported_characters():
             self.assertIn(character, GLYPHS, repr(character))
 
-    def test_home_and_end_are_deliberately_not_repeatable(self):
-        self.assertNotIn(HOME, REPEATABLE_KINDS)
-        self.assertNotIn(END, REPEATABLE_KINDS)
-        for kind in (CHAR, ENTER, BACKSPACE, DELETE, LEFT, RIGHT, UP, DOWN):
+    def test_only_erasing_and_moving_keys_are_repeatable(self):
+        for kind in (BACKSPACE, DELETE, LEFT, RIGHT, UP, DOWN):
             self.assertIn(kind, REPEATABLE_KINDS)
+        # Home and End are idempotent; a character and a line break are what the
+        # writer typed once and must not become several.
+        for kind in (HOME, END, CHAR, ENTER):
+            self.assertNotIn(kind, REPEATABLE_KINDS)
 
 
 class TranslatorStateTest(unittest.TestCase):

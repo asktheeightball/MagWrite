@@ -37,7 +37,6 @@ from magwrite_transport.usb_keyboard_adapter import (
 )
 
 USAGE_A = 0x04
-USAGE_B = 0x05
 USAGE_BACKSPACE = 0x2A
 USAGE_LEFT = 0x50
 USAGE_HOME = 0x4A
@@ -212,16 +211,25 @@ class AdapterQueueTest(unittest.TestCase):
 
 
 class AdapterRepeatTest(unittest.TestCase):
-    def test_a_held_printable_repeats_after_the_delay(self):
-        adapter, queue, _ = build([report(0, (USAGE_A,))])
+    def test_a_held_backspace_repeats_after_the_delay(self):
+        adapter, queue, _ = build([report(0, (USAGE_BACKSPACE,))])
         adapter.poll(0.0)
         self.assertEqual(len(drain(queue)), 1)
         adapter.poll((REPEAT_DELAY_MS - 1) / 1000.0)
         self.assertEqual(drain(queue), [])
         adapter.poll(REPEAT_DELAY_MS / 1000.0)
         repeated = drain(queue)
-        self.assertEqual([e.value for e in repeated], ["a"])
+        self.assertEqual([e.kind for e in repeated], ["BACKSPACE"])
         self.assertEqual(adapter.repeat_events, 1)
+
+    def test_a_held_printable_never_repeats(self):
+        adapter, queue, _ = build([report(0, (USAGE_A,))])
+        adapter.poll(0.0)
+        self.assertEqual(len(drain(queue)), 1)
+        adapter.poll(10.0)
+        self.assertEqual(drain(queue), [])
+        self.assertEqual(adapter.repeat_events, 0)
+        self.assertFalse(adapter.repeat.armed)
 
     def test_repeats_follow_the_configured_interval(self):
         adapter, queue, _ = build([report(0, (USAGE_LEFT,))])
@@ -235,7 +243,7 @@ class AdapterRepeatTest(unittest.TestCase):
         self.assertEqual([e.kind for e in drain(queue)], ["LEFT"])
 
     def test_release_cancels_the_repeat(self):
-        adapter, queue, _ = build([report(0, (USAGE_A,)), RELEASE_REPORT])
+        adapter, queue, _ = build([report(0, (USAGE_BACKSPACE,)), RELEASE_REPORT])
         adapter.poll(0.0)
         drain(queue)
         adapter.poll(REPEAT_DELAY_MS / 1000.0)
@@ -244,7 +252,9 @@ class AdapterRepeatTest(unittest.TestCase):
 
     def test_repeated_events_are_flagged_in_diagnostics(self):
         records = []
-        adapter, queue, _ = build([report(0, (USAGE_A,))], records=records)
+        adapter, queue, _ = build(
+            [report(0, (USAGE_BACKSPACE,))], records=records
+        )
         adapter.poll(0.0)
         adapter.poll(REPEAT_DELAY_MS / 1000.0)
         flags = [
@@ -265,12 +275,12 @@ class AdapterRepeatTest(unittest.TestCase):
 
     def test_the_newest_held_key_owns_the_repeat(self):
         adapter, queue, _ = build([
-            report(0, (USAGE_A,)), report(0, (USAGE_A, USAGE_B)),
+            report(0, (USAGE_BACKSPACE,)), report(0, (USAGE_BACKSPACE, USAGE_LEFT)),
         ])
         adapter.poll(0.0)
         drain(queue)
         adapter.poll(REPEAT_DELAY_MS / 1000.0)
-        self.assertEqual([e.value for e in drain(queue)], ["b"])
+        self.assertEqual([e.kind for e in drain(queue)], ["LEFT"])
 
 
 class ConnectionStateTest(unittest.TestCase):

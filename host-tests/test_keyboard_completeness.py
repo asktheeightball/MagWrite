@@ -23,6 +23,7 @@ sys.path.append(os.path.join(ROOT, "host-tests"))
 
 from keyboard_simulator import (
     FakeKeyboardBackend, press_release, report, type_characters,
+    type_characters_overlapping,
 )
 from magwrite.test_pattern import GLYPHS
 from magwrite_transport.editor import (
@@ -43,6 +44,7 @@ from magwrite_transport.keyboard_repeat import REPEAT_DELAY_MS, REPEAT_INTERVAL_
 from magwrite_transport.usb_keyboard_adapter import UsbKeyboardAdapter
 
 USAGE_APOSTROPHE = 0x34
+USAGE_ENTER = 0x28
 USAGE_BACKSPACE = 0x2A
 USAGE_DELETE = 0x4C
 USAGE_HOME = 0x4A
@@ -210,8 +212,13 @@ class DeviceLayoutTest(unittest.TestCase):
         """The raw usage is what the keyboard released, so it must be tracked."""
         typist = Typist(descriptor=TH40_DESCRIPTOR)
         typist.send([report(0, (USAGE_EQUALS_AND_PLUS,))])
-        self.assertEqual(typist.adapter.repeat.usage, USAGE_EQUALS_AND_PLUS)
+        self.assertEqual(
+            typist.adapter.translator.held, (USAGE_EQUALS_AND_PLUS,)
+        )
+        # A printable is not a repeating key, so nothing may be armed either.
+        self.assertFalse(typist.adapter.repeat.armed)
         typist.send([report(0)])
+        self.assertEqual(typist.adapter.translator.held, ())
         self.assertFalse(typist.adapter.repeat.armed)
 
     def test_the_diagnostic_reports_the_raw_usage_the_keyboard_sent(self):
@@ -406,10 +413,26 @@ class KeyRepeatTest(unittest.TestCase):
         typist.send([report(0)])
         return typist
 
-    def test_a_held_printable_repeats_into_the_document(self):
-        typist = self.hold_usage(USAGE_A)
-        self.assertGreater(len(typist.text), 1)
-        self.assertEqual(set(typist.text), {"a"})
+    def test_a_held_printable_never_duplicates_the_character(self):
+        """A resting finger is not a request for more of that letter."""
+        typist = self.hold_usage(USAGE_A, seconds=4.0)
+        self.assertEqual(typist.text, "a")
+        self.assertEqual(typist.adapter.repeat_events, 0)
+        self.assertFalse(typist.adapter.repeat.armed)
+
+    def test_a_held_enter_never_adds_extra_line_breaks(self):
+        typist = self.hold_usage(
+            USAGE_ENTER, setup=type_characters("ab"), seconds=4.0
+        )
+        self.assertEqual(typist.text, "ab\n")
+        self.assertEqual(typist.adapter.repeat_events, 0)
+        self.assertFalse(typist.adapter.repeat.armed)
+
+    def test_a_held_application_key_never_repeats_and_finishes_once(self):
+        typist = self.hold_usage(USAGE_APPLICATION, seconds=4.0)
+        self.assertTrue(typist.adapter.finish_requested)
+        self.assertEqual(len(typist.events("usb_keyboard_finish_requested")), 1)
+        self.assertEqual(typist.adapter.repeat_events, 0)
 
     def test_a_held_backspace_repeats(self):
         typist = self.hold_usage(
@@ -433,9 +456,12 @@ class KeyRepeatTest(unittest.TestCase):
         self.assertEqual(typist.text, "abcdefghij")
         self.assertLess(typist.editor.column, 9)
 
-    def test_every_repeatable_kind_is_one_a_writer_holds(self):
-        for kind in ("CHAR", "BACKSPACE", "DELETE", "LEFT", "RIGHT", "UP", "DOWN"):
+    def test_repeat_is_exactly_erasing_and_moving(self):
+        """The whole repeating set, both halves asserted."""
+        for kind in ("BACKSPACE", "DELETE", "LEFT", "RIGHT", "UP", "DOWN"):
             self.assertIn(kind, REPEATABLE_KINDS)
+        for kind in ("CHAR", "ENTER", "HOME", "END"):
+            self.assertNotIn(kind, REPEATABLE_KINDS)
 
     def test_home_and_end_never_repeat_because_they_are_idempotent(self):
         for usage in (USAGE_HOME, USAGE_END):
@@ -444,31 +470,71 @@ class KeyRepeatTest(unittest.TestCase):
 
     def test_releasing_the_key_cancels_the_repeat_immediately(self):
         typist = Typist()
-        typist.send([report(0, (USAGE_A,))])
+        typist.send(type_characters("abcdefghij"))
+        typist.send([report(0, (USAGE_BACKSPACE,))])
         typist.hold(self.HOLD_SECONDS)
-        before = len(typist.text)
+        before = typist.text
+        self.assertLess(len(before), 9)
         typist.send([report(0)])
+        typist.hold(4.0)
+        self.assertEqual(typist.text, before)
+        self.assertFalse(typist.adapter.repeat.armed)
+
+    def test_a_release_carried_with_the_next_press_still_cancels(self):
+        """Hardware releases one key in the same report that presses the next."""
+        typist = Typist()
+        typist.send(type_characters("abcdefghij"))
+        typist.send([report(0, (USAGE_BACKSPACE,))])
         typist.hold(self.HOLD_SECONDS)
-        self.assertEqual(len(typist.text), before)
+        erased = typist.text
+        repeats = typist.adapter.repeat_events
+        self.assertGreater(repeats, 0)
+        # One report drops Backspace and presses "a" at the same time.
+        typist.send([report(0, (USAGE_A,))])
+        typist.hold(4.0)
+        self.assertEqual(typist.text, erased + "a")
+        self.assertEqual(typist.adapter.repeat_events, repeats)
         self.assertFalse(typist.adapter.repeat.armed)
 
     def test_a_tapped_key_never_repeats(self):
+        for usage in (USAGE_A, USAGE_BACKSPACE, USAGE_ENTER, USAGE_LEFT):
+            typist = Typist()
+            typist.send(type_characters("abc"))
+            characters = len(typist.text)
+            typist.send(key(usage))
+            typist.hold(4.0)
+            self.assertEqual(typist.adapter.repeat_events, 0, hex(usage))
+            # One tap changed the document at most once.
+            self.assertLessEqual(abs(len(typist.text) - characters), 1)
+
+    def test_typing_a_realistic_overlapping_stream_produces_exactly_that_text(self):
+        """Normal writing, at the rate the bench capture recorded, is verbatim."""
         typist = Typist()
-        typist.send(key(USAGE_A))
-        typist.hold(self.HOLD_SECONDS)
-        self.assertEqual(typist.text, "a")
+        text = "the quick brown fox jumps"
+        # 90 ms per report: each key is held about as long as the captured
+        # session's slowest ordinary keystroke, and well inside the repeat delay.
+        typist.send(type_characters_overlapping(text), advance=0.09)
+        typist.hold(4.0)
+        self.assertEqual(typist.text, text)
         self.assertEqual(typist.adapter.repeat_events, 0)
 
     def test_the_newest_held_key_takes_over_the_repeat(self):
         typist = Typist()
-        typist.send([report(0, (USAGE_A,))])
-        typist.send([report(0, (USAGE_A, 0x05))])   # also hold "b"
+        typist.send(type_characters("abcdefghij"))
+        typist.send([report(0, (USAGE_BACKSPACE,))])
+        typist.send([report(0, (USAGE_BACKSPACE, USAGE_LEFT))])
+        self.assertEqual(typist.adapter.repeat.usage, USAGE_LEFT)
         typist.hold(self.HOLD_SECONDS)
         typist.send([report(0)])
-        self.assertTrue(typist.text.endswith("bb"))
+        # The newest key owns the repeat, so only the arrow repeated: one
+        # backspace was applied and the rest of the text is intact.
+        self.assertEqual(typist.text, "abcdefghi")
+        self.assertLess(typist.editor.column, 8)
 
     def test_repeats_are_flagged_so_a_run_record_can_separate_them(self):
-        typist = self.hold_usage(USAGE_A)
+        typist = self.hold_usage(
+            USAGE_BACKSPACE, setup=type_characters("abcdefghij")
+        )
         flags = [r["repeat"] for r in typist.events("keyboard_event_normalized")]
         self.assertIn(True, flags)
         self.assertIn(False, flags)

@@ -89,6 +89,27 @@ def type_characters(text):
     return reports
 
 
+def type_characters_overlapping(text):
+    """The report stream a *fast* typist produces.
+
+    The next key goes down before the previous one comes up, so two usages share
+    a report and every release edge is carried by a report that also presses
+    something. Real hardware does this constantly; the captured bench session
+    shows it on most keystroke pairs.
+    """
+    reports = []
+    previous = None
+    for character in text:
+        usage, shift = _CHARACTER_USAGES[character]
+        modifier = MODIFIER_LEFT_SHIFT if shift else 0
+        usages = (usage,) if previous is None else (previous, usage)
+        reports.append(report(modifier, usages))
+        previous = usage
+    if previous is not None:
+        reports.append(report())
+    return reports
+
+
 def press_kind(kind, times=1):
     """Reports for pressing a named editing key ``times`` times."""
     reports = []

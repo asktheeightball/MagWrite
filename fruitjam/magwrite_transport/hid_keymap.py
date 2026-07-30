@@ -90,10 +90,21 @@ NAMED_USAGES = {
     0x52: UP,
 }
 
+# Repeat exists for the keys a writer holds *on purpose* to cover distance:
+# erasing back over a word, or moving the cursor. Nothing else belongs here.
+#
 # Repeating Home and End would be pure work: both are idempotent, so a held key
 # would emit events that change nothing and burn viewport frames.
+#
+# Printable characters and Enter are excluded because on this device the cost of
+# a false repeat is asymmetric. The panel trails typing by a second or more, so a
+# writer who rests a finger on a key sees the duplicated letters or the extra
+# blank lines only after they are already in the authoritative document. A tap
+# must produce exactly one character, and holding a letter down is not a request
+# for more of it. Erasing and moving are different: a held Backspace or arrow is
+# unambiguous, and its effect is bounded by the text that already exists.
 REPEATABLE_KINDS = (
-    CHAR, ENTER, BACKSPACE, DELETE, LEFT, RIGHT, UP, DOWN,
+    BACKSPACE, DELETE, LEFT, RIGHT, UP, DOWN,
 )
 
 # ---------------------------------------------------------------- printables
