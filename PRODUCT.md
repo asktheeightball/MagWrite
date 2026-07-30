@@ -15,7 +15,7 @@ The current prototype uses:
 - bidirectional 3.3 V UART between Fruit Jam and MagTag;
 - direct USB HID keyboard input through the Fruit Jam USB host port;
 - CircuitPython on both boards during the prototype phase;
-- future microSD-backed plain-text persistence on the Fruit Jam;
+- microSD-backed plain-text persistence on the Fruit Jam;
 - a future unified single-battery power system.
 
 The 2025 SSD1680 MagTag is not assumed compatible with the selected partial-refresh driver.

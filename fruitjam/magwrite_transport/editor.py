@@ -197,6 +197,59 @@ class MultilineEditor:
             self.viewport_revision += 1
         return changed
 
+    def load(self, text, row=0, column=0, revision=None):
+        """Adopt a recovered document, cursor, and revision.
+
+        Used once, when a session opens on a document restored from the card.
+        The revision is carried across rather than restarted so that revision
+        numbers remain a continuous history of the document through a power loss;
+        a restart would make the recovery journal impossible to read afterwards
+        and would let a stale record outrank a newer one.
+
+        Bounds are enforced exactly as they are for an interactive edit, because
+        a card is not a trusted input: a file that would exceed the editor's
+        limits is refused explicitly rather than loaded into a state no edit
+        could have produced.
+        """
+        lines = text.split("\n")
+        if len(lines) > self.max_lines:
+            self._reject("recovered document exceeds line capacity")
+        for line in lines:
+            if len(line) > self.max_line_chars:
+                self._reject("recovered line exceeds line capacity")
+            for char in line:
+                if not 32 <= ord(char) <= 126:
+                    self._reject("recovered document contains an unsupported character")
+        total = sum(len(line) for line in lines) + len(lines) - 1
+        if total > self.max_chars:
+            self._reject("recovered document exceeds document capacity")
+        if not 0 <= row < len(lines):
+            self._reject("recovered cursor row is outside the document")
+        if not 0 <= column <= len(lines[row]):
+            self._reject("recovered cursor column is outside its line")
+        if revision is None:
+            revision = self.document_revision + 1
+        if revision < self.document_revision:
+            self._reject("recovered revision is older than the current one")
+        self.lines = lines
+        self.row = row
+        self.column = column
+        self.document_revision = revision
+        self.preferred_column = self.cursor_visual_position()[1]
+        self.viewport_revision += 1
+        return revision
+
+    def note_visible_change(self):
+        """Advance ``viewport_revision`` for visible state the editor does not own.
+
+        The save-state indicator is drawn in the viewport but belongs to the
+        persistence layer. Routing it through the editor keeps the editor the
+        single owner of both revisions, which is what stops two different
+        payloads from ever being transmitted under one revision number.
+        """
+        self.viewport_revision += 1
+        return self.viewport_revision
+
     def _reject(self, reason):
         self.rejected_events += 1
         raise EditRejected(reason)

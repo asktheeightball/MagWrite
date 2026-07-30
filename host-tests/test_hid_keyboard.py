@@ -25,11 +25,12 @@ from magwrite_transport.hid_keyboard import (
     parse_report,
 )
 from magwrite_transport.hid_keymap import (
-    CONTROL_CAPS_LOCK, CONTROL_FINISH, CONTROL_UNSUPPORTED, CONTROL_USAGES,
-    FINISH_USAGES, MODIFIER_LEFT_CTRL, MODIFIER_LEFT_SHIFT,
-    MODIFIER_RIGHT_SHIFT, REPEATABLE_KINDS, SHIFT_MASK, USAGE_APPLICATION,
-    USAGE_CAPS_LOCK, USAGE_ERROR_ROLLOVER, USAGE_ESCAPE, is_modifier_usage,
-    shift_active, supported_characters, translate,
+    CONTROL_CAPS_LOCK, CONTROL_FINISH, CONTROL_SAVE, CONTROL_UNSUPPORTED,
+    CONTROL_USAGES, CTRL_MASK, CTRL_USAGES, FINISH_USAGES, MODIFIER_LEFT_CTRL,
+    MODIFIER_LEFT_SHIFT, MODIFIER_RIGHT_CTRL, MODIFIER_RIGHT_SHIFT,
+    REPEATABLE_KINDS, SAVE_USAGES, SHIFT_MASK, USAGE_APPLICATION,
+    USAGE_CAPS_LOCK, USAGE_ERROR_ROLLOVER, USAGE_ESCAPE, ctrl_active,
+    is_modifier_usage, shift_active, supported_characters, translate,
 )
 from magwrite_transport.keyboard_repeat import (
     MAX_CATCH_UP, REPEAT_DELAY_MS, REPEAT_INTERVAL_MS, KeyRepeat,
@@ -107,6 +108,87 @@ class ModifierDecodingTest(unittest.TestCase):
         for usage in range(0xE0, 0xE8):
             self.assertTrue(is_modifier_usage(usage))
         self.assertFalse(is_modifier_usage(USAGE_A))
+
+
+class CtrlCombinationTest(unittest.TestCase):
+    """Held Ctrl is a command, never a character.
+
+    Before ``CTRL_USAGES`` existed, Ctrl-S emitted a literal "s". The reflex
+    every writer has for "save" therefore inserted a stray character into the
+    authoritative document -- silently, and at the exact moment the writer
+    believed they were protecting it. These tests exist so that cannot return.
+    """
+
+    def setUp(self):
+        self.translator = HidKeyboardTranslator()
+
+    def press(self, usage, modifier=MODIFIER_LEFT_CTRL):
+        return self.translator.step(report(modifier, (usage,)))
+
+    def test_either_ctrl_counts_and_other_modifiers_do_not(self):
+        self.assertTrue(ctrl_active(MODIFIER_LEFT_CTRL))
+        self.assertTrue(ctrl_active(MODIFIER_RIGHT_CTRL))
+        self.assertTrue(ctrl_active(CTRL_MASK))
+        self.assertFalse(ctrl_active(0))
+        self.assertFalse(ctrl_active(MODIFIER_LEFT_SHIFT))
+
+    def test_ctrl_s_is_a_save_control_and_emits_no_character(self):
+        outcome = self.press(USAGE_S)
+        self.assertEqual(outcome.decisions, ())
+        self.assertEqual(outcome.controls, ((CONTROL_SAVE, USAGE_S),))
+
+    def test_ctrl_s_works_with_the_right_hand_ctrl_too(self):
+        outcome = self.press(USAGE_S, MODIFIER_RIGHT_CTRL)
+        self.assertEqual(outcome.controls, ((CONTROL_SAVE, USAGE_S),))
+
+    def test_an_unmapped_ctrl_combination_inserts_nothing(self):
+        """The correction generalises past the one combination that has a home."""
+        for usage in (USAGE_A, USAGE_B):
+            self.translator.reset()
+            outcome = self.press(usage)
+            self.assertEqual(outcome.decisions, (), hex(usage))
+            self.assertEqual(
+                outcome.controls, ((CONTROL_UNSUPPORTED, usage),), hex(usage)
+            )
+
+    def test_s_without_ctrl_is_still_an_ordinary_character(self):
+        outcome = self.translator.step(report(0, (USAGE_S,)))
+        self.assertEqual(len(outcome.decisions), 1)
+        self.assertEqual(outcome.decisions[0].value, "s")
+        self.assertEqual(outcome.controls, ())
+
+    def test_shift_s_is_still_an_ordinary_capital(self):
+        outcome = self.translator.step(report(MODIFIER_LEFT_SHIFT, (USAGE_S,)))
+        self.assertEqual(outcome.decisions[0].value, "S")
+
+    def test_ctrl_does_not_take_precedence_over_finishing(self):
+        # Escape and Application are checked before the Ctrl table, so a writer
+        # holding Ctrl can still stop the session.
+        for usage in FINISH_USAGES:
+            self.translator.reset()
+            outcome = self.press(usage)
+            self.assertEqual(outcome.controls, ((CONTROL_FINISH, usage),))
+
+    def test_ctrl_does_not_break_caps_lock(self):
+        outcome = self.press(USAGE_CAPS_LOCK)
+        self.assertEqual(outcome.controls, ((CONTROL_CAPS_LOCK, True),))
+
+    def test_a_ctrl_combination_is_never_repeatable(self):
+        # Nothing was decided, so nothing can be armed for repeat: a held Ctrl-S
+        # cannot turn into a stream of checkpoints.
+        outcome = self.press(USAGE_S)
+        self.assertEqual(outcome.decisions, ())
+
+    def test_the_save_table_does_not_redefine_a_finish_or_editing_key(self):
+        for usage in CTRL_USAGES:
+            self.assertNotIn(usage, CONTROL_USAGES, hex(usage))
+        self.assertEqual(SAVE_USAGES, (USAGE_S,))
+
+    def test_releasing_a_ctrl_combination_leaves_no_held_key_behind(self):
+        self.press(USAGE_S)
+        outcome = self.translator.step(report(MODIFIER_LEFT_CTRL))
+        self.assertEqual(outcome.released, (USAGE_S,))
+        self.assertEqual(self.translator.held, ())
 
 
 class KeymapTranslationTest(unittest.TestCase):

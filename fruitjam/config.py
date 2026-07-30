@@ -56,3 +56,44 @@ DEV_RUNTIME_MAX_EVENTS = 100000
 # A live run is operator-paced, so it is abandoned only after a long silence.
 USB_KEYBOARD_IDLE_TIMEOUT_SECONDS = 600
 USB_KEYBOARD_SESSION_TIMEOUT_SECONDS = 2700
+# ------------------------------------------------------- microSD persistence
+# Enabled by default, unlike the harnesses, because persistence is a product
+# feature rather than a hardware experiment: a missing or unmountable card is a
+# reported degraded mode, not a refusal to start. Setting this False runs the
+# editor with no storage at all, which is also how the pre-V1.2 behaviour is
+# reproduced exactly.
+ENABLE_PERSISTENCE = True
+# Pin aliases follow the same rule as the UART pins: only a name the board
+# actually exposes is trusted. When SD_SCK_PIN_ALIAS is None the board's shared
+# SPI() bus is used, which is the normal Fruit Jam wiring; the explicit aliases
+# exist for a board with a dedicated bus. A missing alias is reported as
+# NOT_CONFIGURED together with the SD names the board does expose, so a wrong
+# guess is one readable diagnostic line rather than a debugging session.
+SD_CS_PIN_ALIAS = "SD_CS"
+SD_SCK_PIN_ALIAS = None
+SD_MOSI_PIN_ALIAS = None
+SD_MISO_PIN_ALIAS = None
+# Optional. When the board exposes a card-detect line, an empty slot becomes an
+# observation instead of an inference from a failed initialisation.
+SD_CARD_DETECT_PIN_ALIAS = None
+SD_MOUNT_POINT = "/sd"
+DOCUMENT_ROOT = "/sd/magwrite"
+# Refuse to append below this much free space. A journal append that fails
+# halfway is recoverable by design; a full card is not a state to discover one
+# record at a time.
+DOCUMENT_RESERVE_BYTES = 32768
+# These mirror magwrite_transport/persistence.py, which is the single source of
+# truth and carries the reasoning behind each value; a host test asserts the two
+# agree. Nothing may hard-code an autosave interval anywhere else.
+AUTOSAVE_IDLE_SECONDS = 1.0
+AUTOSAVE_MAX_AGE_SECONDS = 2.0
+AUTOSAVE_REVISIONS = 12
+CHECKPOINT_RECORDS = 24
+CHECKPOINT_MAX_RECORDS = 48
+CHECKPOINT_MAX_AGE_SECONDS = 120.0
+CHECKPOINT_IDLE_SECONDS = 3.0
+# "LATEST" opens the most recent draft the card holds; "NEW" starts an empty
+# document and discards the stored one. Opening the latest draft is the default
+# because losing work to a mode switch is the failure this phase exists to
+# prevent.
+DOCUMENT_OPEN_MODE = "LATEST"

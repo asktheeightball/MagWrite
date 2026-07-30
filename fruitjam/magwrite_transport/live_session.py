@@ -95,7 +95,7 @@ class LiveTypingSession:
         session_timeout_seconds=SESSION_TIMEOUT_SECONDS,
         viewport=None, tracker=None, editor=None, pacer=None, latency=None,
         max_viewport_frames=MAX_VIEWPORT_FRAMES,
-        max_protocol_frames=MAX_PROTOCOL_FRAMES,
+        max_protocol_frames=MAX_PROTOCOL_FRAMES, persistence=None,
     ):
         self.monotonic = monotonic
         self.log = log
@@ -119,6 +119,14 @@ class LiveTypingSession:
         self.pacer = pacer or DisplayPacer()
         # Passive measurement only. It observes and never decides.
         self.latency = latency if latency is not None else LatencyRecorder()
+        # Optional, and ``None`` is a first-class value: every guarded harness
+        # that produced the existing physical evidence runs without it, and with
+        # it absent no save indicator is drawn, so the viewport payloads and
+        # CRC-32s those runs measured stay exactly reproducible.
+        self.persistence = persistence
+        self.save_indicator = None if persistence is None else persistence.indicator
+        self.save_requests_serviced = 0
+        self.manual_saves = 0
         self.idle_timeout_seconds = idle_timeout_seconds
         self.session_timeout_seconds = session_timeout_seconds
         self.phase = PHASE_HELLO
@@ -221,6 +229,11 @@ class LiveTypingSession:
             was_quiet = self.pacer.quiet(now)
             self.pacer.note_input(now)
             self.latency.note_input(now, quiet_before=was_quiet)
+            if self.persistence is not None:
+                # Autosave wants the same fact for the opposite reason: pacing
+                # uses a pause to decide it may send sooner, persistence uses it
+                # to decide it should write now, while the writer has stopped.
+                self.persistence.note_input(now)
             self.log({
                 "event": "live_event_processed", "sequence": event.sequence,
                 "kind": event.kind, "value": event.value,
@@ -271,7 +284,9 @@ class LiveTypingSession:
         revision = self.editor.viewport_revision
         if revision == 0:
             return None
-        return revision, self.viewport.payload(self.editor, LIVE_SCENARIO_ID)
+        return revision, self.viewport.payload(
+            self.editor, LIVE_SCENARIO_ID, self.save_indicator
+        )
 
     def _maybe_send_viewport(self, now, force=False):
         """Stages 5 and 6: coalesce stale states, send at most one newest."""
@@ -328,6 +343,53 @@ class LiveTypingSession:
         })
         return True
 
+    # ------------------------------------------------------ persistence stage
+
+    def restore(self, snapshot):
+        """Load a recovered document into the authoritative editor.
+
+        Called once, before the session starts, when the store returned a
+        snapshot. The persistence controller then adopts the restored revision so
+        the first thing a recovered session does is *not* to rewrite the state it
+        was just recovered from.
+        """
+        self.editor.load(
+            snapshot.text, snapshot.row, snapshot.column, snapshot.revision
+        )
+        if self.persistence is not None:
+            self.persistence.adopt(self.editor)
+            self.save_indicator = self.persistence.indicator
+        self.log({
+            "event": "live_document_restored",
+            "revision": snapshot.revision, "characters": len(snapshot.text),
+            "lines": len(self.editor.lines), "cursor_row": self.editor.row,
+            "cursor_column": self.editor.column,
+        })
+
+    def _service_persistence(self, now):
+        """Stage 7: autosave, checkpoint, and manual save work when due."""
+        if self.persistence is None:
+            return
+        requests = getattr(self.adapter, "save_requests", 0)
+        if requests > self.save_requests_serviced:
+            # Collapsed rather than counted out one at a time: several Ctrl-S
+            # presses in a row mean "save now", not "save four times", and one
+            # checkpoint of the newest state satisfies all of them.
+            self.save_requests_serviced = requests
+            self.manual_saves += 1
+            self.persistence.save_now(now, self.editor)
+        else:
+            self.persistence.service(now, self.editor)
+        indicator = self.persistence.indicator
+        if indicator != self.save_indicator:
+            self.save_indicator = indicator
+            # The indicator is visible state, so the viewport revision has to
+            # advance for it: without this the next payload would differ from the
+            # last while carrying the same revision number, and the
+            # acknowledgement tracker would be reconciling two different frames
+            # against one revision.
+            self.editor.note_visible_change()
+
     def _final_viewport_displayed(self):
         if self.last_sent_payload is None:
             return False
@@ -355,6 +417,13 @@ class LiveTypingSession:
         # Stage 4.
         self._drain_status(now)
 
+        # Stage 7, which runs *before* the viewport stages exactly as the
+        # architecture's loop order specifies. Durability is never made to wait
+        # on a display refresh, and the save indicator the viewport draws is
+        # already current by the time the frame is built.
+        if self.phase in (PHASE_LIVE, PHASE_DRAIN):
+            self._service_persistence(now)
+
         # Stages 5 and 6.
         if self.phase == PHASE_HELLO:
             if self.frame_sequence == 0:
@@ -369,6 +438,12 @@ class LiveTypingSession:
             self._maybe_send_viewport(now)
             if self.adapter.finish_requested and not len(self.queue):
                 self.phase = PHASE_DRAIN
+                # A deliberate stop is the one moment a checkpoint is
+                # unambiguously worth its cost, so it does not wait for a
+                # threshold. The queue is already empty, so this checkpoints the
+                # complete final document rather than a state part-way through it.
+                if self.persistence is not None:
+                    self.persistence.save_now(now, self.editor)
                 self.log({
                     "event": "live_typing_finished",
                     "events_processed": self.events_processed,
@@ -461,4 +536,7 @@ class LiveTypingSession:
         record.update(self.pacer.summary())
         record.update(self.latency.summary())
         record.update(self.adapter.summary())
+        if self.persistence is not None:
+            record["manual_save_requests"] = self.save_requests_serviced
+            record.update(self.persistence.summary())
         return record

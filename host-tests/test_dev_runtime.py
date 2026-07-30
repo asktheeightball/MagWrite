@@ -235,11 +235,25 @@ class FilesystemControlTest(unittest.TestCase):
     """The host keeps CIRCUITPY, which is what makes the loop repeatable."""
 
     def test_neither_runtime_remounts_the_filesystem(self):
+        # The assertion is against ``remount``, not against importing
+        # ``storage``. V1.2 has to import that module to mount the microSD card,
+        # and mounting a second filesystem is the opposite of remounting
+        # CIRCUITPY: the card is a separate volume, so the host keeps the drive
+        # writable and saving a file still restarts the runtime. Banning the
+        # import was a proxy for the property; this asserts the property.
         for parts in DEV_ENTRIES:
             source = code(*parts)
-            self.assertNotIn("import storage", source, parts[-1])
             # A remount call, not the "filesystem_remounted": False it reports.
             self.assertIsNone(re.search(r"\bremount\s*\(", source), parts[-1])
+
+    def test_the_fruitjam_runtime_mounts_only_the_card(self):
+        """Importing ``storage`` is licensed for VfsFat and mount, nothing else."""
+        source = code("fruitjam", "dev_runtime.py")
+        self.assertIn("import storage as storage_module", source)
+        # The runtime hands the module to the storage layer and never calls it
+        # directly, so there is exactly one place that can touch a filesystem.
+        self.assertIn("storage_module=storage_module", source)
+        self.assertIsNone(re.search(r"storage_module\.\w+\(", source))
 
     def test_neither_runtime_disables_autoreload(self):
         """Autoreload left on is how a saved file restarts the runtime."""

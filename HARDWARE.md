@@ -4,7 +4,7 @@
 
 ### Adafruit Fruit Jam
 
-Role: authoritative editor, viewport controller, future microSD storage, autosave/recovery controller, USB HID host, and MagTag button-event interpreter.
+Role: authoritative editor, viewport controller, microSD storage, autosave/recovery controller, USB HID host, and MagTag button-event interpreter.
 
 Relevant characteristics:
 
@@ -204,7 +204,16 @@ Do not connect one battery simultaneously to the independent charger circuits on
 - [ ] Determine whether the Fruit Jam host port supplies enough current for a
       2.4 GHz receiver's radio, or retry with a wired USB keyboard.
 - [ ] Verify keyboard reconnect, modifiers, hold, and repeat.
-- [ ] Verify microSD autosave and forced-power-loss recovery.
+- [ ] Read the microSD pin aliases off the board and set them in
+      `fruitjam/config.py`. The default is `SD_CS` on the shared `SPI()` bus,
+      which is unconfirmed on the board in hand. A wrong alias reports
+      `NOT_CONFIGURED` together with the `SD`-prefixed names the board does
+      expose, so this is one diagnostic line, not a debugging session.
+- [ ] Verify microSD autosave and forced-power-loss recovery. The logic is
+      host-verified in full, including power cut at every byte offset of a
+      journal append; see `docs/PERSISTENCE.md`. What is owed is the physical
+      run: type, pull power mid-session, restart, confirm the recovered document
+      and cursor.
 - [ ] Measure active and idle current for each board and USB receiver.
 - [ ] Determine and verify safe single-battery capacity, charging, and distribution topology.
 - [ ] Complete enclosure and field-use testing.

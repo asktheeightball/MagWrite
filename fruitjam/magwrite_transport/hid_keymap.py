@@ -29,6 +29,7 @@ MODIFIER_RIGHT_SHIFT = 0x20
 MODIFIER_RIGHT_ALT = 0x40
 MODIFIER_RIGHT_GUI = 0x80
 SHIFT_MASK = MODIFIER_LEFT_SHIFT | MODIFIER_RIGHT_SHIFT
+CTRL_MASK = MODIFIER_LEFT_CTRL | MODIFIER_RIGHT_CTRL
 
 # --------------------------------------------------------------- special usages
 
@@ -65,6 +66,7 @@ USAGE_APPLICATION = 0x65
 CONTROL_FINISH = "FINISH"
 CONTROL_CAPS_LOCK = "CAPS_LOCK"
 CONTROL_UNSUPPORTED = "UNSUPPORTED"
+CONTROL_SAVE = "SAVE"
 CONTROL_USAGES = {
     USAGE_ESCAPE: CONTROL_FINISH,
     USAGE_APPLICATION: CONTROL_FINISH,
@@ -73,6 +75,28 @@ CONTROL_USAGES = {
 FINISH_USAGES = tuple(
     usage for usage, control in CONTROL_USAGES.items()
     if control == CONTROL_FINISH
+)
+
+# ------------------------------------------------------------ Ctrl combinations
+
+USAGE_S = 0x16
+
+# Held Ctrl changes what a key *means*; it never contributes a character. Before
+# this table existed, Ctrl-S put a literal "s" into the authoritative document,
+# so the reflex every writer has for "save" silently corrupted the thing being
+# saved. That is the defect this closes, and it is why an unrecognised Ctrl
+# combination below is counted as unsupported rather than translated: suppressing
+# the character is the correction, and Ctrl-S is merely the first combination
+# that has somewhere to go.
+#
+# Ctrl-S is chosen over a dedicated key because it is the one save gesture a
+# writer already has in their fingers, and unlike Escape or a function key it is
+# reachable on a 40% keyboard without an Fn layer that drops the device off USB.
+CTRL_USAGES = {
+    USAGE_S: CONTROL_SAVE,
+}
+SAVE_USAGES = tuple(
+    usage for usage, control in CTRL_USAGES.items() if control == CONTROL_SAVE
 )
 
 # ---------------------------------------------------------------- named keys
@@ -156,6 +180,10 @@ def is_letter_usage(usage):
 
 def shift_active(modifier):
     return bool(modifier & SHIFT_MASK)
+
+
+def ctrl_active(modifier):
+    return bool(modifier & CTRL_MASK)
 
 
 def supported_characters():

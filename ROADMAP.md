@@ -11,7 +11,7 @@ USB HID keyboard
 Adafruit Fruit Jam
 - authoritative editor
 - viewport generation
-- future microSD persistence
+- microSD persistence
         |
         | bidirectional UART
         v
@@ -33,7 +33,7 @@ this list wins.
 | V1 | Phase | Section below | State |
 | --- | --- | --- | --- |
 | 1 | Responsiveness and keyboard completeness | V1.1 | Host-verified; one physical attempt FAILED, certification retired |
-| 2 | microSD persistence and forced-power-loss recovery | Priority 4 | Not started |
+| 2 | microSD persistence and forced-power-loss recovery | Priority 4 | Host-verified; physical confirmation owed |
 | 3 | MagWrite Shell | V1.3 | Not started |
 | 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | Not started |
 | 5 | Standalone workflow | Priority 5 | Not started |
@@ -381,24 +381,46 @@ lines of prose and stopped cleanly on Escape:
 This confirms normal writing works. It is not a responsiveness measurement and
 licenses no timing claim.
 
-## Priority 4 — Single-document persistence and recovery — V1.2
+## Priority 4 — Single-document persistence and recovery — V1.2 — HOST-VERIFIED
 
-Add microSD-backed storage on the Fruit Jam.
+microSD-backed storage on the Fruit Jam. Implemented; `docs/PERSISTENCE.md`
+carries the design, the recovery argument, and the policy values.
 
-Requirements:
+Requirements, all implemented and host-verified:
 
-- one active plain-text or Markdown document;
-- create/open the latest draft;
-- crash-safe autosave;
-- append-only recovery journal;
-- atomic or recoverable checkpoints;
-- tolerate a truncated final recovery record;
-- manual save and visible save state;
-- restore the last valid document after forced power loss.
+| Requirement | Where |
+| --- | --- |
+| card present and mountable at boot | `sd_storage.mount`, six named statuses |
+| one active plain-text or Markdown document | `/sd/magwrite/documents/active.md` |
+| create a new draft or open the latest | `config.DOCUMENT_OPEN_MODE` |
+| crash-safe autosave | `persistence.PersistenceController` |
+| append-only recovery journal | `recovery/active.log`, full snapshots |
+| atomic or recoverable checkpoints | three-step sequence, every window survivable |
+| tolerate a truncated final record | three independent defences |
+| manual save and visible save state | Ctrl-S; one-character status indicator |
+| restore the last acknowledged edit | `LiveTypingSession.restore` |
 
-Do not begin with a full document browser. Prove one document and reliable recovery first.
+The acknowledged revision is defined as the latest revision accepted by the
+**Fruit Jam editor**, not the MagTag display. Display acknowledgements govern
+pacing; editor acceptance governs durability. The two are deliberately decoupled
+so a stalled panel can never stall a save.
 
-**Exit:** a writing session survives forced power loss with the final acknowledged edit recovered.
+Scope held deliberately narrow, as instructed: one document, no document
+browser, no shell, no new certification framework.
+
+**Exit — not yet met:** a writing session survives forced power loss with the
+final acknowledged edit recovered. The host suite proves the logic, including a
+sweep that cuts power at every byte offset of a journal append. Only pulling
+power from the real board proves the claim.
+
+Two items are owed before the exit can be claimed:
+
+1. **microSD pin aliases have not been read off the board.**
+   `config.SD_CS_PIN_ALIAS` defaults to `"SD_CS"` on the shared `SPI()` bus. A
+   wrong guess is not a crash: bring-up reports `NOT_CONFIGURED` along with the
+   `SD`-prefixed names the board does expose.
+2. **A physical forced-power-loss run.** Type, pull power mid-session, restart,
+   and confirm the recovered document and cursor.
 
 ## V1.3 — MagWrite Shell
 

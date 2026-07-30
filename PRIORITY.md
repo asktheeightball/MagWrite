@@ -12,9 +12,9 @@ Do not create new certification harnesses, evidence packages, compatibility inve
 
 ## Current path
 
-1. Finish the current ordinary writing session.
-2. Move directly to V1.2: microSD persistence.
-3. Add crash-safe autosave and forced-power-loss recovery.
+1. ~~Finish the current ordinary writing session.~~ Done.
+2. ~~Move directly to V1.2: microSD persistence.~~ Implemented, host-verified.
+3. Confirm the microSD pin aliases and run one physical forced-power-loss test.
 4. Build the MagWrite Shell.
 5. Add Journal, Quick Note, Drafts, and Recent.
 6. Complete the minimum standalone workflow.
@@ -22,23 +22,32 @@ Do not create new certification harnesses, evidence packages, compatibility inve
 
 ## Active product task
 
-**V1.2 — Single-document persistence and recovery**
+**V1.2 — Single-document persistence and recovery — implemented, host-verified**
 
-The next implementation work should prove one reliable document before adding a document browser or additional writing modes:
+Every requirement is built and covered by the host suite. See
+`docs/PERSISTENCE.md` for the design and `ROADMAP.md` for the requirement map.
 
-- microSD-backed plain-text or Markdown storage;
-- create or open the latest draft;
-- crash-safe autosave;
-- append-only recovery journal;
-- atomic or recoverable checkpoints;
-- tolerance for a truncated final recovery record;
-- manual save and visible save state;
-- recovery of the last acknowledged edit after forced power loss.
+The acknowledged revision is the latest revision accepted by the **Fruit Jam
+editor**, not the MagTag display. Display acknowledgements govern pacing; editor
+acceptance governs durability.
+
+Two items remain before the V1.2 exit can be claimed, and both need hardware:
+
+- **read the microSD pin aliases off the board** and set them in `config.py`.
+  The default is `SD_CS` on the shared `SPI()` bus. A wrong alias reports
+  `NOT_CONFIGURED` with the names the board does expose; it does not crash;
+- **one physical forced-power-loss run**: type, pull power, restart, confirm the
+  recovered document and cursor.
+
+Neither is a new certification harness. The development runtime already brings
+persistence up and logs the mount status, the recovery, and the save state.
 
 ## Deferred backlog
 
 The following are explicitly non-blocking unless they prevent normal writing:
 
+- the stale test count in `host-tests/README.md`, corrected in V1.2 but worth a
+  standing check;
 - apostrophe and unusual keyboard mappings;
 - Home, End, Delete, Caps Lock, and key-repeat refinement;
 - formal responsiveness measurement;

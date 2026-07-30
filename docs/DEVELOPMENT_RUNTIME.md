@@ -61,6 +61,12 @@ Both ship **disabled**, like everything else that can drive hardware.
 remount, CIRCUITPY stays writable by the host on both boards, which is what
 makes the loop repeatable.
 
+V1.2 persistence does not change any of that. The microSD card is a **separate
+filesystem** from CIRCUITPY, so mounting it needs no `storage.remount`: the host
+keeps the drive, autoreload stays on, and saving a file still restarts the board.
+A missing or unmountable card is a reported degraded mode, never a refusal to
+start — the editor runs and the panel shows `x`.
+
 ## Wiring
 
 Unchanged from the verified milestone, and physically confirmed:
@@ -93,8 +99,12 @@ Unchanged from the verified milestone, and physically confirmed:
    DEV_RUNTIME_MODE = "FRUITJAM_DEV_RUNTIME"
    ```
 
-   It logs `dev_runtime_ready`, waits `STARTUP_DELAY_SECONDS`, then handshakes.
-4. Type. The MagTag trails and catches up.
+   It logs `dev_runtime_ready` — which now carries `storage_status`,
+   `mount_point`, and `save_state` — waits `STARTUP_DELAY_SECONDS`, then
+   handshakes. If a document was recovered from the card, `document_recovery` and
+   `live_document_restored` appear too, and the editor opens on that document
+   with its cursor where it was.
+4. Type. The MagTag trails and catches up. **Ctrl-S** saves immediately.
 
 Start the MagTag first. It is the side that answers the handshake, and starting
 it second just means the Fruit Jam's first HELLO goes nowhere.
@@ -141,6 +151,13 @@ Fruit Jam: `dev_runtime_ready`, `live_event_processed`, `live_viewport_sent`
 (with the pacing reason that released it), `live_status_received`,
 `live_viewport_superseded`, `live_typing_finished`, `live_test_complete`,
 `dev_runtime_session_summary`, `dev_runtime_stopped`.
+
+Persistence adds `sd_mounted` or one of `sd_absent` / `sd_unmountable` /
+`sd_not_configured` / `sd_spi_failed` / `sd_init_failed`, then
+`document_recovery`, `live_document_restored`, `document_journaled`,
+`document_checkpointed`, `usb_keyboard_save_requested`, and
+`document_save_failed`. A wrong pin alias reports the `SD`-prefixed names the
+board actually exposes, so it is one line to read rather than a hunt.
 
 MagTag: `dev_display_ready`, `dev_display_status_sent`,
 `dev_display_session_summary`, `dev_display_awaiting_next_session`,

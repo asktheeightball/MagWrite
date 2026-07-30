@@ -9,7 +9,7 @@ USB HID keyboard
 Adafruit Fruit Jam
         +-- authoritative multiline editor
         +-- cursor, wrapping, and viewport state
-        +-- future microSD document and recovery storage
+        +-- microSD document and recovery storage
         +-- keyboard input normalization
         +-- MagTag button-event interpretation
         |
@@ -24,6 +24,11 @@ Original Adafruit MagTag
 The Fruit Jam is the authoritative application controller. The MagTag is a display terminal and input surface, not a second editor.
 
 Direct USB HID on the Fruit Jam is the preferred keyboard path. The LOLIN32 Bluetooth bridge is deferred and remains an optional adapter only for a Bluetooth-only keyboard that cannot use USB or a receiver.
+
+The microSD card is a separate filesystem from CIRCUITPY, so mounting it needs
+no `storage.remount`. The development runtime keeps its defining property: the
+host retains the drive, autoreload stays on, and saving a file restarts the
+board.
 
 ## Proven transport boundary
 
@@ -107,6 +112,12 @@ The rules are deliberately narrow:
 - no layout may redefine a FINISH usage, Caps Lock, or an editing key;
 - a misspelled layout name fails closed at construction, not mid-run.
 
+Held Ctrl means the key is a **command and never contributes a character**. A
+recognised combination becomes a control — Ctrl-S is manual save — and an
+unrecognised one is counted as unsupported. Before this rule existed, Ctrl-S
+inserted a literal `s`, so the reflex every writer has for "save" silently
+corrupted the document at the moment they believed they were protecting it.
+
 ## Responsibility boundaries
 
 ### Fruit Jam application
@@ -121,7 +132,7 @@ The Fruit Jam owns:
 - wrapping, scrolling, and viewport construction;
 - document and viewport revisions;
 - acknowledgement tracking and timeout policy;
-- future microSD autosave, checkpoints, and recovery;
+- microSD autosave, checkpoints, and recovery;
 - document metadata and application workflow;
 - interpretation of MagTag button events;
 - battery, keyboard, storage, and save-state indicators.
@@ -198,7 +209,11 @@ The protocol should support bounded press, release, and deliberate long-press ev
 4. Parse complete return frames within a bounded budget.
 5. Apply valid button events to Fruit Jam-owned workflow state.
 6. Update acknowledgement state.
-7. Run autosave/checkpoint work when due.
+7. Run autosave, checkpoint, and manual-save work when due — at most one storage
+   operation per iteration while writing, and always before the viewport stages,
+   so durability never waits on a display refresh. The single iteration on which
+   a clean stop is detected adds one final checkpoint, which is the one moment a
+   checkpoint is unambiguously worth its cost.
 8. Build only the newest required semantic viewport.
 9. Coalesce obsolete unsent viewport states.
 10. Send at most one newest pending viewport according to the bounded policy.
@@ -260,26 +275,77 @@ alongside the constants they justify.
 
 ## Storage model
 
-Use one open document first.
-
-Suggested files:
+One open document, on the microSD card, on the Fruit Jam. Implemented in V1.2;
+`docs/PERSISTENCE.md` carries the full reasoning and the recovery argument.
 
 ```text
-/documents/YYYY-MM-DD.txt
-/recovery/active.log
-/config/settings.json
-/config/active.json
+/sd/magwrite/documents/active.md         plain text, readable on any computer
+/sd/magwrite/documents/active.prev.md    the previous plain-text mirror
+/sd/magwrite/documents/active.new.md     a mirror being written
+/sd/magwrite/recovery/active.log         append-only journal of snapshots
+/sd/magwrite/recovery/checkpoint.log     append-only checkpoint records
 ```
 
-Storage rules:
+**The recovery logs are authoritative.** `documents/active.md` is a plain-text
+mirror kept for the writer and for any computer the card is later plugged into;
+recovery never trusts it. Making the `.md` file authoritative would require
+either a metadata header inside it, which stops it being a plain-text document,
+or a sidecar, which reintroduces the two-file atomicity problem an append-only
+log already solves.
+
+Journal records are **full document snapshots, not deltas**. The document is
+bounded at 512 characters, so a snapshot costs a few hundred bytes; a delta
+journal would need a replay engine that separately models what BACKSPACE and
+ENTER mean, and two models of editor semantics that must agree forever is how a
+recovery format ends up unable to reproduce the document it recorded.
+
+Storage rules, as implemented:
 
 - apply edits in RAM immediately;
-- append compact recovery records periodically;
-- checkpoint the full document atomically where practical;
-- preserve the last known-good checkpoint;
-- tolerate a truncated final recovery record;
-- compact the recovery log after a successful checkpoint;
-- reserve free space and fail safely before exhaustion.
+- append a full snapshot after a pause, a revision threshold, or a bounded age;
+- promote the newest snapshot to a checkpoint, then discard the journal, then
+  rewrite the mirror — in that order, so no window exists in which the newest
+  acknowledged snapshot is in neither log;
+- preserve the previous checkpoint through compaction;
+- tolerate a truncated final recovery record, detected three independent ways;
+- reserve free space and refuse writes before exhaustion;
+- never let a storage failure stop the writer: it degrades to a reported state,
+  never to a refusal or a crash.
+
+### The acknowledged revision
+
+**Acknowledged means accepted by the Fruit Jam editor — `document_revision` —
+not displayed by the MagTag.**
+
+A display acknowledgement says a refresh finished. It says nothing about whether
+the words survive a power cut, it can lag by a full refresh, and it can be
+blocked indefinitely by a display fault. If persistence waited for it, a stalled
+panel would silently stop saving. So the two are deliberately decoupled:
+
+- display acknowledgements govern **pacing** — when a frame may be sent;
+- editor acceptance governs **durability** — when a snapshot must be written.
+
+### Save state
+
+One save state, computed as a pure function of acknowledged, journaled, and
+checkpointed revisions, drawn as one character in the viewport status line:
+
+| State | Indicator | Meaning |
+| --- | --- | --- |
+| `SAVED` | `s` | everything accepted is in a checkpoint |
+| `RECOVERABLE` | `r` | in the journal, so a power loss recovers it |
+| `UNSAVED` | `u` | the newest edits are in RAM only |
+| `ERROR` | `!` | a write was refused or failed |
+| `NO_CARD` | `x` | no card, so nothing is being persisted |
+
+`RECOVERABLE` is a real distinction rather than a shade of `SAVED`: it is where a
+writer spends nearly all their time, and it is what the journal exists to
+provide. `NO_CARD` is always shown — a writing tool that silently stops
+persisting is worse than one that refuses to start.
+
+Every indicator character is present in the MagTag's proven 3×5 glyph table, and
+a host test asserts it. The indicator is drawn on the panel, so "a character"
+means "a character this panel can draw".
 
 ## Power model
 

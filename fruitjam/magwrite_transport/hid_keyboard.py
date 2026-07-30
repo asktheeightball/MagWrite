@@ -23,8 +23,9 @@ Three properties matter and are each host-tested:
 """
 
 from magwrite_transport.hid_keymap import (
-    CONTROL_CAPS_LOCK, CONTROL_UNSUPPORTED, CONTROL_USAGES, REPEATABLE_KINDS,
-    USAGE_NONE, is_error_usage, is_modifier_usage, shift_active, translate,
+    CONTROL_CAPS_LOCK, CONTROL_UNSUPPORTED, CONTROL_USAGES, CTRL_USAGES,
+    REPEATABLE_KINDS, USAGE_NONE, ctrl_active, is_error_usage,
+    is_modifier_usage, shift_active, translate,
 )
 from magwrite_transport.keyboard_layout import STANDARD
 
@@ -176,6 +177,7 @@ class HidKeyboardTranslator:
         self.held = active
 
         shift = shift_active(modifier)
+        ctrl = ctrl_active(modifier)
         decisions = []
         controls = []
         for usage in pressed:
@@ -192,6 +194,18 @@ class HidKeyboardTranslator:
                 continue
             if control is not None:
                 controls.append((control, usage))
+                continue
+            if ctrl:
+                # Held Ctrl means this key is a command, so it must not reach
+                # ``translate`` and must never produce a character. Checked after
+                # the unconditional controls above, so Escape and Application
+                # still finish a session with Ctrl held.
+                ctrl_control = CTRL_USAGES.get(mapped)
+                if ctrl_control is not None:
+                    controls.append((ctrl_control, usage))
+                else:
+                    self.unsupported_usages += 1
+                    controls.append((CONTROL_UNSUPPORTED, usage))
                 continue
             translated = translate(mapped, shift, self.caps_lock)
             if translated is None:

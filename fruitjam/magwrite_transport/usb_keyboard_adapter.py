@@ -19,7 +19,7 @@ block the display half of the scheduler.
 from magwrite_transport.editor import InputEvent, QueueOverflow
 from magwrite_transport.hid_keyboard import HidKeyboardTranslator
 from magwrite_transport.hid_keymap import (
-    CONTROL_CAPS_LOCK, CONTROL_FINISH, CONTROL_UNSUPPORTED,
+    CONTROL_CAPS_LOCK, CONTROL_FINISH, CONTROL_SAVE, CONTROL_UNSUPPORTED,
 )
 from magwrite_transport.keyboard_layout import AUTO, resolve
 from magwrite_transport.keyboard_repeat import KeyRepeat
@@ -66,6 +66,11 @@ class UsbKeyboardAdapter:
         self.events_generated = 0
         self.repeat_events = 0
         self.finish_requested = False
+        # A monotonic count rather than a flag the session has to clear. Two
+        # objects sharing a mutable boolean is how a save request gets lost or
+        # serviced twice; a counter lets the consumer track what it has honoured
+        # without ever writing to the producer.
+        self.save_requests = 0
         self.queue_overflows = 0
         self.last_activity_at = now
         self.descriptor = None
@@ -183,6 +188,10 @@ class UsbKeyboardAdapter:
                 self.finish_requested = True
                 self.log({"event": "usb_keyboard_finish_requested",
                           "usage": detail})
+            elif control == CONTROL_SAVE:
+                self.save_requests += 1
+                self.log({"event": "usb_keyboard_save_requested",
+                          "usage": detail, "save_requests": self.save_requests})
             elif control == CONTROL_CAPS_LOCK:
                 self.log({"event": "usb_keyboard_caps_lock", "enabled": detail})
             elif control == CONTROL_UNSUPPORTED:
@@ -255,6 +264,7 @@ class UsbKeyboardAdapter:
             "repeat_events": self.repeat_events,
             "repeat_resynchronizations": self.repeat.resynchronizations,
             "unsupported_usages": self.unsupported_usages,
+            "save_requests": self.save_requests,
             "caps_lock_toggles": self.translator.caps_lock_toggles,
             "keyboard_layout": self.translator.layout.name,
             "remapped_usages": self.translator.remapped_usages,

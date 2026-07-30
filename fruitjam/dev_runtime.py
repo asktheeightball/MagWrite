@@ -37,8 +37,15 @@ verification milestone.
 Press the Application (menu) key, HID usage ``0x65``, to stop cleanly. Escape
 also stops, but the EPOMAKER TH40 can only reach it through an Fn layer that
 switches the keyboard out of USB mode, so Application is the usable control.
-After a clean stop the board is immediately restartable: press reset, press
-Ctrl-D at the REPL, or just save a file over USB.
+Press Ctrl-S to save immediately. After a clean stop the board is immediately
+restartable: press reset, press Ctrl-D at the REPL, or just save a file over USB.
+
+Persistence, added in V1.2, does not compromise any of the above. The microSD
+card is a separate filesystem from CIRCUITPY, so mounting it needs no
+``storage.remount``: the host keeps the drive writable, autoreload stays on, and
+saving a file still restarts the board. A missing or unmountable card is a
+reported degraded mode, never a refusal to start -- the editor runs and the panel
+shows ``X`` rather than pretending to save.
 """
 
 import time
@@ -72,14 +79,27 @@ if VERSION != 1 or MAX_PAYLOAD_SIZE != 192:
 # file undiagnosable on the host, so nothing above this line may need them.
 import board
 import busio
+import digitalio
+import storage as storage_module
 
+from magwrite_transport.storage_bringup import bring_up
 from magwrite_transport.usb_host_backend import UsbHostKeyboardBackend
 from magwrite_transport.usb_keyboard_adapter import UsbKeyboardAdapter
+
+try:
+    import sdcardio
+except ImportError:  # pragma: no cover - build without the SD driver
+    # Reported through the ordinary degraded path rather than raised: a firmware
+    # build without sdcardio is a card that cannot be mounted, which the runtime
+    # already knows how to survive.
+    sdcardio = None
 
 uart = None
 session = None
 result = "STOPPED"
 error = None
+persistence = None
+mount_result = None
 
 # Construction is fenced off from the run loop because the two fail for
 # different reasons and want different reporting. Either way the filesystem was
@@ -95,6 +115,19 @@ try:
     )
     backend = UsbHostKeyboardBackend(
         log, read_timeout_ms=config.USB_KEYBOARD_READ_TIMEOUT_MS
+    )
+    # Persistence is brought up before the session so a recovered document can be
+    # loaded into the editor the session is about to start driving. It cannot
+    # raise: an absent, unformatted, or unmountable card returns a controller
+    # with no store, and the editor runs exactly as it did before V1.2.
+    #
+    # Note this needs no ``storage.remount``. The card is a separate filesystem
+    # from CIRCUITPY, so persistence does not cost the development runtime its
+    # defining property: the host keeps the drive writable and saving a file
+    # still restarts the board.
+    persistence, mount_result = bring_up(
+        config, time.monotonic(), log, board_module=board, sdcardio=sdcardio,
+        storage_module=storage_module, busio=busio, digitalio=digitalio,
     )
     session = LiveTypingSession(
         time.monotonic, log,
@@ -122,18 +155,24 @@ try:
         session_timeout_seconds=config.DEV_RUNTIME_SESSION_TIMEOUT_SECONDS,
         max_viewport_frames=DEV_MAX_VIEWPORT_FRAMES,
         max_protocol_frames=DEV_MAX_PROTOCOL_FRAMES,
+        persistence=persistence,
     )
+    if persistence.recovery is not None and persistence.recovery.recovered:
+        session.restore(persistence.recovery.snapshot)
 except Exception as construction_error:  # noqa: BLE001 - reported, not swallowed
     error = str(construction_error)
     log({"event": "dev_runtime_construction_failed", "detail": error,
          "filesystem_remounted": False, "guard_written": False})
 
 if session is not None:
-    log({"event": "dev_runtime_ready", "tx_alias": config.UART_TX_PIN_ALIAS,
-         "rx_alias": config.UART_RX_PIN_ALIAS, "baud": config.UART_BAUD,
-         "startup_delay_seconds": config.STARTUP_DELAY_SECONDS,
-         "keyboard_layout": config.USB_KEYBOARD_LAYOUT,
-         "stop_key": "APPLICATION"})
+    ready = {"event": "dev_runtime_ready", "tx_alias": config.UART_TX_PIN_ALIAS,
+             "rx_alias": config.UART_RX_PIN_ALIAS, "baud": config.UART_BAUD,
+             "startup_delay_seconds": config.STARTUP_DELAY_SECONDS,
+             "keyboard_layout": config.USB_KEYBOARD_LAYOUT,
+             "stop_key": "APPLICATION", "save_key": "CTRL-S"}
+    ready.update(mount_result.summary())
+    ready["save_state"] = persistence.state
+    log(ready)
     time.sleep(config.STARTUP_DELAY_SECONDS)
     try:
         while not session.complete:

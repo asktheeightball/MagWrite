@@ -12,7 +12,7 @@ Adafruit Fruit Jam
 - USB HID host
 - authoritative multiline editor
 - viewport generation
-- future microSD storage and recovery
+- microSD storage and forced-power-loss recovery
 - MagTag button-event interpretation
         |
         | bidirectional UART
