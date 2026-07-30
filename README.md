@@ -68,7 +68,9 @@ The project has physically verified:
    Save/Status interruption.~~ Physically verified 2026-07-30.
 5. Support a wireless keyboard with a USB receiver. **Blocked on hardware** —
    the one receiver available is incompatible; see `ROADMAP.md`.
-6. Bring the bench to one-cable power. **<- current**
+6. Bring the bench to one-cable power. **<- current.** Audited — a direct 5 V
+   feed between the boards is refused, because neither board has a 5 V input;
+   see [docs/BENCH_POWER.md](docs/BENCH_POWER.md).
 7. Build the minimum standalone writing workflow.
 8. Integrate one rechargeable battery and one charging port.
 9. Complete enclosure and product hardening.
@@ -83,7 +85,7 @@ docs/               build, wiring, testing, reports, and research notes
 keyboard-bridge/    deferred LOLIN32 Bluetooth adapter work, if later required
 ```
 
-See [PRODUCT.md](PRODUCT.md), [ROADMAP.md](ROADMAP.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [HARDWARE.md](HARDWARE.md) for the current specification and decisions. [docs/PERSISTENCE.md](docs/PERSISTENCE.md), [docs/SHELL.md](docs/SHELL.md), and [docs/MODES.md](docs/MODES.md) carry the storage, shell, and writing-mode designs.
+See [PRODUCT.md](PRODUCT.md), [ROADMAP.md](ROADMAP.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [HARDWARE.md](HARDWARE.md) for the current specification and decisions. [docs/PERSISTENCE.md](docs/PERSISTENCE.md), [docs/SHELL.md](docs/SHELL.md), and [docs/MODES.md](docs/MODES.md) carry the storage, shell, and writing-mode designs, and [docs/BENCH_POWER.md](docs/BENCH_POWER.md) the bench power audit.
 
 ## Related research
 

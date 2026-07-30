@@ -108,6 +108,19 @@ Unchanged from the verified milestone, and physically confirmed:
 - 115200 baud;
 - the wired keyboard in the Fruit Jam USB host port.
 
+## Power
+
+Two USB-C cables from the PC still works and is what every verified run so far
+used. The tidier arrangement is **one upstream USB-C cable into a powered hub,
+and one short cable from the hub into each board's own USB-C port** — same
+consoles, same host-writable volumes, one cable to the bench. Move the upstream
+end to a wall charger and the same rig runs standalone with nothing else changed.
+
+**Never feed one board's 5 V into the other**, and never let the red conductor of
+a 3-pin JST cable connect the two: on both boards that pin is 5 V by default.
+Neither board has a 5 V input, and the reasoning is in
+[BENCH_POWER.md](BENCH_POWER.md).
+
 ## Bringing it up
 
 1. Copy the repository files for each board onto its CIRCUITPY volume as usual,

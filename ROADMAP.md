@@ -37,8 +37,9 @@ this list wins.
 | 3 | MagWrite Shell | V1.3 | PHYSICALLY VERIFIED 2026-07-30 |
 | 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | PHYSICALLY VERIFIED 2026-07-30 |
 | 5 | Shell UX: one-gesture exit, and MagTag buttons | V1.5 | PHYSICALLY VERIFIED 2026-07-30 |
-| 6 | Standalone workflow | Priority 5 | Not started |
-| 7 | Battery, enclosure, and hardening | Priorities 6 and 7 | Not started |
+| 6 | One-cable bench power | One-cable bench power | Audited 2026-07-30; direct 5 V feed refused, hub arrangement pending a physical check |
+| 7 | Standalone workflow | Priority 5 | Not started |
+| 8 | Battery, enclosure, and hardening | Priorities 6 and 7 | Not started |
 
 Writing must feel right before anything is stored, and storage must be
 trustworthy before a shell is built on top of it.
@@ -1171,6 +1172,74 @@ Until then the phase is **blocked on hardware**, not on software. Nothing here
 asks for a code change: the adapter, the `AUTO` seam, the state machine, and the
 diagnostics all did their jobs, and the one thing they could not do was invent a
 device that sends reports.
+
+## One-cable bench power — AUDITED 2026-07-30, DIRECT 5 V FEED REFUSED
+
+The goal was one USB-C connection powering both boards with the wired UART and
+normal operation preserved. The audit came first and is in
+[docs/BENCH_POWER.md](docs/BENCH_POWER.md), with Adafruit's documentation cited
+inline. It changed the shape of the phase before a single wire was cut.
+
+### The direct 5 V arrangement does not exist on this hardware
+
+The phase was framed as a question of *direction* — which board takes USB-C and
+which is fed from the other's 5 V rail. That question has no answer here, and the
+reason is not a margin or a preference:
+
+- the **MagTag has no 5 V input**. Its pinout states its power inputs
+  exhaustively as the USB-C connector or a 3.7/4.2 V LiPo on the JST 2-PH port.
+  The only 5 V node it exposes is VCC on the two 3-pin STEMMA connectors —
+  documented as an **output**, rated 200 mA for the connector;
+- the **Fruit Jam's 5V header pin is a regulator output**, ~500 mA peak. Feeding
+  a regulator output is not a supply path either.
+
+So both boards have exactly one documented 5 V input each, and on both boards it
+is the USB-C connector. There was no direction left to choose.
+
+Driving the MagTag's STEMMA VCC anyway would push current backwards into its
+USB-C VBUS pin and its charger input, through a connector rated as a 200 mA
+output, and would tie the two boards' 5 V rails into one node with no documented
+OR-ing between the sources that could then meet there. Refused, and documented
+rather than improvised around, exactly as the phase instructions required.
+
+### What the audit found that was worth finding anyway
+
+**Both boards' 3-pin JST connectors carry 5 V on the red conductor by default.**
+The UART link runs between two of those connectors. A stock, unmodified 3-wire
+STEMMA cable between Fruit Jam `A0` and MagTag `D10` therefore connects the two
+5 V rails on its own — no intent, no extra part, no warning. The standing "leave
+red disconnected and insulated" rule has been correct since the first UART test;
+until now it did not say *why*, and the why is a specific cable that would look
+right and be wrong. `HARDWARE.md` now carries the reason next to the rule.
+
+### The arrangement that is supported
+
+One 5 V source, one upstream USB-C cable, a powered hub with per-port current
+limiting, and one short cable into each board's own USB-C port. Each board keeps
+its documented input, switch, protection, and regulator; **both boards are
+sinks**, so nothing sources current into the shared node; the UART is untouched;
+and ground was already common through it.
+
+Swapping the upstream cable between the PC and a wall charger is the entire
+difference between the development configuration — both consoles, both CIRCUITPY
+volumes writable — and the standalone one. No file on either board changes.
+
+Estimated combined budget: ~450 mA typical, ~900 mA worst case, so 5 V at ≥1 A
+and preferably ≥1.5 A. **No figure was measured on this bench.** The MagTag's
+~50 mA active figure is Adafruit's; the Fruit Jam's is an estimate, because none
+is published. The measurement checklist item stays open and a USB power meter on
+the upstream cable is what closes it.
+
+### What this phase deliberately does not claim
+
+It does not answer the receiver question. A supply with more headroom than a
+laptop port makes `36B0:3002` worth re-asking about, which is why the phases were
+ordered this way — but the receiver hangs off the Fruit Jam's **own host port**,
+behind `USB_HOST_5V_POWER` and the CH334F hub, and that path's limit is unchanged
+by anything upstream of the board. The dongle phase remains blocked on an
+ordinary second receiver.
+
+It introduces no boost converter. The MT3608 belongs to Priority 6.
 
 ## Priority 5 — Minimum standalone workflow — V1.6
 

@@ -26,11 +26,49 @@ Do not create new certification harnesses, evidence packages, compatibility inve
 10. ~~Integrate USB dongle keyboard compatibility.~~ Started 2026-07-30 and
     **blocked on hardware**: the only receiver on the bench is incompatible and
     closed, and no other exists here.
-11. Bring the bench to one-cable power. **<- next**
+11. Bring the bench to one-cable power. **<- current.** Audited 2026-07-30: the
+    direct 5 V feed is refused because neither board has a 5 V input, and the
+    supported one-source-two-USB-C-ports arrangement is awaiting its physical
+    check.
 12. Complete the minimum standalone workflow.
 13. Defer keyboard edge cases, battery, enclosure, and hardening until their roadmap phase.
 
 ## Active product task
+
+**One-cable bench power — AUDITED 2026-07-30. The direct 5 V feed is refused;
+the physical check is pending.** The audit is `docs/BENCH_POWER.md`; the account
+is in `ROADMAP.md`.
+
+The phase asked which board should take USB-C and which should be fed from the
+other's 5 V rail. **Neither, and not because of a margin.** The MagTag's pinout
+lists its power inputs exhaustively — the USB-C connector or a 3.7/4.2 V LiPo —
+and it has **no 5 V input pin, pad, or header at all**; the only 5 V it exposes
+is a 200 mA-rated *output* on its two 3-pin STEMMA connectors. The Fruit Jam's 5V
+header pin is likewise a regulator *output*. There was no direction left to
+choose, so the direct arrangement is documented as blocked rather than
+improvised around.
+
+What is supported, and is the smaller change: **one 5 V source, one upstream
+USB-C cable, a powered hub with per-port limiting, one short cable into each
+board's own USB-C port.** Both boards stay sinks, both keep their own protection
+and regulator, the UART is untouched, and swapping the upstream cable between the
+PC and a wall charger is the whole difference between the development and
+standalone configurations.
+
+Found along the way and worth more than the phase itself: **both boards' 3-pin
+JST connectors carry 5 V on the red conductor by default**, so a stock 3-wire
+STEMMA cable between `A0` and `D10` would tie the two 5 V rails together with no
+intent and no extra part. The "leave red insulated" rule was already right;
+`HARDWARE.md` now says why.
+
+Not claimed: any answer to the receiver question. The receiver hangs off the
+Fruit Jam's own host port behind `USB_HOST_5V_POWER` and the CH334F, and that
+limit is unchanged by anything upstream.
+
+**Not measured:** a single current figure on this bench. A USB power meter on the
+upstream cable is what closes the standing checklist item.
+
+## Previous product task
 
 **USB dongle keyboard compatibility — STARTED AND BLOCKED ON HARDWARE
 2026-07-30.** Evidence `docs/FRUITJAM_DONGLE_PROBE_SERIAL.jsonl`; the account is
@@ -68,10 +106,12 @@ Carry forward, from V1.4 and V1.5:
 
 ## Next product task
 
-**One-cable bench power**, then **V1.6, the minimum standalone workflow**. Bench
-power moves ahead of the dongle work by necessity rather than by preference: the
-dongle phase cannot proceed without hardware that is not here, and power is the
-one phase that could plausibly change the dongle result.
+**V1.6, the minimum standalone workflow**, once the one-cable bench check has
+run. Bench power moved ahead of the dongle work by necessity rather than by
+preference: the dongle phase cannot proceed without hardware that is not here.
+The hope that power might change the dongle result has since been narrowed by the
+audit — the receiver's supply comes from the Fruit Jam's own host port, not from
+upstream — so it is worth re-asking, not worth expecting.
 
 ## Completed product tasks
 

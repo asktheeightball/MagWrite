@@ -76,7 +76,7 @@ Fruit Jam GND                 <--> MagTag GND
 
 The bidirectional link passed physical testing at 115200 baud.
 
-During bench development, power the Fruit Jam and MagTag separately over USB. Connect only TX, RX, and common ground. Do not connect their 3.3 V, 5 V, BAT, charger, or USB power rails together.
+Connect only TX, RX, and common ground. **Do not connect their 3.3 V, 5 V, BAT, charger, or USB power rails together** with a conductor, in any arrangement, ever. Feeding both boards from one shared upstream supply through their own USB-C ports is a different thing and is supported — see [Bench power](#bench-power-one-cable) below.
 
 ### Plug-in cable approach
 
@@ -97,6 +97,51 @@ white = signal
 Do not rely on colour alone. Confirm connector position and pinout before powering the boards.
 
 For UART bench testing, leave red/power conductors disconnected and insulated.
+This is not a precaution about unknown cables. **Both boards' 3-pin JST
+connectors carry 5 V on the red conductor by default**, so a stock 3-wire STEMMA
+cable between Fruit Jam `A0` and MagTag `D10` connects the two 5 V rails on its
+own, with no intent and no extra part.
+
+## Bench power: one cable
+
+Audited 2026-07-30 against Adafruit's board documentation. The full audit, with
+sources, is in [docs/BENCH_POWER.md](docs/BENCH_POWER.md).
+
+**A direct 5 V feed between the boards is not supported, in either direction.**
+The MagTag has exactly two documented power inputs — its USB-C connector and a
+3.7/4.2 V LiPo on the JST 2-PH connector — and **no 5 V input pin, pad, or header
+anywhere on the board**. The only 5 V it exposes is VCC on the two 3-pin STEMMA
+connectors, documented as an *output* rated 200 mA. The Fruit Jam's 5V header pin
+is likewise a regulator *output*, ~500 mA peak, not a supply input. Driving
+either would be undocumented back-powering of a USB VBUS node and a charger
+input.
+
+The supported arrangement, and the one in use:
+
+```text
+one 5 V source (wall charger, or the PC)
+        |  one upstream USB-C cable
+        v
+powered hub with per-port current limiting
+        |                    |
+        v USB-C              v USB-C
+   Fruit Jam              MagTag
+        \___ A0/A1 UART + common GND ___/
+             (red conductor insulated)
+```
+
+- each board keeps its own USB-C input, switch, protection, and regulator;
+- both boards are **sinks**; nothing sources current into the shared node;
+- supply 5 V at ≥1 A, ≥1.5 A preferred — the estimated combined budget is ~450 mA
+  typical and ~900 mA worst case, with **no figure yet measured on this bench**;
+- swapping the upstream cable between the PC and a charger is the whole
+  difference between the development and standalone configurations.
+
+**One USB-C connection per board, always.** Never plug a board into the PC while
+the hub is also feeding it. Neither board's power-path design has been shown to
+make two simultaneous sources safe: the MagTag documents power-path behaviour for
+USB against a *battery* only, and the Fruit Jam documents none at all on its 5V
+pin.
 
 ## UART protocol direction
 
@@ -183,7 +228,11 @@ Do not assume a generic USB Bluetooth adapter will work without a proven USB-hos
 
 ## Unified power target
 
-For bench development, separate USB power remains acceptable where needed for serial diagnostics and safe hardware isolation.
+For bench development, separate USB power remains acceptable where needed for
+serial diagnostics and safe hardware isolation. One shared upstream supply
+through a hub is the ordinary configuration — see [Bench power: one
+cable](#bench-power-one-cable) — and neither arrangement is the finished
+device's.
 
 The finished device must use one unified rechargeable power system:
 
@@ -225,7 +274,11 @@ Do not connect one battery simultaneously to the independent charger circuits on
       2.4 GHz receiver's radio. **Still open.** The powered-hub test that would
       settle it was declined on 2026-07-30; the wired control does not answer it,
       because a wired keyboard and a radio are not comparable loads. Worth
-      re-asking after one-cable bench power.
+      re-asking after one-cable bench power — but note that the receiver hangs
+      off the Fruit Jam's own host port, behind `USB_HOST_5V_POWER` and the
+      CH334F hub, and **that path's limit is unchanged by anything upstream**.
+      More headroom at the supply makes the question worth re-asking; it does not
+      answer it.
 - [ ] Obtain **one ordinary wireless keyboard with a USB receiver** — any vendor,
       not the TH40's own dongle. This is the only thing that can say whether the
       wireless path works at all or fails only with this receiver, and the dongle
@@ -253,7 +306,17 @@ Do not connect one battery simultaneously to the independent charger circuits on
       worked and inserted no character, and after the USB cable was pulled
       mid-session the restart recovered revision 73, 71 characters, cursor
       (2, 8) — exactly the last acknowledged edit.
-- [ ] Measure active and idle current for each board and USB receiver.
+- [x] Audit one-cable bench power. Done 2026-07-30; the audit is
+      `docs/BENCH_POWER.md`. **The direct 5 V inter-board feed is not supported
+      by either board**: the MagTag has no 5 V input at all, and the Fruit Jam's
+      5V pin is a regulator output. One shared 5 V source feeding each board
+      through its own USB-C port is what the documentation permits, and it is
+      also the smaller change.
+- [ ] Run the physical one-cable bench check.
+- [ ] Measure active and idle current for each board and USB receiver. **Still
+      open, and now the one thing bench power leaves unmeasured.** A USB power
+      meter on the upstream cable closes it, and would also give the receiver
+      current question a measurement instead of an argument.
 - [ ] Determine and verify safe single-battery capacity, charging, and distribution topology.
 - [ ] Complete enclosure and field-use testing.
 
