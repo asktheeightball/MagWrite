@@ -208,6 +208,61 @@ an accidental double press must not silently skip a level.
 - no new certification harness. The development runtime already brings the shell
   up and logs every transition.
 
+## Physical bench plan
+
+Not a certification harness, and nothing here claims a guard, remounts a
+filesystem, or writes an evidence file. It is the ordinary development runtime,
+which already brings the shell up and logs every transition. Full operating
+instructions are in `docs/DEVELOPMENT_RUNTIME.md`; this is only what V1.3's exit
+criterion requires the run to show.
+
+**Deploy.** Copy `fruitjam/` to the Fruit Jam's `CIRCUITPY` and `magtag/` to the
+MagTag's, exactly as for V1.2 — no new files on the board beyond `shell.py` and
+`shell_viewport.py`, which live in the existing `magwrite_transport` package.
+Identify each board by UID before copying; the two `CIRCUITPY` drives are not
+distinguishable by letter.
+
+**Enable.** MagTag first, then Fruit Jam, per `docs/DEVELOPMENT_RUNTIME.md`.
+`ENABLE_SHELL` is already `True` in the shipped `config.py`; nothing else
+changes from the V1.2 session.
+
+**Never write to a board's serial port while a one-shot harness is armed.** None
+is armed here, but the rule stands: restart with the reset button.
+
+What the run has to show, in order:
+
+1. `dev_runtime_ready` carries `shell_state: MAIN_MENU` and
+   `stop_from: MAIN_MENU`, and the panel draws the four menu items with `>` on
+   Journal;
+2. Down, Down, Enter opens Drafts — `shell_selection_moved` twice,
+   `shell_mode_entered`, `shell_transition` to `EDITOR` — and the document title
+   reads `DRAFTS L01 C00`;
+3. typing behaves exactly as it did in V1.2: `live_event_processed` per
+   keystroke, the panel trailing and catching up, the save indicator moving
+   `u` → `r` → `s`;
+4. Escape reaches the save screen, `shell_left_editor` and
+   `document_checkpointed` are logged, and the panel names the state in words;
+5. Escape again returns to the same document with the cursor where it was, and
+   the text is unchanged — this is the requirement-8 observation and the one to
+   watch most closely;
+6. Escape, Enter, Enter re-enters the editor from the menu with the document
+   still intact. Repeat the whole cycle at least three times: the exit criterion
+   is *repeatedly*, and a state machine that survives one round trip and not
+   four is the failure worth finding;
+7. pull the USB cable mid-session, then restart: `document_recovery`,
+   `live_document_restored`, and `shell_restored` with `state: EDITOR` — the
+   board comes back into the document, not the menu;
+8. Escape, Enter, Escape from the recovered document is the clean stop:
+   `dev_runtime_session_summary` then `dev_runtime_stopped`.
+
+Capture both consoles with `tools/capture_serial.py`, which is read-only, and
+flush the captures before reading them — a buffered capture has faked a hardware
+fault in this project once already.
+
+Record the outcome in `ROADMAP.md` and `PRIORITY.md` whichever way it goes. A
+failed physical run is evidence; a physical claim made from the host suite is
+not.
+
 ## Diagnostics
 
 `shell_transition`, `shell_mode_entered`, `shell_selection_moved`,
