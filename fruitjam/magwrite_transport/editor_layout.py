@@ -14,8 +14,15 @@ identical editor state always produces an identical layout, viewport payload,
 and CRC.
 """
 
-VIEWPORT_COLUMNS = 28
-VIEWPORT_ROWS = 5
+# The MagTag panel's real capacity in the font it draws with. Not chosen here and
+# not chosen at all: ``magwrite.viewport_renderer.capacity`` derives this pair
+# from the bounding box ``terminalio.FONT`` reports, and a host test asserts these
+# two constants against it. They live here as literals only because the two boards
+# share no import, which is deliberate -- so the test is what keeps them equal.
+#
+# 28 by 5 until V1.7, when the hand-drawn 3x5 table gave way to the built-in font.
+VIEWPORT_COLUMNS = 48
+VIEWPORT_ROWS = 6
 SPACE = " "
 
 

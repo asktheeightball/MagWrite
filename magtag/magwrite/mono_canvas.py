@@ -23,3 +23,21 @@ class MonoCanvas:
             self.buf[index] &= ~mask & 0xFF
         else:
             self.buf[index] |= mask
+
+
+def landscape_pixel(epd, x, y, ink):
+    """One pixel in landscape coordinates. The scale-1 text path's inner loop."""
+    epd.pixel(y, 295 - x, ink)
+
+
+def landscape_rect(epd, x, y, width, height, ink):
+    """Fill a rectangle in landscape coordinates on a portrait framebuffer.
+
+    Landscape ``(x, y)`` maps to native ``(y, 295 - x)``: the panel's long axis
+    is its native height. Lives here, with the framebuffer, because both the
+    font and the hand-drawn harness table draw through it; ``test_pattern``
+    re-exports it so the proven harnesses keep their existing import.
+    """
+    for ly in range(y, y + height):
+        for lx in range(x, x + width):
+            epd.pixel(ly, 295 - lx, ink)

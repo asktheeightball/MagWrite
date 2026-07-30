@@ -5,9 +5,16 @@ VERSION = 1
 BYTE_ORDER = "big"
 HEADER_SIZE = 14
 CRC_SIZE = 4
-MAX_PAYLOAD_SIZE = 192
+# Raised from 192 when the UI moved to ``terminalio.FONT``: the built-in font
+# fits 48 columns by 6 rows where the hand-drawn table fit 28 by 5, and the worst
+# case viewport is now 340 bytes. 384 keeps the headroom the old bound had.
+# Widening a bound accepts every frame the narrower one did, so nothing already
+# proven on the wire is invalidated.
+MAX_PAYLOAD_SIZE = 384
 MAX_FRAME_SIZE = HEADER_SIZE + MAX_PAYLOAD_SIZE + CRC_SIZE
-MAX_RECEIVE_BUFFER = 512
+# Kept at more than twice the largest frame, as it was at 192/512, so a partial
+# frame and a whole one can be in the buffer at once without a truncation.
+MAX_RECEIVE_BUFFER = 1024
 
 HELLO = 1
 VIEWPORT = 2

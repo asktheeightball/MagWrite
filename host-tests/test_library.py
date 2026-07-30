@@ -50,8 +50,8 @@ from magwrite_transport.persistence import PersistenceController
 from magwrite_transport.live_session import LIVE_SCENARIO_ID
 from magwrite_transport.protocol import MAX_PAYLOAD_SIZE
 from magwrite_transport.shell import (
-    MODE_DRAFTS, MODE_JOURNAL, MODE_QUICK_NOTE, REQUEST_OPEN, STATE_DRAFTS,
-    STATE_EDITOR, STATE_MAIN_MENU, Shell,
+    DRAFT_ROWS, MODE_DRAFTS, MODE_JOURNAL, MODE_QUICK_NOTE, REQUEST_OPEN,
+    STATE_DRAFTS, STATE_EDITOR, STATE_MAIN_MENU, Shell,
 )
 
 ROOT_PATH = "/sd/magwrite"
@@ -609,7 +609,7 @@ class ShellDraftsScreenTests(unittest.TestCase):
         for _ in range(7):
             self.shell.route(InputEvent(0, "s", "DOWN"))
         visible = self.shell.visible_drafts()
-        self.assertEqual(len(visible), 5)
+        self.assertEqual(len(visible), DRAFT_ROWS)
         self.assertIs(visible[-1], self.entries[7])
 
     def test_opening_a_draft_asks_the_session_and_adopts_its_mode(self):
@@ -645,7 +645,7 @@ class ShellDraftsScreenTests(unittest.TestCase):
         payload = shell_viewport.drafts_payload(self.shell, "s")
         self.assertLessEqual(len(payload), MAX_PAYLOAD_SIZE)
         message = ViewportMessage.decode(1, payload)
-        self.assertEqual(len(message.lines), 5)
+        self.assertEqual(len(message.lines), DRAFT_ROWS)
         self.assertTrue(message.lines[0].startswith("> "))
         render_viewport(message)
 

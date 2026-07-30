@@ -68,6 +68,9 @@ from magwrite.buttons import (
     ACTION_CODES, DOWN, MENU, SELECT, UP, ButtonPad,
 )
 from magwrite.display_adapter import validate_physical_test_activation
+from magwrite.font import (
+    PRINTABLE_ASCII, is_builtin_font, metrics, missing_glyphs,
+)
 from magwrite.serial_log import StructuredSerialLogger
 from magwrite.sha256 import sha256_file
 from magwrite.startup_screens import (
@@ -76,7 +79,7 @@ from magwrite.startup_screens import (
 from magwrite.status_queue import StatusQueue
 from magwrite.uart_protocol import BUTTON_EVENT, DISPLAY_ERROR, FrameParser
 from magwrite.uc8151_adapter import UC8151DisplayAdapter
-from magwrite.viewport_renderer import render_viewport
+from magwrite.viewport_renderer import BODY_SCALE, capacity, render_viewport
 
 DEV_DISPLAY_MODE = "MAGTAG_DEV_DISPLAY"
 STANDALONE_DISPLAY_MODE = "MAGTAG_STANDALONE"
@@ -172,6 +175,26 @@ if not config.UART_RX_PIN_ALIAS or not config.UART_TX_PIN_ALIAS:
     raise RuntimeError("both confirmed UART pin aliases are required")
 if sha256_file("/uc8151.py") != EXPECTED_DRIVER_SHA256:
     raise RuntimeError("UC8151 driver hash mismatch")
+
+# V1.7. The one claim about the font that can only be made on the board: that the
+# UI is drawn by the firmware's own terminalio.FONT, what size that font actually
+# reports, what the panel therefore holds, and whether anything either board is
+# allowed to draw has no glyph. Logged before the panel is constructed so a run
+# that fails later still says which font it was going to use. A missing glyph is
+# reported rather than fatal here -- the renderer refuses the individual
+# character, and refusing to start the device over a punctuation mark would be
+# the wrong trade on an appliance.
+_FONT_CELL = metrics()
+_FONT_COLUMNS, _FONT_ROWS = capacity()
+_FONT_MISSING = missing_glyphs()
+logger({"event": "display_font", "builtin": is_builtin_font(),
+        "font": "terminalio.FONT" if is_builtin_font() else "HOST STAND-IN",
+        "cell_width": _FONT_CELL[0], "cell_height": _FONT_CELL[1],
+        "scale": BODY_SCALE, "columns": _FONT_COLUMNS, "rows": _FONT_ROWS,
+        "printable_ascii": len(PRINTABLE_ASCII),
+        "missing_glyphs": "".join(_FONT_MISSING)})
+if not is_builtin_font():
+    raise RuntimeError("terminalio.FONT is unavailable on this board")
 
 import board
 import busio
@@ -294,7 +317,10 @@ if display is not None:
             rx=getattr(board, config.UART_RX_PIN_ALIAS),
             baudrate=config.UART_BAUD,
             timeout=0,
-            receiver_buffer_size=256,
+            # Above one whole frame at the raised 384-byte payload maximum, as
+            # 256 was above one whole frame at 192. The loop drains it every
+            # pass; this is the margin for the passes a refresh makes long.
+            receiver_buffer_size=512,
         )
     except Exception as construction_error:  # noqa: BLE001 - reported, not swallowed
         error = str(construction_error)

@@ -17,8 +17,8 @@ sys.path.append(os.path.join(ROOT, "host-tests"))
 from editor_simulator import EditorLink, SimulatedPanel
 from magwrite.ack_scheduler import AckSchedulerError
 from magwrite.uart_protocol import (
-    DISPLAY_CAUGHT_UP, FRAME_ACCEPTED, REFRESH_COMPLETED, REFRESH_STARTED,
-    TEST_COMPLETE, VIEWPORT,
+    DISPLAY_CAUGHT_UP, FRAME_ACCEPTED, MAX_RECEIVE_BUFFER, REFRESH_COMPLETED,
+    REFRESH_STARTED, TEST_COMPLETE, VIEWPORT,
 )
 from magwrite_transport.ack_tracker import AckError, AckTracker
 from magwrite_transport.editor import InputEvent, CHAR
@@ -538,7 +538,8 @@ class ParserResynchronizationTest(unittest.TestCase):
     def test_the_parser_accumulator_stays_bounded(self):
         link = EditorLink()
         link.session.feed(b"\x00" * 4096)
-        self.assertLessEqual(len(link.session.parser.buffer), 512)
+        self.assertLessEqual(
+            len(link.session.parser.buffer), MAX_RECEIVE_BUFFER)
         self.assertGreater(link.session.parser.buffer_overflows, 0)
 
 

@@ -28,14 +28,15 @@ the first real viewport is a full refresh regardless -- so a boot screen cannot
 put a number into a conversation it is not part of.
 """
 
-from magwrite.viewport_message import ViewportMessage
+from magwrite.font import PRINTABLE_ASCII
+from magwrite.viewport_message import MAX_LINES, ViewportMessage
 
 STARTING_TITLE = "MAGWRITE"
 WAITING_TITLE = "MAGWRITE"
 
-# Both fit the five-row, 28-column panel with room to spare, and every character
-# is in the proven 3x5 glyph table -- a host test asserts that against the real
-# table rather than trusting it here.
+# Both fit the six-row, 48-column panel with room to spare, and every character
+# is in the built-in font -- a host test asserts that against the font's own
+# reported coverage rather than trusting it here.
 STARTING_LINES = (
     "STARTING",
     "",
@@ -58,18 +59,11 @@ WAITING_STATUS = "WAITING"
 # renderable-character discipline the Fruit Jam's error screen gets.
 ERROR_TITLE = "MAGWRITE FAULT"
 ERROR_STATUS = "FAULT"
-MAX_LINE_CHARS = 28
-ERROR_REASON_LINES = 3
+MAX_LINE_CHARS = 48
+ERROR_REASON_LINES = 4
 
-SAFE_PUNCTUATION = " /<>.,'-:!?;\"()"
-SAFE_CHARACTERS = set(SAFE_PUNCTUATION)
-for _code in range(ord("0"), ord("9") + 1):
-    SAFE_CHARACTERS.add(chr(_code))
-for _code in range(ord("A"), ord("Z") + 1):
-    SAFE_CHARACTERS.add(chr(_code))
-for _code in range(ord("a"), ord("z") + 1):
-    SAFE_CHARACTERS.add(chr(_code))
-del _code
+# Everything the built-in font draws. See magwrite/font.py.
+SAFE_CHARACTERS = set(PRINTABLE_ASCII)
 
 REPLACEMENT = " "
 
@@ -152,4 +146,4 @@ def fault_screen(detail):
     lines = list(reason) if reason else ["UNKNOWN FAULT"]
     lines.append("")
     lines.append("DISCONNECT POWER, RETRY")
-    return _screen(ERROR_TITLE, tuple(lines[:5]), ERROR_STATUS)
+    return _screen(ERROR_TITLE, tuple(lines[:MAX_LINES]), ERROR_STATUS)

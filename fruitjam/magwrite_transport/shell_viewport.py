@@ -14,13 +14,16 @@ panel is how a display ends up refreshing twice for one change.
 Every character below has a glyph
 ---------------------------------
 
-The panel's 3x5 table is the whole alphabet this device has. ``SAFE_CHARACTERS``
-is the subset written out explicitly, and a host test asserts it against the
-MagTag's real table; ``safe_text`` maps anything else to a space. This is not
-defensive habit, it is a fixed defect: the first save indicator used "=" and "*",
-which have no glyph, and the renderer raised ``KeyError`` on the first frame that
-carried one. Error text is the obvious repeat of that mistake, because it is the
-one string on the device that comes from an exception rather than from a literal.
+The panel draws with ``terminalio.FONT``, whose alphabet is the whole printable
+ASCII range and then some, so ``SAFE_CHARACTERS`` is now that range rather than a
+hand-maintained subset -- the punctuation a writer types is drawn instead of
+being replaced by a space. ``safe_text`` still maps everything outside it,
+because the renderer still refuses a character it has no glyph for. That refusal
+is not defensive habit, it is a fixed defect: the first save indicator used "="
+and "*", which the old 3x5 table had no entry for, and the renderer raised
+``KeyError`` on the first frame that carried one. Error text is the obvious
+repeat of that mistake, because it is the one string on the device that comes
+from an exception rather than from a literal -- and an ``é`` still has no glyph.
 """
 
 from magwrite_transport.deterministic_viewports import encode_viewport
@@ -32,8 +35,11 @@ from magwrite_transport.shell import (
 # document frame in a capture, a log, or a later reconciliation.
 SHELL_SCENARIO_ID = 7
 
-MAX_LINES = 5
-MAX_LINE_CHARS = 28
+# The MagTag panel's capacity in the font it draws with. Mirrors
+# ``editor_layout.VIEWPORT_ROWS`` / ``VIEWPORT_COLUMNS``; a host test asserts all
+# of them against the renderer's derived geometry.
+MAX_LINES = 6
+MAX_LINE_CHARS = 48
 MAX_FIELD_CHARS = 20
 
 MENU_TITLE = "MAGWRITE MENU"
@@ -51,15 +57,13 @@ NO_KEYBOARD = "NO KEYBOARD - PLUG ONE IN"
 SELECTED_PREFIX = "> "
 UNSELECTED_PREFIX = "  "
 
-# The punctuation the proven table actually carries. Letters and digits are added
-# below. Anything absent from this set is replaced rather than drawn.
-SAFE_PUNCTUATION = " /<>.,'-:!?;\"()"
-SAFE_CHARACTERS = set(SAFE_PUNCTUATION)
-for _code in range(ord("0"), ord("9") + 1):
-    SAFE_CHARACTERS.add(chr(_code))
-for _code in range(ord("A"), ord("Z") + 1):
-    SAFE_CHARACTERS.add(chr(_code))
-for _code in range(ord("a"), ord("z") + 1):
+# Printable ASCII, which is what the built-in font draws. Written as a range
+# rather than a literal set because it is now a range; anything outside it --
+# accented letters, box drawing, an emoji in an exception message -- is replaced
+# rather than drawn. Mirrors ``magwrite.font.PRINTABLE_ASCII`` on the MagTag,
+# which the standalone runtime checks against the real font on the real board.
+SAFE_CHARACTERS = set()
+for _code in range(0x20, 0x7F):
     SAFE_CHARACTERS.add(chr(_code))
 del _code
 

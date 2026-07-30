@@ -52,7 +52,7 @@ from magwrite_transport.protocol import crc32
 MAGIC = "MWX1"
 FIELDS = 8
 
-# Titles are drawn on a 28-column panel, in a list that also carries a selection
+# Titles are drawn on a 48-column panel, in a list that also carries a selection
 # marker, so there is no use for a longer one and every reason not to store one.
 MAX_TITLE_CHARS = 24
 MAX_KIND_CHARS = 12

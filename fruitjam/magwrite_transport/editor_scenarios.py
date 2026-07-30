@@ -9,7 +9,7 @@ behind the same normalized ``InputEvent`` boundary the LOLIN32 Bluetooth bridge
 will later use, so swapping the source will not touch the editor, the layout,
 the viewport, or the acknowledgement code.
 
-Only characters present in the proven MagTag glyph table are used.
+Only characters the MagTag's font can draw are used.
 """
 
 from magwrite_transport.editor import (
@@ -36,8 +36,13 @@ CORRECTION_TEXT = "TODAY I WROTE A JOURNAL ENTRY.\nSECOND LINE. AMEN."
 
 FAST_TEXT = "MAGWRITE CAPTURES EVERY KEY WHILE THE DISPLAY IS BUSY."
 
+# Two more lines than the panel has rows, so this scenario scrolls -- which is
+# the only thing it is for. Six lines was two more than the four-row panel and
+# exactly the six the built-in font's taller cell fits, at which point it stopped
+# scrolling at all; a host test now asserts the property rather than the count.
 SCROLL_LINES = (
     "LINE ONE", "LINE TWO", "LINE THREE", "LINE FOUR", "LINE FIVE", "LINE SIX",
+    "LINE SEVEN", "LINE EIGHT",
 )
 SCROLL_TEXT = "\n".join(SCROLL_LINES)
 

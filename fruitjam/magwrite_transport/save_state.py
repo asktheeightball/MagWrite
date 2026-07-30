@@ -30,13 +30,15 @@ NO_CARD = "NO_CARD"
 STATES = (SAVED, RECOVERABLE, UNSAVED, ERROR, NO_CARD)
 
 # One character each, because the status line has four spare cells and the
-# indicator must survive a 28-column panel without pushing anything off it.
+# indicator must fit the fixed twenty-character status field without pushing
+# anything off it.
 #
-# Every one of these is present in the MagTag's proven 3x5 glyph table -- a host
-# test asserts it. The first attempt used "=" and "*", which have no glyph, so the
-# renderer raised ``KeyError`` on the first frame carrying a save state. The
-# indicator is drawn on the panel, so "a character" means "a character this panel
-# can draw", and nothing else.
+# Every one of these is drawn by the panel's font -- a host test asserts it. The
+# first attempt used "=" and "*", which the hand-drawn 3x5 table had no entry for,
+# so the renderer raised ``KeyError`` on the first frame carrying a save state.
+# The built-in font would draw both now, and the rule is unchanged: the indicator
+# is drawn on the panel, so "a character" means "a character this panel can draw",
+# and nothing else.
 #
 # Lowercase rather than uppercase so the indicator cannot be misread as part of
 # the uppercase revision and row fields it sits beside.

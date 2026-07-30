@@ -16,7 +16,9 @@ from magwrite.uart_protocol import (
     VERSION, VIEWPORT, FrameParser, crc32, encode_frame,
 )
 from magwrite.uart_receiver import UartReceiver
-from magwrite.viewport_message import ViewportMessage
+from magwrite.viewport_message import (
+    MAX_LINE_CHARS, MAX_LINES, ViewportMessage,
+)
 from magwrite_transport.deterministic_viewports import (
     MAX_TOTAL_FRAMES, MAX_VIEWPORT_FRAMES, deterministic_messages,
 )
@@ -124,7 +126,7 @@ class ProtocolTests(unittest.TestCase):
 
     def test_buffer_bounded_under_garbage(self):
         parser = FrameParser()
-        parser.feed(b"x" * 1000)
+        parser.feed(b"x" * (MAX_RECEIVE_BUFFER * 2))
         parser.pop()
         self.assertLessEqual(len(parser.buffer), MAX_RECEIVE_BUFFER)
         self.assertEqual(parser.buffer_overflows, 1)
@@ -167,20 +169,23 @@ class ViewportTests(unittest.TestCase):
             ViewportMessage(1, 1, "X" * 21, ("A",), 0, 0, "")
 
     def test_line_bound(self):
+        ViewportMessage(1, 1, "", ("X" * MAX_LINE_CHARS,), 0, 0, "")
         with self.assertRaises(ValueError):
-            ViewportMessage(1, 1, "", ("X" * 29,), 0, 0, "")
+            ViewportMessage(1, 1, "", ("X" * (MAX_LINE_CHARS + 1),), 0, 0, "")
 
     def test_line_count_bound(self):
-        # The ceiling rose from three to five lines for the multiline editor.
-        # Four- and five-line frames are now valid; six is still refused.
-        ViewportMessage(1, 1, "", ("A", "B", "C", "D"), 0, 0, "")
-        ViewportMessage(1, 1, "", ("A", "B", "C", "D", "E"), 0, 0, "")
+        # The ceiling rose from three to five lines for the multiline editor and
+        # from five to six for the built-in font. Every count up to the bound is
+        # valid; one past it is still refused.
+        for count in range(1, MAX_LINES + 1):
+            ViewportMessage(1, 1, "", ("A",) * count, 0, 0, "")
         with self.assertRaises(ValueError):
-            ViewportMessage(1, 1, "", ("A", "B", "C", "D", "E", "F"), 0, 0, "")
+            ViewportMessage(1, 1, "", ("A",) * (MAX_LINES + 1), 0, 0, "")
 
     def test_maximum_viewport_frame_fits_the_protocol_payload(self):
         message = ViewportMessage(
-            1, 1, "T" * 20, ("W" * 28,) * 5, 0, 28, "S" * 20
+            1, 1, "T" * 20, ("W" * MAX_LINE_CHARS,) * MAX_LINES, 0,
+            MAX_LINE_CHARS, "S" * 20,
         )
         self.assertLessEqual(len(message.encode()), MAX_PAYLOAD_SIZE)
 

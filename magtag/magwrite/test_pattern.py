@@ -1,4 +1,13 @@
-"""Host-safe bitmap drawing primitives shared by physical test entry points."""
+"""Host-safe bitmap drawing primitives shared by physical test entry points.
+
+Superseded as the UI's font by ``magwrite/font.py`` and ``terminalio.FONT``, and
+kept because the one-shot hardware harnesses that produced this project's
+physical evidence draw with it. Re-rendering a proven harness to make it match a
+later font would change what those runs measured. Nothing the writer sees comes
+from this table any more.
+"""
+
+from magwrite.mono_canvas import landscape_rect  # noqa: F401 - harness import
 
 GLYPHS = {
     " ": ("000", "000", "000", "000", "000"),
@@ -89,12 +98,6 @@ GLYPHS = {
     "y": ("000", "101", "101", "011", "110"),
     "z": ("000", "111", "001", "010", "111"),
 }
-
-
-def landscape_rect(epd, x, y, width, height, ink):
-    for ly in range(y, y + height):
-        for lx in range(x, x + width):
-            epd.pixel(ly, 295 - lx, ink)
 
 
 def draw_text(epd, text, x, y, scale=1):

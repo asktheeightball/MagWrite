@@ -161,10 +161,11 @@ MODE_QUICK_NOTE = "QUICK_NOTE"
 MODE_DRAFTS = "DRAFTS"
 MODE_RECENT = "RECENT"
 
-# ``(mode, label)``. The label is what the panel draws, so it is written in
-# characters the proven 3x5 glyph table actually has -- which is why the mode
-# identifier and its label are separate strings rather than one with an
-# underscore in it. A host test asserts every label is renderable.
+# ``(mode, label)``. The label is what the panel draws, so it is written for a
+# reader rather than for a program -- which is why the mode identifier and its
+# label are separate strings rather than one with an underscore in it. The
+# built-in font would now draw the underscore; a writer still should not have to
+# read one. A host test asserts every label is renderable.
 MENU_ITEMS = (
     (MODE_JOURNAL, "JOURNAL"),
     (MODE_QUICK_NOTE, "QUICK NOTE"),
@@ -212,9 +213,10 @@ REQUEST_FOR_MODE = {
     MODE_RECENT: REQUEST_RECENT,
 }
 
-# The Drafts list is drawn on a five-row panel, one row per document, and the
+# The Drafts list is drawn on a six-row panel, one row per document, and the
 # selection scrolls through a longer catalogue rather than the panel growing.
-DRAFT_ROWS = 5
+# Six since V1.7, when the built-in font gained the panel a row.
+DRAFT_ROWS = 6
 
 
 class Shell:

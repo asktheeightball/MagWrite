@@ -41,7 +41,9 @@ from magwrite_transport.editor import (
     MAX_DOCUMENT_CHARS, MAX_DOCUMENT_LINES, MAX_LINE_CHARS, MultilineEditor,
     RIGHT, UP,
 )
-from magwrite_transport.editor_layout import Layout, VIEWPORT_ROWS
+from magwrite_transport.editor_layout import (
+    Layout, VIEWPORT_COLUMNS, VIEWPORT_ROWS,
+)
 from magwrite_transport.editor_viewport import EditorViewport
 from magwrite_transport.journal import (
     MAX_RECORD_BYTES, Snapshot, decode_record, encode_record,
@@ -151,7 +153,10 @@ class LongDocumentTests(unittest.TestCase):
         self.assertEqual(self.editor.document_revision, len(text))
 
     def test_a_long_document_lays_out_into_far_more_rows_than_the_panel(self):
-        type_text(self.editor, prose(4000))
+        # Sized from the panel rather than in characters, so widening the
+        # viewport keeps testing "far more rows than fit" instead of quietly
+        # becoming "a few more".
+        type_text(self.editor, prose(VIEWPORT_COLUMNS * VIEWPORT_ROWS * 25))
         rows = self.editor.visual_rows()
         self.assertGreater(len(rows), VIEWPORT_ROWS * 20)
 

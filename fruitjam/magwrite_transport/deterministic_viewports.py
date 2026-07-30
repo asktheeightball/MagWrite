@@ -4,11 +4,13 @@ from magwrite_transport.protocol import END_OF_SCENARIO, END_OF_TEST, HELLO, VIE
 
 MAX_TOTAL_FRAMES = 50
 MAX_VIEWPORT_FRAMES = 40
-# Raised from three to five so a multiline editor fits a usable writing window.
-# Worst case payload is 4 + 20 title + 1 + 20 status + 1 + 5 * (1 + 28) = 191
-# bytes, still inside the fixed 192-byte protocol maximum. Three-line frames
-# from the earlier proven runs remain valid.
-MAX_VIEWPORT_LINES = 5
+# Raised from three to five so a multiline editor fits a usable writing window,
+# and from five to six for the built-in font's taller, narrower cell. Worst case
+# payload is 4 + 20 title + 1 + 20 status + 1 + 6 * (1 + 48) = 340 bytes, inside
+# the 384-byte protocol maximum. Frames from every earlier proven run -- three
+# lines, five lines, 28 columns -- remain valid.
+MAX_VIEWPORT_LINES = 6
+MAX_VIEWPORT_LINE_CHARS = 48
 
 
 def encode_viewport(scenario, title, lines, row, column, status):
@@ -25,7 +27,7 @@ def encode_viewport(scenario, title, lines, row, column, status):
     out.append(len(lines))
     for line in lines:
         data = line.encode("ascii")
-        if len(data) > 28:
+        if len(data) > MAX_VIEWPORT_LINE_CHARS:
             raise ValueError("line bounds")
         out.append(len(data))
         out.extend(data)
@@ -33,7 +35,7 @@ def encode_viewport(scenario, title, lines, row, column, status):
 
 
 def deterministic_messages():
-    messages = [(HELLO, 0, b"FRUITJAM-UART/1;296x128;MAX=192")]
+    messages = [(HELLO, 0, b"FRUITJAM-UART/1;296x128;MAX=384")]
     revision = 0
     last_viewport_hash = None
     scenarios = (

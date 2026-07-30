@@ -27,9 +27,10 @@ from fake_filesystem import FakeFileSystem
 from keyboard_simulator import (
     KeyboardLink, finish, press_kind, type_characters,
 )
-from magwrite.test_pattern import GLYPHS
+from magwrite.font import PRINTABLE_ASCII, missing_glyphs
+from magwrite.uart_protocol import MAX_PAYLOAD_SIZE
 from magwrite.viewport_message import ViewportMessage
-from magwrite.viewport_renderer import render_viewport
+from magwrite.viewport_renderer import PANEL_HEIGHT, PANEL_WIDTH, render_viewport
 from magwrite_transport import save_state as save_state_module
 from magwrite_transport import shell_viewport
 from magwrite_transport.document_store import DocumentStore
@@ -337,24 +338,37 @@ class RestoreTests(unittest.TestCase):
 
 
 class ScreenGlyphTests(unittest.TestCase):
-    """Every character the shell can draw must exist on the panel."""
+    """Every character the shell can draw must exist in the panel's font.
 
-    def test_the_safe_character_set_is_a_subset_of_the_real_glyph_table(self):
-        self.assertEqual(shell_viewport.SAFE_CHARACTERS - set(GLYPHS), set())
+    The alphabet is ``terminalio.FONT``'s from V1.7, which is printable ASCII
+    and more, rather than the hand-drawn 3x5 table's explicit subset. These
+    assert against :data:`magwrite.font.PRINTABLE_ASCII` because that is the set
+    both boards restrict themselves to; the MagTag runtime checks it against the
+    real font on the real board and logs anything absent.
+    """
+
+    def test_the_safe_character_set_is_what_the_font_draws(self):
+        self.assertEqual(shell_viewport.SAFE_CHARACTERS, set(PRINTABLE_ASCII))
+
+    def test_the_font_has_a_glyph_for_every_character_either_board_may_draw(self):
+        self.assertEqual(missing_glyphs(), ())
 
     def test_every_menu_label_is_renderable(self):
         for _, label in MENU_ITEMS:
-            self.assertEqual(set(label) - set(GLYPHS), set())
+            self.assertEqual(set(label) - set(PRINTABLE_ASCII), set())
 
     def test_every_save_state_has_a_renderable_label(self):
         for state in save_state_module.STATES:
             label = save_state_module.label(state)
-            self.assertEqual(set(label) - set(GLYPHS), set(), state)
+            self.assertEqual(set(label) - set(PRINTABLE_ASCII), set(), state)
 
-    def test_the_state_identifiers_themselves_would_not_have_been_renderable(self):
-        # The reason labels exist at all: NO_CARD carries an underscore, and the
-        # panel has no glyph for one.
-        self.assertNotEqual(set(save_state_module.NO_CARD) - set(GLYPHS), set())
+    def test_the_state_identifiers_are_still_not_what_a_writer_is_shown(self):
+        # Labels no longer exist because the panel could not draw an underscore
+        # -- the built-in font draws one. They exist because a writer should not
+        # be shown a program's identifier, which is still true.
+        for state in save_state_module.STATES:
+            if "_" in state:
+                self.assertNotIn("_", save_state_module.label(state))
 
     def test_an_unknown_save_state_is_refused_rather_than_drawn(self):
         with self.assertRaises(ValueError):
@@ -363,14 +377,24 @@ class ScreenGlyphTests(unittest.TestCase):
     def test_error_text_from_an_exception_is_sanitized(self):
         # Error reasons are the one string on the device that comes from an
         # exception rather than a literal, so they are the obvious place for an
-        # unrenderable character to arrive.
+        # unrenderable character to arrive. A wider alphabet is not a complete
+        # one: an accented letter still has no glyph.
         dirty = "store unusable: [Errno 19] no such device é"
         cleaned = shell_viewport.safe_text(dirty, 64)
-        self.assertEqual(set(cleaned) - set(GLYPHS), set())
+        self.assertEqual(set(cleaned) - set(PRINTABLE_ASCII), set())
         self.assertIn("Errno 19", cleaned)
+        self.assertNotIn("é", cleaned)
+
+    def test_punctuation_the_old_table_replaced_is_now_drawn(self):
+        # "=" and "*" were the original save indicators and had no glyph in the
+        # 3x5 table, which is why the sanitizer replaced them with spaces.
+        self.assertEqual(shell_viewport.safe_text("= * # _ | ~"), "= * # _ | ~")
 
     def test_sanitizing_is_bounded(self):
-        self.assertEqual(len(shell_viewport.safe_text("x" * 500)), 28)
+        self.assertEqual(
+            len(shell_viewport.safe_text("x" * 500)),
+            shell_viewport.MAX_LINE_CHARS,
+        )
         self.assertEqual(shell_viewport.safe_text(None), "")
 
 
@@ -431,11 +455,14 @@ class ScreenEncodingTests(unittest.TestCase):
             self.assertEqual(message.scenario_id, shell_viewport.SHELL_SCENARIO_ID)
             # The renderer raises on a missing glyph and on a header that does
             # not fit, which is exactly what must not reach the board.
-            self.assertEqual(len(render_viewport(message)), 4736, name)
+            self.assertEqual(
+                len(render_viewport(message)),
+                PANEL_WIDTH * PANEL_HEIGHT // 8, name,
+            )
 
     def test_every_screen_stays_inside_the_protocol_payload_maximum(self):
         for name, payload in self.screens():
-            self.assertLessEqual(len(payload), 192, name)
+            self.assertLessEqual(len(payload), MAX_PAYLOAD_SIZE, name)
 
     def test_the_shell_scenario_is_distinct_from_the_editor_scenario(self):
         self.assertNotEqual(shell_viewport.SHELL_SCENARIO_ID, LIVE_SCENARIO_ID)

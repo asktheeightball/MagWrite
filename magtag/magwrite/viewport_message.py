@@ -4,11 +4,17 @@ from magwrite.uart_protocol import crc32
 
 MAX_TITLE = 20
 MAX_STATUS = 20
-# Raised from three to five for the multiline editor. Worst case payload is
-# 4 + 20 + 1 + 20 + 1 + 5 * (1 + 28) = 191 bytes, inside the fixed 192-byte
-# protocol maximum. Earlier three-line frames remain valid.
-MAX_LINES = 5
-MAX_LINE_CHARS = 28
+# Raised from three to five for the multiline editor, and from five by twenty-
+# eight to six by forty-eight when the UI moved to ``terminalio.FONT``: the
+# built-in font's 6 px cell is what the panel actually fits, and the pair is
+# derived in ``magwrite/viewport_renderer.capacity`` rather than chosen here. A
+# host test asserts these two against it and against the Fruit Jam's layout.
+#
+# Worst case payload is 4 + 20 + 1 + 20 + 1 + 6 * (1 + 48) = 340 bytes, which is
+# what raised the protocol maximum from 192 to 384. Every earlier frame -- three
+# lines or five, 28 columns or fewer -- is still a valid frame.
+MAX_LINES = 6
+MAX_LINE_CHARS = 48
 
 
 def _ascii(value, limit, label):

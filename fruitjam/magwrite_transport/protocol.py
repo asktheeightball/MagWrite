@@ -5,9 +5,12 @@ VERSION = 1
 BYTE_ORDER = "big"
 HEADER_SIZE = 14
 CRC_SIZE = 4
-MAX_PAYLOAD_SIZE = 192
+# Mirrors magtag/magwrite/uart_protocol.py, which carries the reasoning; a host
+# test asserts the two agree. Raised from 192/512 for the 48-column panel the
+# built-in font fits.
+MAX_PAYLOAD_SIZE = 384
 MAX_FRAME_SIZE = HEADER_SIZE + MAX_PAYLOAD_SIZE + CRC_SIZE
-MAX_RECEIVE_BUFFER = 512
+MAX_RECEIVE_BUFFER = 1024
 HELLO = 1
 VIEWPORT = 2
 END_OF_SCENARIO = 3

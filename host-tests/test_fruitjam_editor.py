@@ -525,7 +525,10 @@ class ScenarioTest(unittest.TestCase):
         window = layout.window(editor.lines, editor.row, editor.column)
         self.assertFalse(window["more_above"])
         self.assertFalse(window["more_below"])
-        self.assertEqual(window["total_rows"], layout.height)
+        # "Fully visible" is the property, not a row count: the note has to fit
+        # the panel, and a wider panel fits it in fewer rows.
+        self.assertLessEqual(window["total_rows"], layout.height)
+        self.assertEqual(len(window["lines"]), window["total_rows"])
 
     def test_scenario_four_actually_scrolls(self):
         layout = Layout()

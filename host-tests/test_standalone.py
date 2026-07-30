@@ -44,7 +44,7 @@ from magwrite.display_adapter import (
 from magwrite.startup_screens import (
     fault_screen, starting_screen, waiting_screen,
 )
-from magwrite.viewport_message import ViewportMessage
+from magwrite.viewport_message import MAX_LINES, ViewportMessage
 from magwrite.viewport_renderer import render_viewport
 from magwrite_transport.document_store import DocumentStore
 from magwrite_transport.editor import ENTER, MultilineEditor
@@ -587,7 +587,7 @@ class MagTagStartupScreenTest(unittest.TestCase):
     def test_a_fault_screen_survives_an_unrenderable_exception_message(self):
         screen = fault_screen("SD_SCK in use — check é wiring @@@ " + "x" * 200)
         render_viewport(screen)
-        self.assertLessEqual(len(screen.lines), 5)
+        self.assertLessEqual(len(screen.lines), MAX_LINES)
 
     def test_a_fault_screen_tells_the_writer_what_to_do(self):
         self.assertIn("DISCONNECT POWER, RETRY", fault_screen("boom").lines)
