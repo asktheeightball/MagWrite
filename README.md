@@ -49,19 +49,24 @@ The project has physically verified:
 - one-way Fruit Jam → MagTag semantic viewport transport;
 - bidirectional UART display acknowledgements;
 - stale-frame coalescing;
-- physical displayed-revision and viewport-hash reconciliation.
-
-The multiline Fruit Jam editor is implemented and host-tested. Its integrated physical smoke test is the current gate.
+- physical displayed-revision and viewport-hash reconciliation;
+- the multiline editor and five-line MagTag layout;
+- one wired USB HID keyboard directly on the Fruit Jam;
+- microSD autosave and forced-power-loss recovery;
+- the MagWrite Shell;
+- the four writing modes, over an append-only document catalogue.
 
 ## Current milestone order
 
-1. Physically verify the integrated multiline editor and five-line MagTag layout.
-2. Add MagTag button events over the existing return UART link.
-3. Integrate one known USB HID keyboard directly on the Fruit Jam.
-4. Add microSD autosave, forced-power-loss recovery, and the four writing modes.
-5. Build the minimum standalone writing workflow.
-6. Integrate one rechargeable battery and one charging port.
-7. Complete enclosure and product hardening.
+1. ~~Physically verify the integrated multiline editor and five-line MagTag layout.~~
+2. ~~Integrate one known USB HID keyboard directly on the Fruit Jam.~~
+3. ~~Add microSD autosave, forced-power-loss recovery, and the four writing modes.~~
+4. Support a wireless keyboard with a USB receiver. **<- current**
+5. Bring the bench to one-cable power.
+6. Build the minimum standalone writing workflow.
+7. Add MagTag button events over the existing return UART link.
+8. Integrate one rechargeable battery and one charging port.
+9. Complete enclosure and product hardening.
 
 ## Repository layout
 

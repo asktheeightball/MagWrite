@@ -578,7 +578,7 @@ Two observations recorded rather than fixed, neither blocking:
   been corrected. It is a bring-up ordering fact, not a shell defect: no shell
   frame was involved and no document was affected.
 
-## V1.4 — Journal, Quick Note, Drafts, and Recent
+## V1.4 — Journal, Quick Note, Drafts, and Recent — PHYSICALLY VERIFIED
 
 The four writing modes, built on the shell and on persistence.
 
@@ -596,7 +596,12 @@ Requirements:
 **Exit:** a real writing session that starts in the shell, captures in two
 different modes, and recovers correctly after a forced power loss.
 
-### Implementation — host-verified, physical run not yet performed
+**Met on 2026-07-30**, by a deliberately minimal bench run — with the exception
+of the forced power loss, which the operator scoped out and which is recorded as
+unverified below. Two modes were captured in one session and a clean restart
+restored both the document and its mode.
+
+### Implementation — host-verified
 
 `docs/MODES.md` carries the design and the reasoning. Two changes ship together
 and the order was deliberate: **the document bound was raised first**, because a
@@ -717,6 +722,117 @@ past it.
 - there is no way to delete or rename a document from the device. The catalogue
   is bounded at 64 and refuses cleanly past it. Renaming and archiving are V1.5
   scope and the record format already supports both as one append.
+
+### Physical verification — 2026-07-30, commit `bdfe47c`
+
+A deliberately minimal bench run: the smallest set of physical checks that
+confirms V1.4 works on hardware, scoped by the operator to exclude a
+certification campaign, a forced-power-loss test, a maximum-size test, and a
+keyboard-mapping investigation. **What it proves is exactly what it ran**, and
+the gaps are named at the end of this section rather than implied to be covered.
+
+Evidence: `docs/FRUITJAM_V14_BENCH_SERIAL.jsonl` and
+`docs/MAGTAG_V14_BENCH_SERIAL.jsonl`, with `.timestamped.jsonl` companions;
+`docs/FRUITJAM_V14_PREFLIGHT_RECOVERY.jsonl` and
+`docs/V14_PREFLIGHT_DOCUMENT_BACKUP.md` for the pre-migration state of the card.
+
+Fruit Jam `FFDBA7B15146C218` on CircuitPython 10.2.1, MagTag `C7FD1A005DEA` on
+9.1.1, EPOMAKER TH40 on the USB host port, layout `EPOMAKER_TH40` selected
+automatically, card mounted at `/sd`. Three Fruit Jam boots. 1,056 host tests
+passed on the same commit beforehand.
+
+#### Pre-flight — the writer's document, before anything was written
+
+The shipped read-only `tools/fruitjam_recovery_check.py` was run on the board
+against the un-migrated card, and its result recorded to a host-side backup
+*before* V1.4 was allowed to touch anything: `source: CHECKPOINT`, revision 127,
+125 characters over 32 lines, cursor row 31 column 12, `rejected_records: 0`,
+`truncated_final_record: false`, `mirror_stale: false`, and an empty catalogue —
+the exact shape of a card written by V1.2 or V1.3.
+
+Doing this first was the operator's instruction and it was the right order. A
+migration that runs before the document has been read back is a migration whose
+correctness cannot be checked afterwards.
+
+#### The six checks
+
+| # | Check | Observation |
+| --- | --- | --- |
+| 1 | the existing document opens intact | `document_recovery` revision 127, 125 chars, `source: CHECKPOINT` → `document_migrated` → `shell_restored` `state: EDITOR` → `live_document_restored` 125 chars, 32 lines, cursor 31/12. Confirmed on the panel by the operator |
+| 2 | one new document is created | Quick Note produced `n0001`, title `NOTE 1`, `kind: NOTE`, opening at `characters: 0` |
+| 3 | switching loses no text | four `shell_document_opened` across two documents; `active` reopened at 259 chars and `n0001` at 68, both exactly as left |
+| 4 | restart restores document *and* mode | `document_active` `n0001` `opened: 3` `kind: NOTE` → `shell_restored` `mode: QUICK_NOTE` → `live_document_restored` 68 chars, 41 lines, cursor 40/14 |
+| 5 | a paragraph past the old 96-char limit | the draft went 125 → 259 characters on one logical line; recovery reports `cursor_column: 133`. No refusal of any kind |
+| 6 | line breaks past the old 32-line limit | `n0001` finished at `final_document_lines: 41`, 68 characters — `quick note one`, forty newlines, `line forty one` |
+
+**Zero faults across the run:** `shell_faults: 0`, `save_failures: 0`,
+`document_open_failures: 0`, `library_refusals: 0`, `index_rejected_records: 0`,
+`events_rejected: 0`. Not one `capacity reached` event — the four that V1.3's
+bench session produced in ordinary prose did not recur, which was the entire
+point of raising the bound.
+
+Two V1.4 design claims were observed directly rather than inferred:
+
+- **the handover is ordered.** Every one of the four document switches emitted
+  `document_checkpointed` `manual: true` `save_state: SAVED` for the *outgoing*
+  document before `shell_document_opened` fired for the incoming one. Step 1 is
+  unconditional and behaved that way;
+- **the mode arrives with the document.** `active` came back as `kind: DRAFT` /
+  `mode: DRAFTS` even when reached *through* the Drafts list, and the restart
+  restored `QUICK_NOTE` from the catalogue with no menu involved. That closes the
+  one gap V1.3 recorded and handed forward.
+
+Migration cost exactly one append, as designed: `index_appends: 1` on the first
+boot, `documents: 1`, and `index_appends: 0` on both later boots. Nothing the
+writer owned was moved, renamed, or rewritten.
+
+Transport on the final clean session: handshake accepted, viewport sent and
+accepted, one full refresh of 3,484 ms, `displayed_revision: 3`, viewport hash
+reconciled, `crc_failures: 0`.
+
+#### What this run did not cover
+
+Stated plainly, because the nine exit criteria in `docs/MODES.md` are *not* all
+met by it:
+
+- **Journal and Recent were never opened.** Only `QUICK_NOTE` and `DRAFTS` appear
+  in the console. Criteria 3 and 5, and the part of criterion 1 that covers those
+  two items, are unverified on hardware;
+- **Drafts scrolling was not exercised** — two documents do not fill a five-row
+  panel, so criterion 4 is only half observed;
+- **no forced power loss was performed.** Criterion 8 is unverified on hardware.
+  Every restart here was clean and checkpointed first;
+- **the per-append SPI cost of an 8 KB journal record was still not measured.**
+  Nothing in the run felt slow, but an impression is not a measurement and this
+  stays in the backlog where V1.4's implementation notes put it.
+
+#### Recorded, not fixed
+
+- **CircuitPython 10.2.1 exposes the microSD to the USB host as a third mass
+  storage LUN**, alongside CIRCUITPY and CPSAVES, and auto-mounts it at `/sd`
+  before user code runs. This is new information: the card is reachable from the
+  host after all. The shipped `sd_storage.mount()` handles it without a change,
+  adopting the existing mount and reporting `sd_already_mounted` with
+  `storage_detail: "adopted a filesystem already mounted at /sd"` — a path added
+  for restartability that turned out to cover this too;
+- **Windows cannot read the card's files while the board owns it.** Every
+  non-empty file reports "The file or directory is corrupted and unreadable" from
+  the host while the board reads all of them cleanly. The host's cached view of a
+  volume the device writes underneath it is stale, not damaged. It does mean the
+  "plain text, readable on any computer" promise in `docs/MODES.md` is not
+  currently true *while a session is live*, and it means the host holding the
+  volume read-write is a second writer on the writer's only copy. Worth a
+  deliberate decision in a later phase — likely a `boot.py` that keeps the card
+  off the USB bus;
+- **the MagTag restart ordering bit again, and the fault was procedural.**
+  Restarting the Fruit Jam by autoreload without restarting the MagTag first
+  produced `duplicate or reversed input sequence` and `status_hello timeout`,
+  exactly as `docs/DEVELOPMENT_RUNTIME.md` warns. The restore had already
+  completed before the handshake, so no evidence was lost; the run was repeated
+  in the documented order and completed cleanly. This is the third occurrence and
+  it remains transport hardening rather than a mode defect;
+- the character mis-mappings in the recovered text (`tgus` for `this`, `us` for
+  `is`) are the known TH40 keyboard-mapping item, untouched by this phase.
 
 ## Priority 5 — Minimum standalone workflow — V1.5
 

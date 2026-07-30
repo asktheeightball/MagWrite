@@ -1,0 +1,5 @@
+{"event":"recovery_check_started","root":"/sd/magwrite"}
+{"index_rejected_records":0,"index_records":0,"index_appends":0,"index_last_error":null,"active_document":null,"index_truncated_final_record":false,"event":"recovery_check_catalogue","index_compactions":0,"documents":0}
+{"truncated_final_record":false,"recovered":true,"checkpoint_records":3,"revision":127,"characters":125,"cursor_row":31,"journal_records":0,"document_id":"active","mirror_stale":false,"rejected_records":0,"source":"CHECKPOINT","cursor_column":12,"event":"recovery_check_result"}
+{"lines":32,"cursor_column":12,"text_escaped":"mnb tgus test us giubg ib \\nugh the keyboard is dece nt i guess\\ndistinct\\nrecignizelkjf\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\nsdfgdf sdfg ","cursor_row":31,"event":"recovery_check_document","revision":127,"characters":125}
+{"event":"recovery_check_complete"}

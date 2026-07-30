@@ -67,6 +67,37 @@ keeps the drive, autoreload stays on, and saving a file still restarts the board
 A missing or unmountable card is a reported degraded mode, never a refusal to
 start — the editor runs and the panel shows `x`.
 
+### The card appears on the host too, and you should leave it alone
+
+On CircuitPython 10.2.1 the Fruit Jam **auto-mounts the microSD at `/sd` before
+user code runs and publishes it to the host as a third USB drive**, alongside
+CIRCUITPY and CPSAVES. All three are LUNs of the same device. Expect a third
+drive letter whenever a card is seated.
+
+Nothing needs configuring for this: `sd_storage.mount()` finds `/sd` already
+mounted, adopts it, and logs
+
+```json
+{"event":"sd_already_mounted","mount_point":"/sd"}
+```
+
+with `storage_detail: "adopted a filesystem already mounted at /sd"`. The
+adoption path was written for restartability and covers this unchanged. A bare
+`busio.SPI(board.SD_SCK, ...)` will raise `ValueError: SD_SCK in use`, which is
+the firmware holding the bus, not a wiring fault.
+
+**Do not open, browse, write to, or eject that drive while a session is live.**
+The board owns the volume and writes it underneath the host, so the host's cached
+view goes stale within seconds: every non-empty file then reports "The file or
+directory is corrupted and unreadable" from Windows while the board reads all of
+them perfectly. The card is fine. Reading it from the host mid-session tells you
+nothing, and writing to it puts a second writer on the only copy of somebody's
+document.
+
+To read the card back honestly, stop the session and run
+`tools/fruitjam_recovery_check.py` on the board — it reports what recovery would
+actually return, through the real store, and writes nothing.
+
 ## Wiring
 
 Unchanged from the verified milestone, and physically confirmed:

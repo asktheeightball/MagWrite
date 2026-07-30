@@ -2,7 +2,9 @@
 
 V1.4. The four writing modes, built on the shell and on persistence.
 
-Status: **implemented and host-verified.** Not yet physically verified.
+Status: **implemented, host-verified, and physically verified on 2026-07-30** by
+a deliberately minimal bench run. Six of the nine exit criteria below were
+observed on hardware; the three that were not are named explicitly at the end.
 
 Two changes ship together here, and the order matters: the document bound was
 raised first, because a mode that opens a document you cannot write a page into
@@ -269,19 +271,38 @@ pre-existing file must be byte-identical and the only new one must be
 
 ## Exit criteria for physical verification
 
-Not yet run. The V1.4 exit is a real writing session that starts in the shell,
-captures in two different modes, and recovers correctly after a forced power
-loss. On the bench that means:
+The V1.4 exit is a real writing session that starts in the shell, captures in two
+different modes, and recovers correctly after a forced power loss. On the bench
+that means:
 
-1. the main menu renders and all four items open what they say they open;
-2. Quick Note produces a new empty document every time;
-3. Journal continues the previous entry with the cursor at the end of it;
-4. Drafts lists what exists, scrolls, and opens the selected document;
-5. Recent returns to the document that was open last;
-6. leaving a document for another checkpoints the first one first;
-7. a paragraph of real prose is accepted where V1.3 refused it;
-8. a forced power loss recovers the words, the document identity, and the mode;
-9. the boards stay host-writable and no guard is claimed.
+| # | Criterion | 2026-07-30 |
+| --- | --- | --- |
+| 1 | the main menu renders and all four items open what they say they open | **partial** — menu rendered and navigated; only Quick Note and Drafts were opened |
+| 2 | Quick Note produces a new empty document every time | **met** — `n0001` / `NOTE 1`, `kind: NOTE`, opened at 0 characters |
+| 3 | Journal continues the previous entry with the cursor at the end of it | **not run** |
+| 4 | Drafts lists what exists, scrolls, and opens the selected document | **partial** — listed and opened both documents; two entries do not fill a five-row panel, so scrolling was not exercised |
+| 5 | Recent returns to the document that was open last | **not run** as a menu item, though the restart proved the same ordinal rule |
+| 6 | leaving a document for another checkpoints the first one first | **met** — all four switches emitted `document_checkpointed` `manual: true` `SAVED` for the outgoing document before `shell_document_opened` |
+| 7 | a paragraph of real prose is accepted where V1.3 refused it | **met** — 134 characters onto one logical line, `cursor_column: 133`, no refusal anywhere in the run |
+| 8 | a forced power loss recovers the words, the document identity, and the mode | **not run** — scoped out; a clean restart did restore all three |
+| 9 | the boards stay host-writable and no guard is claimed | **met** — `guard_written: false`, `filesystem_remounted: false`, `restartable: true` |
+
+Evidence: `docs/FRUITJAM_V14_BENCH_SERIAL.jsonl`,
+`docs/MAGTAG_V14_BENCH_SERIAL.jsonl`, and the pre-migration
+`docs/V14_PREFLIGHT_DOCUMENT_BACKUP.md`. The full account is in `ROADMAP.md`.
+
+**Criteria 3, 5, and 8 remain unverified on hardware.** They are not claimed and
+should be picked up by the next run that has a reason to be on the bench.
+
+### One correction to the account above
+
+"plain text, readable on any computer" is not currently true *while a session is
+live*. CircuitPython 10.2.1 exposes the microSD to the USB host as a third mass
+storage LUN and auto-mounts it at `/sd`, so the host holds a cached view of a
+volume the board is writing underneath it; every non-empty file then reads as
+corrupt from the host while the board reads all of them cleanly. The text on the
+card is fine and portable — the host's view of it, mid-session, is not.
 
 See `docs/DEVELOPMENT_RUNTIME.md` for the bring-up order — **restart the MagTag
-first** after any interrupted session.
+first** after any interrupted session. That rule bit a third time during this
+run, from restarting the Fruit Jam by autoreload without restarting the MagTag.
