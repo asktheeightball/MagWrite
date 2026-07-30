@@ -53,9 +53,26 @@ Why the document survives every transition
 Because no transition touches it. There is exactly one ``MultilineEditor`` for
 the life of the session, and the shell only changes what is drawn and where
 input is routed. Leaving the editor cannot discard unsaved work for the same
-reason closing a lid cannot: nothing was closed. Entering ``SAVE_STATUS``
-additionally forces a checkpoint, so the writer who walks away has their words on
-the card as well as in RAM.
+reason closing a lid cannot: nothing was closed. Leaving it additionally forces a
+checkpoint, so the writer who walks away has their words on the card as well as
+in RAM.
+
+Leaving the editor, and the screen that used to be in the way — V1.5
+--------------------------------------------------------------------
+
+Through V1.4 the way out of a document went **through** a Save/Status screen: Esc
+reached it, the menu was drawn underneath, and a second Enter was needed to get
+there. The forced checkpoint was the point of that screen and it is kept exactly
+as it was; the screen is not. Esc now checkpoints and lands on the main menu, in
+one gesture, with no confirmation and no intermediate frame.
+
+The argument for the screen was that a screen every exit passes through makes the
+checkpoint unconditional. That is still true of the *checkpoint*, which still
+happens on every exit — but it was never true of the screen, which reported a
+result the writer had no decision to make about. The save state is one character
+in the status field of every ordinary frame, which is where a fact nobody has to
+act on belongs. The one case where the writer does need to know is a save that
+actually **failed**, and that reaches the error screen this shell already had.
 
 The finish gesture
 ------------------
@@ -66,8 +83,32 @@ existed as the clean-stop control; under the shell it means **back** — leave t
 current state toward its parent — and at the root that is still the stop. One
 gesture, one meaning, no new keymap entry, and the physical evidence for it was
 collected in V1.1.
+
+Buttons — V1.5
+--------------
+
+The four MagTag buttons are the primary shell controls, and they reach this
+module as the same four signals the keyboard produces: back-to-menu, up, down,
+and select. :meth:`Shell.button` is a thin front door onto the identical
+per-state handlers ``route`` uses, deliberately, so there is exactly one
+definition of what Down means in the Drafts list and no chance of the two
+drifting.
+
+Two rules the button path does not share with the keyboard:
+
+* **a button never reaches the document.** In ``EDITOR`` every action except
+  back-to-menu is counted and discarded. A control surface that could type is a
+  control surface that can corrupt a draft from a pocket;
+* **back-to-menu is idempotent at the menu.** It is a "take me to the menu"
+  button, not a back button, so pressing it at the root does *not* stop the
+  session. The keyboard's Escape still does, because a writer who pressed Escape
+  twice at the root meant it; a thumb on a bezel did not.
 """
 
+from magwrite_transport.button_input import (
+    DOWN as BUTTON_DOWN, MENU as BUTTON_MENU, SELECT as BUTTON_SELECT,
+    UP as BUTTON_UP,
+)
 from magwrite_transport.document_index import (
     KIND_DRAFT, KIND_JOURNAL, KIND_NOTE,
 )
@@ -77,7 +118,6 @@ from magwrite_transport.editor import DOWN, ENTER, UP
 
 STATE_MAIN_MENU = "MAIN_MENU"
 STATE_EDITOR = "EDITOR"
-STATE_SAVE_STATUS = "SAVE_STATUS"
 STATE_ERROR = "ERROR"
 # The Drafts list. The one menu item that shows the writer a choice rather than
 # opening something, because it is the only one whose answer the device cannot
@@ -90,9 +130,21 @@ STATE_DRAFTS = "DRAFTS"
 STATE_EXIT = "EXIT"
 
 STATES = (
-    STATE_MAIN_MENU, STATE_EDITOR, STATE_SAVE_STATUS, STATE_DRAFTS,
-    STATE_ERROR, STATE_EXIT,
+    STATE_MAIN_MENU, STATE_EDITOR, STATE_DRAFTS, STATE_ERROR, STATE_EXIT,
 )
+
+# The normalized button actions, re-exported so a reader of the shell finds them
+# where the states are rather than having to know which module they come from.
+BUTTON_ACTIONS = (BUTTON_MENU, BUTTON_UP, BUTTON_DOWN, BUTTON_SELECT)
+
+# One button action to the editor event kind that already means the same thing.
+# Buttons therefore add no second definition of what Down does; they arrive at
+# the identical per-state handler the keyboard reaches.
+KIND_FOR_BUTTON = {
+    BUTTON_UP: UP,
+    BUTTON_DOWN: DOWN,
+    BUTTON_SELECT: ENTER,
+}
 
 # -------------------------------------------------------------------- modes
 
@@ -179,6 +231,13 @@ class Shell:
         self.backs = 0
         self.faults = 0
         self.ignored_events = 0
+        # V1.5. Counted separately from ``ignored_events`` because they mean
+        # different things: an ignored keystroke is a writer typing where typing
+        # does nothing, and an ignored button is the control surface being
+        # pressed in a state that has no use for it -- most often a thumb on the
+        # bezel while the writer is mid-sentence.
+        self.button_actions = 0
+        self.buttons_ignored = 0
         self.save_state = None
         # V1.4. The identity of the document the editor currently holds, as the
         # session most recently reported it. The shell is *told* this; it never
@@ -362,16 +421,21 @@ class Shell:
         return self._transition(STATE_EDITOR, "draft selection")
 
     def back(self):
-        """The finish gesture: leave the current state toward its parent."""
+        """The finish gesture: leave the current state toward its parent.
+
+        Leaving the editor lands on the main menu directly. The checkpoint that
+        used to be the Save/Status screen's reason for existing is unchanged and
+        still unconditional -- the session performs it *before* calling this, so
+        a failed save reaches :meth:`fault` instead and the writer sees the one
+        screen they can actually act on.
+        """
         self.backs += 1
         state = self.state
         if state == STATE_EDITOR:
             # Not a discard and not a close. The editor keeps the document and
-            # the cursor exactly as they are; the session checkpoints on the way
-            # through so the words are durable as well as present.
-            return self._transition(STATE_SAVE_STATUS, "left the editor")
-        if state == STATE_SAVE_STATUS:
-            return self._transition(STATE_EDITOR, "resumed writing")
+            # the cursor exactly as they are; the session has already made them
+            # durable on the way through.
+            return self._transition(STATE_MAIN_MENU, "left the editor")
         if state == STATE_DRAFTS:
             return self._transition(STATE_MAIN_MENU, "left the drafts list")
         if state == STATE_ERROR:
@@ -429,16 +493,15 @@ class Shell:
 
         Stored rather than derived, and never recomputed here: there is exactly
         one function in the codebase that decides what is durable, and this is
-        not it. The value is drawn on the save screen and nowhere else.
+        not it. It is held for reporting only. What the writer *sees* is the
+        one-character indicator in the status field of every ordinary frame,
+        which the session advances the viewport revision for through the editor's
+        single door -- the shell must not redraw for it a second time.
         """
         if state == self.save_state:
             return False
         self.save_state = state
-        if self.state == STATE_SAVE_STATUS:
-            # Only a change to a screen currently on the panel is a redraw.
-            self._note_visible_change()
-            return True
-        return False
+        return True
 
     # --------------------------------------------------------------- input
 
@@ -449,29 +512,61 @@ class Shell:
         editor. ``ROUTE_CONSUMED`` means the shell handled it, or deliberately
         ignored it -- an ignored key is counted, never silently dropped.
         """
-        state = self.state
-        if state == STATE_EDITOR:
+        if self.state == STATE_EDITOR:
             return ROUTE_EDITOR
-        if state == STATE_MAIN_MENU:
-            self._menu_key(event)
-            return ROUTE_CONSUMED
-        if state == STATE_DRAFTS:
-            self._draft_key(event)
-            return ROUTE_CONSUMED
-        if state in (STATE_SAVE_STATUS, STATE_ERROR):
-            if event.kind == ENTER:
-                self._transition(STATE_MAIN_MENU, "confirmed")
-            else:
-                self.ignored_events += 1
-            return ROUTE_CONSUMED
-        if state == STATE_EXIT:
-            self.ignored_events += 1
-            return ROUTE_CONSUMED
-        self._fault("input is undefined in state " + str(state))
+        self._apply_kind(event.kind)
         return ROUTE_CONSUMED
 
-    def _menu_key(self, event):
-        kind = event.kind
+    def button(self, action):
+        """Apply one normalized MagTag button action. V1.5.
+
+        The buttons are the primary shell controls, and this is deliberately a
+        thin front door onto the same per-state handlers :meth:`route` uses: one
+        definition of what Down means in the Drafts list, reached two ways.
+
+        Back-to-menu is the exception, because it is not the keyboard's *back*.
+        It means "take me to the menu" from wherever the writer is, and at the
+        menu it does nothing -- a button on a bezel must never be able to end the
+        session. Leaving the editor with it is the session's business, not this
+        method's, because the checkpoint on the way out is.
+        """
+        if action not in BUTTON_ACTIONS:
+            return self._fault("unknown button action: " + str(action))
+        self.button_actions += 1
+        if action == BUTTON_MENU:
+            if self.state in (STATE_MAIN_MENU, STATE_EDITOR, STATE_EXIT):
+                # EDITOR is serviced by the session, which checkpoints first;
+                # MAIN_MENU is already there; EXIT is over.
+                self.buttons_ignored += 1
+                return self.state
+            return self._transition(STATE_MAIN_MENU, "button to the main menu")
+        if self.state == STATE_EDITOR:
+            # A button never reaches the document. Not even Up and Down: the
+            # writer's hands are on the keyboard while they write, and a control
+            # surface that can move a cursor is one that can move it unnoticed.
+            self.buttons_ignored += 1
+            return self.state
+        self._apply_kind(KIND_FOR_BUTTON[action])
+        return self.state
+
+    def _apply_kind(self, kind):
+        """Dispatch one signal -- from a key or a button -- by current state."""
+        state = self.state
+        if state == STATE_MAIN_MENU:
+            return self._menu_key(kind)
+        if state == STATE_DRAFTS:
+            return self._draft_key(kind)
+        if state == STATE_ERROR:
+            if kind == ENTER:
+                return self._transition(STATE_MAIN_MENU, "confirmed")
+            self.ignored_events += 1
+            return self.state
+        if state == STATE_EXIT:
+            self.ignored_events += 1
+            return self.state
+        return self._fault("input is undefined in state " + str(state))
+
+    def _menu_key(self, kind):
         if kind == UP:
             self._move(-1)
         elif kind == DOWN:
@@ -496,8 +591,7 @@ class Shell:
                    "label": self.selected_label})
         return True
 
-    def _draft_key(self, event):
-        kind = event.kind
+    def _draft_key(self, kind):
         if kind == UP:
             self._move_draft(-1)
         elif kind == DOWN:
@@ -600,6 +694,9 @@ class Shell:
             "shell_backs": self.backs,
             "shell_faults": self.faults,
             "shell_ignored_events": self.ignored_events,
+            "shell_button_actions": self.button_actions,
+            "shell_buttons_ignored": self.buttons_ignored,
+            "shell_save_state": self.save_state,
             "shell_error_reason": self.error_reason,
             "shell_visible_revision": self.visible_revision,
             "shell_document_id": self.document_id,

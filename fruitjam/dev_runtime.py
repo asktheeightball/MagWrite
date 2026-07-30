@@ -40,12 +40,17 @@ EPOMAKER TH40 used for this phase it is Escape that works -- two sessions on
 2026-07-29 confirmed that its Application-labelled key sends a modifier with no
 usage byte, so nothing reaches the board. See ``docs/DEVELOPMENT_RUNTIME.md``.
 
-Under the shell, added in V1.3, that gesture means **back**: it leaves the editor
-through the save screen, and pressed again at the main menu it is the clean stop
-it has always been. With ``ENABLE_SHELL`` off it stops immediately from anywhere,
-exactly as it did before. Ctrl-S saves immediately in either case. After a clean
-stop the board is immediately restartable: press reset, press Ctrl-D at the REPL,
-or just save a file over USB.
+Under the shell, added in V1.3, that gesture means **back**: from V1.5 it
+checkpoints the document and lands directly on the main menu, and pressed again
+there it is the clean stop it has always been. With ``ENABLE_SHELL`` off it stops
+immediately from anywhere, exactly as it did before. Ctrl-S saves immediately in
+either case. After a clean stop the board is immediately restartable: press
+reset, press Ctrl-D at the REPL, or just save a file over USB.
+
+The **MagTag's four buttons** are the primary shell controls from V1.5, over the
+return UART this runtime already had: menu, up, down, select. The keyboard keeps
+every shell key it had as a fallback, but nothing in the product flow needs it —
+a writer navigates with their thumbs and types with their hands.
 
 Persistence, added in V1.2, does not compromise any of the above. The microSD
 card is a separate filesystem from CIRCUITPY, so mounting it needs no
@@ -203,11 +208,14 @@ if session is not None:
         ready["stop_from"] = "ANYWHERE"
     else:
         # The same gesture and the same keys. Under the shell it means back, so
-        # the stop is the one taken at the root; inside a document it leaves the
-        # editor through the save screen instead of ending the session.
+        # the stop is the one taken at the root; inside a document it checkpoints
+        # and returns to the menu instead of ending the session.
         ready.update(shell.summary())
         ready["stop_from"] = "MAIN_MENU"
         ready["back_key"] = "ESCAPE"
+        # V1.5. Reported at startup so the console says, before a single press,
+        # which control surface the operator should expect to work.
+        ready["buttons"] = "MAGTAG_MENU_UP_DOWN_SELECT"
     log(ready)
     time.sleep(config.STARTUP_DELAY_SECONDS)
     try:

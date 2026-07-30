@@ -19,14 +19,56 @@ Do not create new certification harnesses, evidence packages, compatibility inve
 5. ~~Run one physical shell session on the bench.~~ Done 2026-07-30.
 6. ~~Add Journal, Quick Note, Drafts, and Recent.~~ Implemented, host-verified.
 7. ~~Run one physical two-mode session on the bench.~~ Done 2026-07-30.
-8. Integrate USB dongle keyboard compatibility. **<- next**
-9. Bring the bench to one-cable power.
-10. Complete the minimum standalone workflow.
-11. Defer optional buttons, keyboard edge cases, battery, enclosure, and hardening until their roadmap phase.
+8. ~~Fix the shell UX: remove the Save/Status interruption and make the MagTag
+   buttons the primary shell controls.~~ Implemented, host-verified.
+9. Run the smallest physical bench check of the shell UX. **<- next**
+10. Integrate USB dongle keyboard compatibility, resumed straight after.
+11. Bring the bench to one-cable power.
+12. Complete the minimum standalone workflow.
+13. Defer keyboard edge cases, battery, enclosure, and hardening until their roadmap phase.
 
 ## Active product task
 
-**USB dongle keyboard compatibility — NOT STARTED.**
+**V1.5 shell UX — HOST-VERIFIED, PHYSICAL CHECK NOT YET RUN.**
+
+Two defects, both in the shell and neither in the editor, storage, or transport.
+
+1. **The Save/Status interruption is removed.** Escape from the editor
+   checkpointed the document *and* then drew a screen the writer had no decision
+   to make about, with the menu visible underneath it and a second Enter needed
+   to reach it. The checkpoint is unchanged and still unconditional; it now runs
+   silently inside the gesture and *before* the transition, so a save that
+   actually failed reaches the error screen and everything else goes straight to
+   the menu. A missing card is not a failure — it is the degraded mode the
+   indicator has shown since V1.2. The save state itself is preserved as the
+   one-character indicator in the status field of every ordinary frame.
+2. **The four MagTag buttons are the primary shell controls**, over the existing
+   return UART as `BUTTON_EVENT`: menu, up, down, select. The MagTag sends
+   normalized actions only; the Fruit Jam stays the sole owner of shell and
+   document state. Debounce is stability on both edges rather than a press
+   lockout, and duplicates are suppressed three times over — at the contact, at
+   the frame sequence, and at a monotonic press ordinal. No button reaches the
+   document, and the menu button cannot end a session.
+
+The keyboard keeps every shell key as a fallback, persistence formats are
+untouched, keyboard mappings were not revisited, and no certification framework
+was created.
+
+**The smallest bench check that settles it**, in `ROADMAP.md` and
+`docs/SHELL.md`: type; press Escape and confirm it saves and returns directly to
+the menu; move through the menu with the buttons; open a mode with a button;
+return to the menu with a button; confirm no text is lost. Fix only blockers.
+
+**The build is deployed to both boards and the check is NOT RUN.** Both boards
+ignored autoreload — only a status bar on each console, no `boot` record across
+repeated file writes — so they need the reset button; and every step of the check
+is a physical button press or a keystroke either way. No part of V1.5 is claimed
+as physically verified.
+
+## Next product task
+
+**USB dongle keyboard compatibility — PAUSED, resumes immediately after the V1.5
+bench check.**
 
 The wired EPOMAKER TH40 is proven on the USB host port across four physical
 milestones. The next keyboard question is a wireless keyboard with a USB
@@ -47,7 +89,7 @@ Carry these into the dongle work, from the V1.4 run:
   and product id, so an unrecognised receiver gets standard HID rather than a
   wrong layout. That seam is where a dongle's descriptor will land.
 
-## Completed product task
+## Completed product tasks
 
 **V1.4 — Journal, Quick Note, Drafts, and Recent — PHYSICALLY VERIFIED
 2026-07-30.** Evidence: `docs/FRUITJAM_V14_BENCH_SERIAL.jsonl`,
@@ -95,8 +137,14 @@ acceptance governs durability.
 
 The following are explicitly non-blocking unless they prevent normal writing:
 
-- the stale test count in `host-tests/README.md`, corrected again in V1.4 and
+- the stale test count in `host-tests/README.md`, corrected again in V1.5 and
   still worth a standing check;
+- **`ButtonPad` press ordinals are not reset between MagTag sessions.** Harmless
+  as built — a fresh Fruit Jam inbox starts at zero, so a continuing ordinal is
+  always accepted — but it is a property that holds by coincidence of restart
+  ordering rather than by design, and a future MagTag that outlives two Fruit Jam
+  sessions without restarting would depend on it. Recorded rather than changed
+  mid-phase;
 - **the microSD is exposed to the USB host as a third mass storage volume.**
   CircuitPython 10.2.1 auto-mounts the card at `/sd` before user code runs and
   publishes it alongside CIRCUITPY and CPSAVES. The shipped `sd_storage.mount()`
@@ -143,7 +191,6 @@ The following are explicitly non-blocking unless they prevent normal writing:
 - apostrophe and unusual keyboard mappings;
 - Home, End, Delete, Caps Lock, and key-repeat refinement;
 - formal responsiveness measurement;
-- MagTag button controls;
 - additional certification harnesses;
 - display longevity testing;
 - battery and enclosure work.

@@ -48,8 +48,11 @@ INDICATORS = {
     NO_CARD: "x",
 }
 
-# The same states written out, for the shell's save screen, where there is room
-# for a word and no reason to make the writer decode a letter.
+# The same states written out, for any screen with room for a word rather than a
+# letter. V1.5 removed the Save/Status screen, which was the only reader of
+# these; they are kept because the error screen and the session summary are both
+# places a save state has to be named rather than abbreviated, and because a
+# renderable word per state is a property worth continuing to assert.
 #
 # These are not the state names. ``NO_CARD`` contains an underscore, which has no
 # glyph in the proven 3x5 table, so drawing the identifier would raise

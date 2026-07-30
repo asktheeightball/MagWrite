@@ -130,16 +130,22 @@ state. It holds no editor, no document, no store, no clock, and no transport: it
 decides where the writer is and where input goes.
 
 ```text
-MAIN_MENU --Enter--> EDITOR --Esc--> SAVE_STATUS --Enter--> MAIN_MENU
-    |    |                                |
-    |   Enter (Drafts)                   Esc --> EDITOR
+MAIN_MENU --Enter/SELECT--> EDITOR --Esc/MENU--> MAIN_MENU
+    |    |                                (checkpoints silently first)
+    |   Enter (Drafts)
     |    v
-    |  DRAFTS --Enter--> EDITOR
+    |  DRAFTS --Enter/SELECT--> EDITOR
     |    |
-   Esc  Esc --> MAIN_MENU
+   Esc  Esc/MENU --> MAIN_MENU
     v
-  EXIT                    any fault --> ERROR --Enter--> MAIN_MENU
+  EXIT                    any fault --> ERROR --Enter/SELECT--> MAIN_MENU
 ```
+
+V1.5 removed the `SAVE_STATUS` screen that used to sit between the editor and the
+menu. The checkpoint it existed to force is unchanged and still unconditional; it
+now runs silently inside the gesture, *before* the transition, so a save that
+actually failed reaches `ERROR` instead of the menu. A missing card is not a
+failure — it is the reported degraded mode the indicator already shows.
 
 The rules that keep it safe:
 
@@ -148,7 +154,9 @@ The rules that keep it safe:
   closed. Leaving the editor additionally forces a checkpoint on the way out;
 - **no new keys.** Up, Down, and Enter are already normalized editor events, and
   the finish gesture already existed. Under the shell it means *back*, and at the
-  root it is still the clean stop;
+  root it is still the clean stop. The four MagTag buttons added in V1.5 add no
+  new meaning either: they map onto those same signals and reach the same
+  per-state handlers, so there is one definition of each and it cannot drift;
 - **the editor still owns both revisions.** A shell screen is visible state the
   editor does not own, so it advances `viewport_revision` through the same single
   door the save indicator uses;
@@ -239,28 +247,56 @@ It never owns the document, viewport, storage, or display state.
 
 ## MagTag button-event path
 
+Implemented in V1.5. The four front buttons are the **primary** shell controls;
+the keyboard keeps its shell keys as a fallback.
+
 ```text
 MagTag physical button
         |
         v
-local debounce and event sequencing
+stability debounce, per-action minimum interval, press ordinal
         |
         v
-BUTTON_EVENT over return UART
+BUTTON_EVENT over the return UART, sharing the acknowledgement channel
         |
         v
-Fruit Jam application mapping
+Fruit Jam ButtonInbox: unknown code refused, ordinal duplicate refused,
+                       bounded queue, oldest dropped
         |
-        +-- menu/document action
-        +-- page or scroll navigation
-        +-- save/status
-        +-- confirm/dismiss
+        v
+Shell.button, at loop stage 6
+        |
+        +-- MENU    back to the main menu (from the editor: checkpoint first)
+        +-- UP      move the selection
+        +-- DOWN    move the selection
+        +-- SELECT  open the selected item; dismiss the error screen
         |
         v
 new authoritative state and viewport
 ```
 
-The protocol should support bounded press, release, and deliberate long-press events. Button queue overflow, duplicates, and stale events must be explicit. Display acknowledgements and button events share the return transport without blocking each other.
+The MagTag transmits **normalized actions, never button identities and never
+meanings**: `UP`, not `B`, and not "next journal entry". A raw identity would
+force the Fruit Jam to know the panel's physical layout; a meaning would be the
+display board deciding product behaviour. Every question of what an action does
+is answered on the Fruit Jam, which owns shell and document state.
+
+Press and release are the modelled events; deliberate long-press is not
+implemented and is not needed by any current action. Button queue overflow,
+duplicates, and unknown codes are explicit and counted on both boards. Display
+acknowledgements and button events share the return transport without blocking
+each other: they use one bounded outbox, and headroom is reserved in it for the
+acknowledgements an in-flight refresh is about to need, so a press can never
+stall the panel.
+
+Two rules the button path does not share with the keyboard:
+
+- **no button reaches the document.** In the editor everything except `MENU` is
+  counted and discarded, including `UP` and `DOWN`. A control surface that can
+  alter a draft is one that can alter it from inside a bag;
+- **`MENU` at the main menu does nothing.** It is a *go to the menu* control, not
+  a back control, so it cannot walk off the root and end the session. Escape
+  still can.
 
 ## Runtime model
 
@@ -271,8 +307,10 @@ The protocol should support bounded press, release, and deliberate long-press ev
 3. Drain available MagTag UART status and button-event bytes.
 4. Parse complete return frames within a bounded budget.
 5. Apply valid button events and shell control gestures to Fruit Jam-owned
-   workflow state. Normalized keyboard events are routed at stage 2: to the
-   authoritative editor, or consumed by the shell screen that owns the panel.
+   workflow state, both only with an empty input queue, so leaving the editor can
+   never outrun the writing it is leaving. Leaving the editor checkpoints first
+   and routes on the result. Normalized keyboard events are routed at stage 2: to
+   the authoritative editor, or consumed by the shell screen that owns the panel.
 6. Update acknowledgement state.
 7. Run autosave, checkpoint, and manual-save work when due — at most one storage
    operation per iteration while writing, and always before the viewport stages,

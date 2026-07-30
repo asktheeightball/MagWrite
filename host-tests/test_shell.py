@@ -39,10 +39,11 @@ from magwrite_transport.editor import (
 from magwrite_transport.live_session import LIVE_SCENARIO_ID
 from magwrite_transport.persistence import PersistenceController
 from magwrite_transport.shell import (
-    MENU_ITEMS, MODE_DRAFTS, MODE_JOURNAL, MODE_QUICK_NOTE, MODE_RECENT,
-    REQUEST_JOURNAL, REQUEST_OPEN, REQUEST_QUICK_NOTE, REQUEST_RECENT,
-    ROUTE_CONSUMED, ROUTE_EDITOR, STATE_DRAFTS, STATE_EDITOR, STATE_ERROR,
-    STATE_EXIT, STATE_MAIN_MENU, STATE_SAVE_STATUS, STATES, Shell,
+    BUTTON_DOWN, BUTTON_MENU, BUTTON_SELECT, BUTTON_UP, MENU_ITEMS,
+    MODE_DRAFTS, MODE_JOURNAL, MODE_QUICK_NOTE, MODE_RECENT, REQUEST_JOURNAL,
+    REQUEST_OPEN, REQUEST_QUICK_NOTE, REQUEST_RECENT, ROUTE_CONSUMED,
+    ROUTE_EDITOR, STATE_DRAFTS, STATE_EDITOR, STATE_ERROR, STATE_EXIT,
+    STATE_MAIN_MENU, STATES, Shell,
 )
 
 STORE_ROOT = "/sd/magwrite"
@@ -70,9 +71,17 @@ class StateModelTests(unittest.TestCase):
     def test_the_state_set_is_closed_and_named(self):
         self.assertEqual(
             STATES,
-            (STATE_MAIN_MENU, STATE_EDITOR, STATE_SAVE_STATUS, STATE_DRAFTS,
-             STATE_ERROR, STATE_EXIT),
+            (STATE_MAIN_MENU, STATE_EDITOR, STATE_DRAFTS, STATE_ERROR,
+             STATE_EXIT),
         )
+
+    def test_there_is_no_save_screen_left_to_navigate(self):
+        # V1.5 removed it. The checkpoint it existed to force is unchanged and
+        # still unconditional; the screen, the extra Enter, and the menu drawn
+        # underneath it are gone. Asserted as the absence of the *state*, because
+        # a leftover state is what a future change would quietly route back into.
+        self.assertNotIn("SAVE_STATUS", STATES)
+        self.assertFalse(hasattr(shell_viewport, "save_payload"))
 
     def test_the_main_menu_exposes_exactly_the_four_required_items(self):
         self.assertEqual(
@@ -202,33 +211,36 @@ class RoutingTests(unittest.TestCase):
             )
 
     def test_no_event_reaches_the_editor_from_any_other_state(self):
-        for state in (STATE_MAIN_MENU, STATE_SAVE_STATUS, STATE_ERROR,
-                      STATE_EXIT):
+        for state in (STATE_MAIN_MENU, STATE_DRAFTS, STATE_ERROR, STATE_EXIT):
             shell = Shell(state=state)
             self.assertEqual(shell.route(key(CHAR, "x")), ROUTE_CONSUMED)
 
 
 class BackAndExitTests(unittest.TestCase):
-    def test_back_from_the_editor_goes_to_the_save_screen(self):
+    def test_back_from_the_editor_goes_straight_to_the_menu(self):
+        # V1.5. One gesture, one destination, no confirmation keypress.
         shell = Shell()
         shell.route(key(ENTER))
         shell.back()
-        self.assertEqual(shell.state, STATE_SAVE_STATUS)
-
-    def test_back_from_the_save_screen_resumes_writing(self):
-        shell = Shell()
-        shell.route(key(ENTER))
-        shell.back()
-        shell.back()
-        self.assertEqual(shell.state, STATE_EDITOR)
-        self.assertEqual(shell.mode, MODE_JOURNAL)
-
-    def test_enter_at_the_save_screen_returns_to_the_menu(self):
-        shell = Shell()
-        shell.route(key(ENTER))
-        shell.back()
-        shell.route(key(ENTER))
         self.assertEqual(shell.state, STATE_MAIN_MENU)
+
+    def test_leaving_the_editor_costs_exactly_one_transition(self):
+        # The defect: the old path put a screen between the writer and the menu,
+        # so the menu was two presses away. Asserted as one visible change rather
+        # than as "not SAVE_STATUS", because that is what the writer experiences.
+        shell = Shell()
+        shell.route(key(ENTER))
+        before = shell.visible_revision
+        shell.back()
+        self.assertEqual(shell.visible_revision, before + 1)
+        self.assertEqual(shell.state, STATE_MAIN_MENU)
+
+    def test_the_mode_survives_leaving_the_editor(self):
+        shell = Shell()
+        shell.route(key(DOWN))
+        shell.route(key(ENTER))
+        shell.back()
+        self.assertEqual(shell.mode, MODE_QUICK_NOTE)
 
     def test_back_at_the_root_is_the_stop(self):
         shell = Shell()
@@ -248,8 +260,7 @@ class BackAndExitTests(unittest.TestCase):
         shell = Shell()
         for _ in range(4):
             shell.route(key(ENTER))    # menu -> editor
-            shell.back()               # editor -> save
-            shell.route(key(ENTER))    # save -> menu
+            shell.back()               # editor -> menu, in one gesture
         self.assertEqual(shell.state, STATE_MAIN_MENU)
         self.assertEqual(shell.entries, 4)
 
@@ -298,7 +309,7 @@ class FailClosedTests(unittest.TestCase):
         self.assertEqual(shell.state, STATE_ERROR)
 
     def test_enter_outside_the_menu_faults_rather_than_opening_a_mode(self):
-        shell = Shell(state=STATE_SAVE_STATUS)
+        shell = Shell(state=STATE_ERROR)
         shell.enter()
         self.assertEqual(shell.state, STATE_ERROR)
         self.assertIsNone(shell.mode)
@@ -394,12 +405,18 @@ class ScreenEncodingTests(unittest.TestCase):
             cases.append(("menu %d" % selection,
                           shell_viewport.menu_payload(shell, "r")))
         for state in save_state_module.STATES:
+            # The save state is no longer a screen; it is one character in the
+            # status field of every ordinary frame. Every indicator it can
+            # produce still has to survive the encoder and the renderer, which is
+            # what this now asserts.
             shell = Shell()
-            shell.route(key(ENTER))
-            shell.back()
             shell.note_save_state(state)
-            cases.append(("save " + state,
-                          shell_viewport.save_payload(shell, editor, "s")))
+            cases.append(
+                ("menu " + state,
+                 shell_viewport.menu_payload(
+                     shell, save_state_module.indicator(state)
+                 ))
+            )
         shell = Shell()
         shell.fault("store unusable: cannot create store layout: [Errno 30]")
         cases.append(("error", shell_viewport.error_payload(shell, "!")))
@@ -435,35 +452,14 @@ class ScreenEncodingTests(unittest.TestCase):
         message = ViewportMessage.decode(1, shell_viewport.menu_payload(Shell()))
         self.assertEqual(len(message.lines), len(MENU_ITEMS))
 
-    def test_the_save_screen_names_the_state_the_document_and_both_exits(self):
-        editor = MultilineEditor()
-        editor.apply(InputEvent(0, "s", CHAR, "x"))
-        shell = Shell()
-        shell.route(key(ENTER))
-        shell.back()
-        shell.note_save_state(save_state_module.SAVED)
+    def test_the_menu_still_carries_the_save_indicator(self):
+        # The small indicator the removal of the save screen was asked to
+        # preserve. It is one character in the status field, on the screen the
+        # writer lands on when they leave a document.
         message = ViewportMessage.decode(
-            1, shell_viewport.save_payload(shell, editor, "s")
+            1, shell_viewport.menu_payload(Shell(), "s")
         )
-        self.assertEqual(message.lines[0], "SAVED")
-        self.assertIn("JOURNAL", message.lines)
-        self.assertIn("ENTER  MENU", message.lines)
-        self.assertIn("ESC  KEEP WRITING", message.lines)
-
-    def test_the_save_screen_does_not_reprint_the_draft(self):
-        # Showing the words under the word SAVED invites the exact misreading
-        # this screen exists to prevent: that the panel is the card.
-        editor = MultilineEditor()
-        for character in "secret words":
-            editor.apply(InputEvent(0, "s", CHAR, character))
-        shell = Shell()
-        shell.route(key(ENTER))
-        shell.back()
-        message = ViewportMessage.decode(
-            1, shell_viewport.save_payload(shell, editor, "u")
-        )
-        for line in message.lines:
-            self.assertNotIn("secret", line)
+        self.assertTrue(message.status.endswith(" s"), message.status)
 
     def test_the_error_screen_says_the_work_is_kept(self):
         shell = Shell()
@@ -480,8 +476,7 @@ class ScreenEncodingTests(unittest.TestCase):
         )
 
     def test_every_other_state_produces_a_screen(self):
-        for state in (STATE_MAIN_MENU, STATE_SAVE_STATUS, STATE_ERROR,
-                      STATE_EXIT):
+        for state in (STATE_MAIN_MENU, STATE_DRAFTS, STATE_ERROR, STATE_EXIT):
             shell = Shell(state=state)
             self.assertIsNotNone(
                 shell_viewport.payload(shell, MultilineEditor(), "s"), state
@@ -505,15 +500,13 @@ def shell_script():
     """
     reports = press_kind("ENTER")             # menu: open JOURNAL -> editor
     reports += type_characters("first pass")
-    reports += finish()                       # -> save screen
-    reports += press_kind("ENTER")            # -> menu
+    reports += finish()                       # -> menu, checkpointed silently
     reports += press_kind("ENTER")            # -> editor again
     reports += type_characters(" and second")
-    reports += finish()                       # -> save screen
-    reports += finish()                       # -> back into the editor
+    reports += finish()                       # -> menu
+    reports += press_kind("ENTER")            # -> editor again
     reports += type_characters(".")
-    reports += finish()                       # -> save screen
-    reports += press_kind("ENTER")            # -> menu
+    reports += finish()                       # -> menu
     reports += finish()                       # -> stop
     return reports
 
@@ -557,8 +550,8 @@ class ShellSessionTests(unittest.TestCase):
         # One editor for the life of the session is the structural reason no
         # transition can lose unsaved work: nothing is ever closed.
         self.assertIs(self.link.session.editor, self.link.session.editor)
-        self.assertEqual(self.shell.entries, 2)
-        self.assertGreaterEqual(self.shell.backs, 5)
+        self.assertEqual(self.shell.entries, 3)
+        self.assertGreaterEqual(self.shell.backs, 4)
 
     def test_menu_keystrokes_never_entered_the_document(self):
         self.assertNotIn("\n", self.link.session.editor.text)
@@ -569,9 +562,29 @@ class ShellSessionTests(unittest.TestCase):
         )
 
     def test_leaving_the_editor_checkpointed_the_document(self):
+        # The Save/Status screen is gone; the checkpoint it existed to force is
+        # not. Every exit from the editor still makes the words durable, and it
+        # now happens silently on the way to the menu.
         left = self.events("shell_left_editor")
         self.assertEqual(len(left), 3)
         self.assertGreaterEqual(self.summary["checkpoints"], 3)
+        for record in left:
+            self.assertEqual(record["save_action"], "CHECKPOINTED")
+
+    def test_no_save_screen_was_ever_drawn(self):
+        # The whole point of the change, asserted against what the panel drew
+        # rather than against the state machine: the writer left a document three
+        # times and never once saw a screen between them and the menu.
+        titles = set(view.title for view in self.rendered)
+        self.assertNotIn(shell_viewport.SAVE_TITLE if hasattr(
+            shell_viewport, "SAVE_TITLE") else "MAGWRITE SAVE", titles)
+        self.assertIn(shell_viewport.MENU_TITLE, titles)
+
+    def test_leaving_the_editor_needed_no_confirmation_keypress(self):
+        # Three exits from the editor, three finish gestures, and one more for
+        # the stop. Before V1.5 the same journey needed three extra Enters.
+        self.assertEqual(self.summary["finish_requests_serviced"], 4)
+        self.assertEqual(self.shell.state, STATE_EXIT)
 
     def test_the_document_on_the_card_matches_what_was_typed(self):
         snapshot = self.store.read_latest()
@@ -617,8 +630,7 @@ class ShellSessionTests(unittest.TestCase):
         shell = Shell()
         KeyboardLink(
             reports=press_kind("DOWN") + press_kind("ENTER")
-            + type_characters("noted") + finish() + press_kind("ENTER")
-            + finish(),
+            + type_characters("noted") + finish() + finish(),
             shell=shell, typing_interval_seconds=0.05,
         ).run()
         self.assertEqual(shell.mode, MODE_QUICK_NOTE)
@@ -686,7 +698,7 @@ class RecoveryIntoTheShellTests(unittest.TestCase):
         persistence, store, filesystem = controller()
         link = KeyboardLink(
             reports=press_kind("ENTER") + type_characters("survive me")
-            + finish() + press_kind("ENTER") + finish(),
+            + finish() + finish(),
             persistence=persistence, shell=Shell(), typing_interval_seconds=0.05,
         ).run()
         self.assertTrue(link.session.complete)

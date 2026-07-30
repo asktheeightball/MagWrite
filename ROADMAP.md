@@ -35,15 +35,24 @@ this list wins.
 | 1 | Responsiveness and keyboard completeness | V1.1 | Host-verified; one physical attempt FAILED, certification retired |
 | 2 | microSD persistence and forced-power-loss recovery | Priority 4 | PHYSICALLY VERIFIED 2026-07-30 |
 | 3 | MagWrite Shell | V1.3 | PHYSICALLY VERIFIED 2026-07-30 |
-| 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | Host-verified; physical run not yet performed |
-| 5 | Standalone workflow | Priority 5 | Not started |
-| 6 | Optional MagTag buttons | Priority 2 | Not started, optional |
+| 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | PHYSICALLY VERIFIED 2026-07-30 |
+| 5 | Shell UX: one-gesture exit, and MagTag buttons | V1.5 | Host-verified; physical run not yet performed |
+| 6 | Standalone workflow | Priority 5 | Not started |
 | 7 | Battery, enclosure, and hardening | Priorities 6 and 7 | Not started |
 
 Writing must feel right before anything is stored, and storage must be
-trustworthy before a shell is built on top of it. MagTag buttons moved down and
-became optional because the USB keyboard already provides every control the
-writing loop needs; they are a convenience, not a dependency.
+trustworthy before a shell is built on top of it.
+
+**MagTag buttons moved back up, and stopped being optional.** They were deferred
+to position 6 and marked a convenience on the reasoning that the USB keyboard
+already provides every control the writing loop needs. That reasoning was about
+the *loop* and it was correct about the loop; it was wrong about the product. A
+writing appliance whose menu can only be answered from the keyboard is a device
+with two control surfaces and no thumb affordance, and the V1.4 bench run made
+that plain: every mode switch meant taking a hand off the keys to press Escape,
+then Enter, then Enter. The buttons are not a convenience on top of the shell;
+they are how the shell is meant to be used, which is why they land in the same
+phase as the shell's UX correction rather than after it.
 
 ## Completed feasibility gates
 
@@ -125,11 +134,24 @@ and production readiness. The MagTag's discarded-prefix/resynchronization
 behaviour on the RX line remains uncharacterized, though it has never corrupted
 a frame.
 
-## Priority 2 — MagTag button controls over UART — V1.6, OPTIONAL
+## Priority 2 — MagTag button controls over UART — DELIVERED IN V1.5
 
-Deferred to **V1 position 6 and marked optional.** The USB keyboard already
-supplies every control the writing loop needs, so buttons are a convenience.
-Nothing later in V1 depends on them.
+**Superseded.** This section is kept because the evidence documents reference the
+`Priority N` headings; the requirements below are the ones the V1.5 work was
+judged against, and every one of them is met. See **V1.5** for the design, the
+reasoning, and the coverage.
+
+The deferral recorded here — *V1 position 6, optional, a convenience because the
+USB keyboard already supplies every control the writing loop needs* — was
+withdrawn after the V1.4 bench run. It was right about the writing loop and wrong
+about the product: a menu that can only be answered from the keyboard makes every
+mode switch a hand off the keys.
+
+One requirement below was answered rather than implemented. *Support press,
+release, and deliberate long-press semantics*: press is the modelled event,
+release is tracked only so its bounce cannot read as a press, and long press is
+not implemented because no current action needs one and an unused gesture on a
+four-button surface is a way to trigger something by accident.
 
 Use the four existing MagTag front buttons as a control surface for the Fruit Jam through the proven return UART link.
 
@@ -152,7 +174,7 @@ Initial product mapping should prioritize:
 
 Exact mappings remain configurable and should be validated against the real workflow.
 
-**Exit:** every physical button event reaches the Fruit Jam exactly once, produces the intended Fruit Jam-owned action, and does not interfere with display acknowledgements.
+**Exit:** every physical button event reaches the Fruit Jam exactly once, produces the intended Fruit Jam-owned action, and does not interfere with display acknowledgements. Host-verified in V1.5; the bench check is the one recorded in that section.
 
 ## Priority 3 — Direct USB HID keyboard on Fruit Jam — PHYSICALLY VERIFIED
 
@@ -834,7 +856,175 @@ met by it:
 - the character mis-mappings in the recovered text (`tgus` for `this`, `us` for
   `is`) are the known TH40 keyboard-mapping item, untouched by this phase.
 
-## Priority 5 — Minimum standalone workflow — V1.5
+## V1.5 — Shell UX: one-gesture exit and MagTag buttons — HOST-VERIFIED
+
+The V1.4 bench run produced a working device that was tiring to use. Two things
+stood between the writer and the product, and both were in the shell rather than
+in the editor, the storage, or the transport — which is why this phase touches
+none of those.
+
+Scope was fixed deliberately narrow. No new certification framework, no change to
+any persistence format, no revisiting of keyboard mappings, and no dongle
+compatibility work, which is paused and resumes immediately after this.
+
+### 1. The Save/Status interruption is removed
+
+The defect, as observed:
+
+- Escape from the editor opened a Save/Status screen;
+- the main menu was drawn underneath it;
+- a second Enter was needed to reach the menu the device had already drawn.
+
+`STATE_SAVE_STATUS` and `shell_viewport.save_payload` are gone. Escape now
+checkpoints the document and lands on the main menu in one gesture.
+
+**The checkpoint is unchanged and still unconditional.** It moved, it did not
+weaken: it runs inside the gesture, silently, and *before* the transition, so the
+destination depends on the result. A checkpoint that succeeded — or a bench with
+no card at all — goes to the menu. A checkpoint that actually **failed** goes to
+the recoverable error screen the shell already had, carrying the store's own
+reason, and that is the only save outcome that interrupts anything.
+
+The argument the V1.3 design made for the screen was that a screen every exit
+passes through makes the checkpoint unconditional. That was true of the
+checkpoint and it remains true — but it was never an argument for the screen. The
+checkpoint is unconditional because the code performs it unconditionally, not
+because a frame was drawn afterwards. What the screen actually did was report a
+result the writer had no decision to make about, and charge them a keypress for
+reading it, at the exact moment they had already said *take me out of this
+document*. The menu being drawn underneath made that unmistakable: the device
+knew where they were going and stopped them anyway.
+
+The save state the screen used to name in words is preserved where a fact nobody
+has to act on belongs: the **one-character indicator in the status field of every
+ordinary frame**, unchanged since V1.2, including on the menu the writer now
+lands on.
+
+A card-less bench is deliberately not an error. It is the reported degraded mode
+the panel draws as `x`, and an error screen in front of every exit would have
+recreated the interruption this phase removed.
+
+### 2. The four MagTag buttons are the primary shell controls
+
+Over the existing return UART link, as `BUTTON_EVENT`, message type 13 — the same
+version-1 frame, the same CRC-32, and the same sequence numbering as every
+display acknowledgement. No second transport and no second channel: that reuse is
+what gives buttons gap detection and duplicate rejection without inventing
+either.
+
+| Button | Action | Meaning |
+| --- | --- | --- |
+| A | `MENU` | open/back to the main menu |
+| B | `UP` | move the selection up |
+| C | `DOWN` | move the selection down |
+| D | `SELECT` | select/confirm |
+
+**The Fruit Jam remains the sole owner of shell and document state.** The MagTag
+sends normalized actions and stops: `UP`, not `B`, and never "next journal
+entry". A raw button identity would force the Fruit Jam to know the panel's
+physical layout; a semantic one would be the display board deciding product
+behaviour. *The writer asked to move down* is the narrowest honest thing that
+board knows.
+
+Debouncing is **stability, not a press lockout**: a reading must hold for 25 ms
+before it is believed, on both edges. A lockout only covers the press edge, and
+the release bounce then arrives after it expired and reads as a second press —
+precisely the duplicate this phase was asked to prevent. On top of that the same
+action is refused twice inside 250 ms, which is close to one panel refresh, so a
+selection can never move twice for one visible frame. A held button does not
+repeat: on a four-item menu that takes about a second to redraw, auto-repeat can
+only overshoot something the writer cannot see yet.
+
+Duplicate suppression is layered, and each layer catches a different failure:
+contact chatter at the pad; the transport's own sequence numbering at the frame;
+and a monotonic press ordinal at the `ButtonInbox`, which refuses any ordinal at
+or below the highest already accepted — the case a resynchronisation after line
+noise can still produce. The inbox is bounded and drops the **oldest**, because a
+backlog is stale intention and the newest press is what the writer still means.
+
+Two rules the buttons do not share with the keyboard:
+
+- **no button reaches the document.** In the editor everything except A is
+  counted and discarded, including Up and Down, which could plausibly have moved
+  the cursor. A control surface that can alter a draft is one that can alter it
+  from inside a bag;
+- **A at the main menu does nothing.** It is a *go to the menu* control, not a
+  back control, so it cannot walk off the root and end a writing session. Escape
+  still can, because a writer who pressed Escape twice at the root meant it.
+
+The keyboard keeps every shell key it had, as a fallback. The requirement was
+that the intended product flow work from the buttons, not that the keyboard stop
+working, and Escape from the editor is deliberately the same one-gesture exit
+that button A performs.
+
+Buttons and keys meet at one handler: `Shell.button` maps its three movement
+actions onto the editor event kinds the keyboard already produces and calls the
+identical per-state code. There is one definition of what Down means in the
+Drafts list and it cannot drift.
+
+Button frames share the MagTag's bounded status outbox with acknowledgements,
+with headroom reserved for the acknowledgements an in-flight refresh is about to
+need. A press that would eat into that headroom is dropped and counted rather
+than allowed to stall the panel — display acknowledgements are preserved, which
+was a constraint of the phase.
+
+`ENABLE_MAGTAG_BUTTONS` ships **enabled**, unlike every harness in this
+repository, for the same reason persistence and the shell do: it is the product's
+control surface, not a hardware experiment. It claims no guard, remounts nothing,
+writes nothing, and reads four GPIOs. A pin the board does not expose is a
+reported degraded mode — the panel runs, the keyboard still drives the shell —
+never a refusal to start.
+
+### Coverage
+
+`host-tests/test_buttons.py` is new and drives four layers: the pad against a
+simulated contact that actually bounces on both edges; the two boards' action
+tables and the wire payload for parity, because the boards share no import;
+`Shell.button` directly, including every state where a button must do nothing;
+and the whole path end to end through the real pad, encoder, frame, parser,
+acknowledgement tracker, shell, and editor — a session navigated entirely by
+button, with the keyboard used only to type, asserting that the text is exactly
+what was typed and that the acknowledgement path was unaffected.
+
+`test_shell.py` asserts the absence of the save state and screen rather than only
+the new destination, because a leftover state is what a future change would
+quietly route back into, and asserts that leaving the editor costs exactly one
+visible change — which is what the writer experiences.
+
+The suite is 1,103 tests, up from 1,056, and green. `compileall`,
+`tools/validate_uart_harness.py`, and the CircuitPython compatibility sweep pass;
+the deterministic harness CRC-32s are unchanged, because nothing in the proven
+transport moved.
+
+### Physical bench check — the smallest one that settles it
+
+Not a certification harness. The ordinary development runtime, per
+`docs/DEVELOPMENT_RUNTIME.md`, MagTag first.
+
+1. type in the editor;
+2. press Escape: it saves and returns directly to the menu, with no screen in
+   between and no second keypress;
+3. move through the menu with the MagTag buttons;
+4. open a mode with a MagTag button;
+5. return to the menu with a MagTag button;
+6. confirm no text is lost.
+
+Record the outcome here and in `PRIORITY.md` whichever way it goes.
+
+**Status: deployed, NOT RUN.** On 2026-07-30 the V1.5 build was copied to both
+boards — `magwrite/buttons.py` and `dev_display_runtime.py` to the MagTag,
+`magwrite_transport/` and `dev_runtime.py` to the Fruit Jam — and the MagTag
+`config.py` gained the `ENABLE_MAGTAG_BUTTONS` block, appended rather than
+overwritten so the existing enable flags survived. Neither board restarted on
+autoreload: both consoles emitted only their status bar and no `boot` record
+across repeated file writes, so both are sitting in a terminal sleep loop from an
+earlier session and need the **reset button**.
+
+Every step of the check then needs a person at the bench regardless: it is four
+physical button presses and a keyboard. Nothing here is claimed as verified, and
+the six steps above stand exactly as written for whoever runs them.
+
+## Priority 5 — Minimum standalone workflow — V1.6
 
 Add the smallest complete on-device workflow:
 

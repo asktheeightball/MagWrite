@@ -706,11 +706,11 @@ class TwoModeSessionTests(unittest.TestCase):
     def setUpClass(cls):
         reports = press_kind("ENTER")               # JOURNAL -> editor
         reports += type_characters("journal entry")
-        reports += finish() + press_kind("ENTER")  # save screen -> menu
+        reports += finish()                        # -> menu, checkpointed
         reports += press_kind("DOWN")              # QUICK NOTE
         reports += press_kind("ENTER")             # -> editor, a new note
         reports += type_characters("a quick note")
-        reports += finish() + press_kind("ENTER")  # save screen -> menu
+        reports += finish()                        # -> menu, checkpointed
         reports += finish()                        # stop
         cls.rendered = []
 
@@ -792,7 +792,7 @@ class RecoveredModeSessionTests(unittest.TestCase):
     def test_a_restarted_session_reopens_the_note_as_a_note(self):
         reports = press_kind("DOWN") + press_kind("ENTER")
         reports += type_characters("unfinished")
-        reports += finish() + press_kind("ENTER") + finish()
+        reports += finish() + finish()
         first = session_link(reports=reports).run()
         note_id = first.shell.document_id
 
@@ -840,7 +840,7 @@ class NoCatalogueTests(unittest.TestCase):
         shell = Shell()
         link = KeyboardLink(
             reports=press_kind("ENTER") + type_characters("one document")
-            + finish() + press_kind("ENTER") + finish(),
+            + finish() + finish(),
             shell=shell, typing_interval_seconds=0.05,
         ).run()
         self.assertIsNone(link.session.library)

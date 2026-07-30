@@ -110,45 +110,57 @@ The MagTag returns bounded status and input messages, including:
 - display caught up;
 - display error;
 - test complete;
-- future normalized button events.
+- normalized button events, from V1.5.
 
 The protocol uses versioning, sequence numbers, length framing, CRC32, bounded parsing, resynchronization, duplicate/stale handling, and display backpressure. While the MagTag is refreshing, the Fruit Jam retains only the newest required viewport rather than queueing every intermediate editor state.
 
 ## MagTag buttons
 
-The four front buttons should control Fruit Jam-owned application behavior through the existing return UART path.
-
-Recommended event path:
+Implemented in V1.5. The four front buttons control Fruit Jam-owned application
+behaviour through the existing return UART path, and are the **primary** shell
+control surface; the keyboard's shell keys remain as a fallback.
 
 ```text
-MagTag button
+MagTag button (active low, internal pull-up)
         |
         v
-local debounce
+stability debounce, per-action minimum interval, monotonic press ordinal
         |
         v
-sequenced BUTTON_EVENT
+sequenced BUTTON_EVENT on the acknowledgement channel
         |
         v
 Fruit Jam action mapping
 ```
 
-The MagTag should report only:
+| Button | Pin alias | Action sent |
+| --- | --- | --- |
+| A | `BUTTON_A` | `MENU` |
+| B | `BUTTON_B` | `UP` |
+| C | `BUTTON_C` | `DOWN` |
+| D | `BUTTON_D` | `SELECT` |
 
-- button identity;
-- press or release;
-- optional deliberate long press;
-- event sequence and bounded diagnostics.
+Back-to-menu and select are the outer two so a thumb cannot confuse either with
+the movement pair between them.
+
+The MagTag reports only:
+
+- a **normalized action** — `MENU`, `UP`, `DOWN`, `SELECT` — never which physical
+  switch closed and never what the action should do;
+- the press edge. A held button does not repeat, and long press is not modelled;
+- a monotonic press ordinal, a timestamp, and bounded diagnostics.
 
 The Fruit Jam decides whether an event means:
 
 - menu or document action;
-- page/scroll up;
-- page/scroll down;
-- save/status;
-- confirm or dismiss.
+- move the selection up or down;
+- open, confirm, or dismiss;
+- leave the editor, which checkpoints the document first.
 
 The MagTag must not independently edit, move the authoritative cursor, save, open a document, or change application workflow.
+
+A button pin the board does not expose is a **reported degraded mode**: the panel
+runs and the keyboard still drives the shell. It is never a refusal to start.
 
 ## Keyboard
 
@@ -195,7 +207,8 @@ Do not connect one battery simultaneously to the independent charger circuits on
 - [x] Verify bidirectional UART acknowledgements using A0→D10 and A1→A1.
 - [x] Confirm no inter-board power conductor during verified UART bench tests.
 - [x] Physically verify the integrated multiline editor and five-line layout.
-- [ ] Implement and verify MagTag button events over return UART.
+- [x] Implement MagTag button events over return UART. Host-verified in V1.5;
+      physical bench check recorded in `ROADMAP.md`.
 - [ ] Verify one known USB HID keyboard on the Fruit Jam. Enumeration, interface
       selection, and boot-report reading are verified; **live typing is not** —
       two attempts failed because the keyboard sent no HID data to its receiver

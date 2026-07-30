@@ -1,4 +1,4 @@
-# The MagWrite Shell — V1.3
+# The MagWrite Shell — V1.3, revised in V1.5
 
 The application shell the writing modes live in. It comes after persistence
 because a shell that cannot reliably open and save a document is a menu, not a
@@ -20,25 +20,31 @@ either would become a second author of state that has to agree with the first
 forever, and the two would eventually disagree at the worst possible moment.
 
 ```text
-                 +-------------------+
-    Enter        |                   |   Esc
- +-------------> |      EDITOR       | -------------+
- |               |                   |              |
- |               +-------------------+              v
-+-----------+          ^                    +-----------------+
-| MAIN MENU |          |        Esc         |   SAVE/STATUS   |
-+-----------+          +--------------------|                 |
- |    ^                                     +-----------------+
- |    |                    Enter                    |
- |    +--------------------------------------------+
- |
- | Esc                     any fault
- v                            |
-EXIT                          v
-                        +-----------+   Enter or Esc
-                        |   ERROR   | ----------------> MAIN MENU
-                        +-----------+
+                        Enter / SELECT
+              +---------------------------------+
+              |                                 v
+       +-------------+                   +-------------+
+       |  MAIN MENU  | <---------------- |   EDITOR    |
+       +-------------+   Esc / MENU      +-------------+
+        |    ^   |       (checkpoints first)
+        |    |   | Enter (Drafts)
+        |    |   v
+        |    |  +-------------+
+        |    +--|   DRAFTS    |--- Enter / SELECT ---> EDITOR
+        |       +-------------+
+        |  Esc            any fault
+        v                    |
+      EXIT                   v
+                       +-----------+   Enter / SELECT / MENU
+                       |   ERROR   | -----------------------> MAIN MENU
+                       +-----------+
 ```
+
+> **V1.5 removed the Save/Status screen.** Leaving the editor used to go
+> *through* it, with the menu drawn underneath and a second Enter needed to reach
+> the menu. The forced checkpoint that screen existed to guarantee is unchanged
+> and still unconditional; the screen, the extra keypress, and the frame in the
+> way are gone. See *Leaving the editor* below.
 
 `EXIT` is not a screen the writer navigates; it is the terminal state the session
 reads to begin its ordinary drain-and-stop. It is in the same closed set so that
@@ -46,12 +52,12 @@ reads to begin its ordinary drain-and-stop. It is in the same closed set so that
 
 ## Navigation, and why it needed no new keys
 
-| Gesture | Meaning |
-| --- | --- |
-| Up / Down | move the menu selection (clamped, not wrapped) |
-| Enter | open the selected mode; confirm the save or error screen |
-| Escape (or Keyboard Application) | **back** — leave the current state toward its parent |
-| Ctrl-S | manual save, unchanged, at any time |
+| Gesture | MagTag button | Meaning |
+| --- | --- | --- |
+| Up / Down | **B** / **C** | move the selection (clamped, not wrapped) |
+| Enter | **D** (select) | open the selected item; dismiss the error screen |
+| Escape (or Keyboard Application) | **A** (menu) | **back** — leave the current state toward its parent |
+| Ctrl-S | — | manual save, unchanged, at any time |
 
 Up, Down, and Enter are already normalized editor events, so the menu reads the
 same `InputEvent` stream the document does. Escape and Application were already
@@ -66,26 +72,87 @@ at the root that is still the clean stop the runtime always had. This is the one
 behavioural change the shell makes to an existing gesture, and it is what makes
 Escape safe to press inside a document.
 
-## Save/Status is a guard, not an information screen
+## Leaving the editor — V1.5
 
-Leaving the editor goes **through** the save screen, and entering it forces a
-checkpoint.
+**Esc checkpoints the document and goes straight to the main menu.** One gesture,
+no confirmation, no intermediate screen, and nothing on the panel between the
+writer and the menu they asked for.
 
-That placement is the point. Leaving the editor is the moment the writer is most
-likely to walk away from the desk, and it is exactly when unsaved work is most
-exposed. A screen that only reported the save state would be visited by nobody; a
-screen every exit passes through makes the checkpoint unconditional.
+The checkpoint is unchanged and still unconditional, and it still happens for the
+reason it always did: leaving the editor is the moment the writer is most likely
+to walk away from the desk, and it is exactly when unsaved work is most exposed.
+What changed is that the save happens **silently, in the background of the
+gesture**, and — importantly — *before* the transition, so the destination can
+depend on the result:
 
-It offers both exits, and both are safe:
+| Result | Where the writer lands |
+| --- | --- |
+| checkpointed | the main menu |
+| no card to checkpoint to | the main menu, indicator `x` |
+| the write actually failed | the error screen, with the reason |
 
-- **Enter** goes to the main menu;
-- **Escape** goes back into the document, cursor where it was.
+### Why the screen went
 
-The screen names the save state in words rather than the one-character indicator,
-because there is room for a word here and no reason to make the writer decode a
-letter. It deliberately does **not** reprint the draft: five lines of the writer's
-own words under the heading `SAVED` invites exactly the misreading this screen
-exists to prevent — that what is on the panel is what is on the card.
+The V1.3 argument for it was that *a screen every exit passes through makes the
+checkpoint unconditional*. That was true of the checkpoint and it is still true —
+but it was never an argument for the screen. The checkpoint is unconditional
+because the code performs it unconditionally, not because a frame was drawn
+afterwards.
+
+What the screen actually did was report a result the writer had no decision to
+make about, and charge them a keypress for reading it. Worse, it did so at the
+one moment they had already expressed an intention — *take me out of this
+document* — so it read as an obstacle rather than as information. The menu being
+drawn underneath it made that unmistakable: the device knew where they were
+going and stopped them anyway.
+
+A save state that nobody has to act on belongs where a fact like that belongs:
+the **one-character indicator in the status field of every ordinary frame**,
+which has been there since V1.2 and is preserved exactly. The one save outcome a
+writer can act on is a save that *failed*, and that reaches the error screen this
+shell already had — which is a screen worth interrupting for, and the only one.
+
+A card-less bench is deliberately **not** an error. It is the degraded mode the
+panel has been drawing as `x` since V1.2; putting an error screen in front of
+every exit on a bench with no card would recreate the interruption exactly.
+
+## The four buttons — V1.5
+
+The MagTag's four front buttons are the **primary** shell controls. The keyboard
+keeps every shell key it had, as a fallback, but nothing in the intended product
+flow requires it: a writer navigates with their thumbs and types with their
+hands, and a device that needs a keyboard to answer its own menu is a device
+with two control surfaces.
+
+| Button | Action | In the menu | In a list | In the editor |
+| --- | --- | --- | --- | --- |
+| A | `MENU` | nothing | back to the menu | checkpoint, then the menu |
+| B | `UP` | move up | move up | ignored |
+| C | `DOWN` | move down | move down | ignored |
+| D | `SELECT` | open the item | open the document | ignored |
+
+Four decisions worth writing down.
+
+**The MagTag sends actions, not buttons.** `UP`, not `B`. A raw identity would
+force the Fruit Jam to know the panel's physical layout; a semantic one like
+"next journal entry" would be the display board deciding product behaviour. *The
+writer asked to move down* is the narrowest honest thing the MagTag knows, and it
+is exactly what it says.
+
+**No button reaches the document.** In the editor everything except A is counted
+and discarded — including Up and Down, which could plausibly have moved the
+cursor. A control surface that can alter a draft is one that can alter it from
+inside a bag, and the buttons are on the outside of the device.
+
+**A at the menu does nothing.** It is a *take me to the menu* button, not a back
+button, so it cannot walk off the root and end the session. Escape still can,
+because a writer who pressed Escape twice at the root meant it and a thumb on a
+bezel did not.
+
+**Buttons and keys meet at the same handler.** `Shell.button` maps its three
+movement actions onto the editor event kinds the keyboard already produces and
+calls the identical per-state code. There is one definition of what Down means in
+the Drafts list, and it cannot drift.
 
 ## Why no transition can lose unsaved work
 
@@ -94,7 +161,9 @@ Because no transition touches the document.
 There is exactly one `MultilineEditor` for the life of the session. The shell
 never constructs, clears, reloads, or truncates it; it changes what is drawn and
 where input is routed. Leaving the editor cannot discard unsaved work for the
-same reason closing a lid cannot: nothing was closed.
+same reason closing a lid cannot: nothing was closed. That is as true of the
+V1.5 one-gesture exit as it was of the two-step one — removing a screen removed
+a frame, not a guarantee.
 
 That is a structural guarantee rather than a policy one, which matters because a
 policy can be forgotten by the next change and a missing line of code cannot be.
@@ -232,7 +301,9 @@ an accidental double press must not silently skip a level.
 - no per-mode storage format, and no per-mode recovery rules — *still true in
   V1.4, and stated there as the rule rather than as a deferral*;
 - no MagTag button work — the shell is keyboard-only by requirement, and the
-  buttons remain a later phase that maps onto the same signals;
+  buttons remain a later phase that maps onto the same signals. *Delivered in
+  V1.5, and onto exactly those signals: `Shell.button` adds no new meaning, it
+  reaches the handlers the keyboard already reached*;
 - no new certification harness. The development runtime already brings the shell
   up and logs every transition.
 
@@ -283,13 +354,21 @@ What the run has to show, in order:
    `u` → `r` → `s`;
 4. Escape reaches the save screen, `shell_left_editor` and
    `document_checkpointed` are logged, and the panel names the state in words;
+
+   *V1.5 removed the save screen. Escape now logs `shell_left_editor` with
+   `save_action: CHECKPOINTED` and the panel draws the main menu next.*
 5. Escape again returns to the same document with the cursor where it was, and
    the text is unchanged — this is the requirement-8 observation and the one to
    watch most closely;
+
+   *V1.5: Enter re-opens it instead, and the observation is the same one — the
+   text and the cursor are unchanged.*
 6. Escape, Enter, Enter re-enters the editor from the menu with the document
    still intact. Repeat the whole cycle at least three times: the exit criterion
    is *repeatedly*, and a state machine that survives one round trip and not
    four is the failure worth finding;
+
+   *V1.5: Escape, Enter.*
 7. pull the USB cable mid-session, then restart: `document_recovery`,
    `live_document_restored`, and `shell_restored` with `state: EDITOR` — the
    board comes back into the document, not the menu;
@@ -301,6 +380,8 @@ What the run has to show, in order:
    refuse the next handshake. See `docs/DEVELOPMENT_RUNTIME.md`.*
 8. Escape, Enter, Escape from the recovered document is the clean stop:
    `dev_runtime_session_summary` then `dev_runtime_stopped`.
+
+   *V1.5: Escape, Escape.*
 
 9. *The plan as first written had no step for the recoverable error state, which
    left the one requirement that cannot be argued from the host suite alone
@@ -326,3 +407,13 @@ not.
 The session summary carries `shell_state`, `shell_mode`, `shell_selection`,
 `shell_entries`, `shell_backs`, `shell_faults`, `shell_ignored_events`,
 `shell_error_reason`, `shell_routed_events`, and `finish_requests_serviced`.
+
+V1.5 adds `shell_button_applied` on the Fruit Jam and `dev_display_button_pressed`
+on the MagTag, so a press can be followed across the wire from the contact to the
+transition it caused. `shell_left_editor` gained `save_action` and `save_state`,
+which is how a silent checkpoint stays auditable now that it draws no screen. The
+summary gains `shell_button_actions`, `shell_buttons_ignored`,
+`shell_save_state`, `editor_exit_save_failures`, `button_frames_received`,
+`button_actions_applied`, and the `ButtonInbox` counters —
+`button_events_received`, `_accepted`, `_applied`, `_duplicate`, `_unknown`, and
+`_dropped`.

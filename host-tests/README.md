@@ -51,7 +51,22 @@ Logic that does not require CircuitPython or ESP32 hardware should be testable u
 - migration of a card written by V1.2 or V1.3, asserted file-by-file: every
   pre-existing file byte-identical, one new file;
 - two modes captured in one session and a forced power loss that recovers the
-  words, the document identity, and the mode.
+  words, the document identity, and the mode;
+- MagTag button debounce against a simulated contact that bounces on **both**
+  edges, a held button that must not repeat, and a second press inside the
+  minimum interval;
+- the two boards’ button action tables and the `BUTTON_EVENT` payload for
+  parity, because the boards share no import;
+- every shell state in which a button must do nothing, including the menu button
+  at the main menu, which must never end a session, and every button in the
+  editor, which must never reach the document;
+- button duplicate suppression by press ordinal, an unknown action code, and a
+  bounded inbox that drops the oldest;
+- one whole session navigated entirely by button through the real pad, encoder,
+  frame, parser, acknowledgement tracker, shell, and editor, asserting the text
+  is exactly what the keyboard typed and the acknowledgement path was unaffected;
+- leaving the editor in one gesture, the silent checkpoint it still performs, and
+  the absence of the removed save state and save screen.
 
 No test asserts a bound as a literal. Every size is derived from the editor's own
 constants, so these keep testing the property the next time the bounds move --
@@ -66,4 +81,4 @@ Run the current feasibility suite from the repository root:
 python -m unittest discover -s host-tests -p "test_*.py" -v
 ```
 
-The current suite contains 1,056 tests and has no third-party host dependencies.
+The current suite contains 1,103 tests and has no third-party host dependencies.

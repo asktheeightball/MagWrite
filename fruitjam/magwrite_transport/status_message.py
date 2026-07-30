@@ -1,8 +1,9 @@
 """Bounded payloads for MagTag-to-Fruit Jam status frames."""
 
 from magwrite_transport.protocol import (
-    DISPLAY_CAUGHT_UP, DISPLAY_ERROR, FRAME_ACCEPTED, FRAME_REJECTED,
-    REFRESH_COMPLETED, REFRESH_STARTED, STATUS_HELLO, TEST_COMPLETE,
+    BUTTON_EVENT, DISPLAY_CAUGHT_UP, DISPLAY_ERROR, FRAME_ACCEPTED,
+    FRAME_REJECTED, REFRESH_COMPLETED, REFRESH_STARTED, STATUS_HELLO,
+    TEST_COMPLETE,
 )
 
 MAX_REASON = 32
@@ -51,6 +52,12 @@ def encode_status(message_type, fields):
         return bytes((fields["code"],)) + _u32(fields["inflight_revision"]) + _u32(fields["latest_received_revision"]) + _u32(fields["displayed_revision"]) + _text(fields["reason"], MAX_REASON)
     if message_type == TEST_COMPLETE:
         return _u32(fields["displayed_revision"]) + _u32(fields["viewport_hash"]) + _u16(fields["accepted_count"]) + _u16(fields["rendered_count"]) + _u16(fields["superseded_count"]) + _u16(fields["refresh_count"]) + _u16(fields["error_count"])
+    if message_type == BUTTON_EVENT:
+        # The ordinal is the MagTag's own count of accepted presses, starting at
+        # one. It is what lets this side drop a duplicate without knowing
+        # anything about contact bounce, and it is separate from the frame
+        # sequence because the frame sequence counts every status frame.
+        return bytes((fields["action_code"],)) + _u32(fields["ordinal"]) + _u32(fields["pressed_ms"])
     raise ValueError("not a status message type")
 
 
@@ -100,4 +107,7 @@ def decode_status(message_type, payload):
     if message_type == TEST_COMPLETE:
         _require(payload, 18)
         return {"displayed_revision": int.from_bytes(payload[0:4], "big"), "viewport_hash": int.from_bytes(payload[4:8], "big"), "accepted_count": int.from_bytes(payload[8:10], "big"), "rendered_count": int.from_bytes(payload[10:12], "big"), "superseded_count": int.from_bytes(payload[12:14], "big"), "refresh_count": int.from_bytes(payload[14:16], "big"), "error_count": int.from_bytes(payload[16:18], "big")}
+    if message_type == BUTTON_EVENT:
+        _require(payload, 9)
+        return {"action_code": payload[0], "ordinal": int.from_bytes(payload[1:5], "big"), "pressed_ms": int.from_bytes(payload[5:9], "big")}
     raise ValueError("not a status message type")

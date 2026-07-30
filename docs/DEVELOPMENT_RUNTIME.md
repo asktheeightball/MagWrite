@@ -122,7 +122,13 @@ Unchanged from the verified milestone, and physically confirmed:
    DEV_DISPLAY_RUNTIME_MODE = "MAGTAG_DEV_DISPLAY"
    ```
 
-   Wait for `dev_display_ready` on its console.
+   Wait for `dev_display_ready` on its console. From V1.5 it carries
+   `"buttons": true` when the four front buttons were claimed, and
+   `"buttons": false` with a `button_detail` reason when they were not —
+   `ENABLE_MAGTAG_BUTTONS` ships **enabled**, unlike every harness, because the
+   buttons are the product's control surface rather than a hardware experiment.
+   A board that cannot claim them still runs; the keyboard still drives the
+   shell.
 3. On the **Fruit Jam**, set in `config.py`:
 
    ```python
@@ -136,13 +142,28 @@ Unchanged from the verified milestone, and physically confirmed:
    `live_document_restored` appear too, and the editor opens on that document
    with its cursor where it was.
 4. The panel opens on the **main menu**: Journal, Quick Note, Drafts, Recent.
-   Move with **Up** and **Down**, open with **Enter**. If a document was
-   recovered the runtime skips the menu and opens straight into the editor on it,
-   in the mode that document belongs to.
-5. Type. The MagTag trails and catches up. **Ctrl-S** saves immediately.
-   **Escape** leaves the editor to the save screen, which checkpoints on the way
-   through; from there **Enter** goes to the menu and **Escape** goes back into
-   the document. See `docs/SHELL.md`.
+   If a document was recovered the runtime skips the menu and opens straight into
+   the editor on it, in the mode that document belongs to.
+5. Navigate with the **four MagTag buttons**, which are the primary controls from
+   V1.5:
+
+   | Button | Action |
+   | --- | --- |
+   | A | go to the main menu; from a document, checkpoint and go there |
+   | B | move the selection up |
+   | C | move the selection down |
+   | D | open the selected item; dismiss the error screen |
+
+   Button A at the main menu does nothing — it cannot end the session. No button
+   reaches the document: in the editor everything except A is ignored and
+   counted.
+
+   The keyboard keeps the same controls as a fallback: **Up**, **Down**,
+   **Enter**, **Escape**.
+6. Type. The MagTag trails and catches up. **Ctrl-S** saves immediately.
+   **Escape** (or button A) checkpoints the document and returns straight to the
+   menu — silently, with no save screen and no confirmation keypress. Only a save
+   that actually *failed* shows a screen. See `docs/SHELL.md`.
 
 ### What each menu item does, from V1.4
 
@@ -195,8 +216,9 @@ log. It never writes to the port.
   `dev_runtime_stopped`.
 
   **With the shell on, that gesture means *back*, and the stop is the one taken
-  at the main menu.** Inside a document it goes to the save screen instead, so
-  reaching the stop from the editor is: Escape, Enter, Escape. `dev_runtime_ready`
+  at the main menu.** Inside a document it checkpoints and returns to the menu
+  instead, so reaching the stop from the editor is: Escape, Escape.
+  `dev_runtime_ready`
   reports `"stop_from": "MAIN_MENU"` when the shell is active and
   `"stop_from": "ANYWHERE"` when it is not. Watch `shell_transition` on the
   console to see where each press landed.
@@ -250,8 +272,16 @@ Persistence adds `sd_mounted` or one of `sd_absent` / `sd_unmountable` /
 `document_save_failed`.
 
 The shell adds `shell_restored`, `shell_transition`, `shell_mode_entered`,
-`shell_selection_moved`, `shell_left_editor`, and `shell_fault`. A wrong pin alias reports the `SD`-prefixed names the
+`shell_selection_moved`, `shell_left_editor` — which carries `save_action` and
+`save_state`, so a silent checkpoint stays auditable now that it draws no
+screen — and `shell_fault`. A wrong pin alias reports the `SD`-prefixed names the
 board actually exposes, so it is one line to read rather than a hunt.
+
+Buttons add `dev_display_buttons_ready` or `dev_display_buttons_unavailable` and
+`dev_display_button_pressed` on the MagTag, and `button_event_received` plus
+`shell_button_applied` on the Fruit Jam. A press can therefore be followed from
+the contact to the transition it caused: if a button does nothing, whichever of
+those four lines is missing says where it stopped.
 
 MagTag: `dev_display_ready`, `dev_display_status_sent`,
 `dev_display_session_summary`, `dev_display_awaiting_next_session`,

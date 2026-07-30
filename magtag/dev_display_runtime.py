@@ -35,17 +35,43 @@ is a real fault at any time.
 Refresh timings are drained into a small running aggregate every pass rather
 than accumulated, so nothing grows with session length and the scheduler's
 bounded completion history can never fill.
+
+The four buttons — V1.5
+-----------------------
+
+The MagTag's front buttons became the product's primary shell controls, and they
+change nothing about what this board is allowed to know. It debounces four GPIOs,
+gives each accepted press an ordinal, and sends a normalized ``MENU`` / ``UP`` /
+``DOWN`` / ``SELECT`` action over the return UART. It does not know what state the
+shell is in, which item is selected, or what any action will do; the Fruit Jam
+owns all of that and every button frame is a request, never an instruction.
+
+Button frames share the bounded status outbox with display acknowledgements
+rather than getting a channel of their own, so the two cannot starve each other:
+the scheduler already refuses to begin a refresh until the outbox has drained,
+and a button frame is the same fourteen-byte header, CRC-32, and sequence number
+as every acknowledgement. Headroom is reserved in the outbox for the
+acknowledgements a refresh in flight is about to need, and a press that would eat
+into it is dropped and counted rather than allowed to stall the panel.
+
+A pin the board does not expose is a **reported degraded mode**: the display runs
+and the keyboard still drives the shell. It is never a refusal to start, because
+a writer with a working keyboard and a broken bezel should still be able to
+write.
 """
 
 import time
 
 import config
 from magwrite.ack_scheduler import AckDisplayScheduler
+from magwrite.buttons import (
+    ACTION_CODES, DOWN, MENU, SELECT, UP, ButtonPad,
+)
 from magwrite.display_adapter import validate_physical_test_activation
 from magwrite.serial_log import StructuredSerialLogger
 from magwrite.sha256 import sha256_file
 from magwrite.status_queue import StatusQueue
-from magwrite.uart_protocol import DISPLAY_ERROR, FrameParser
+from magwrite.uart_protocol import BUTTON_EVENT, DISPLAY_ERROR, FrameParser
 from magwrite.uc8151_adapter import UC8151DisplayAdapter
 from magwrite.viewport_renderer import render_viewport
 
@@ -111,6 +137,69 @@ if sha256_file("/uc8151.py") != EXPECTED_DRIVER_SHA256:
 
 import board
 import busio
+import digitalio
+
+# The four front buttons, in the order ``config`` names them. Active low with an
+# internal pull-up on this board, which is why ``pressed`` is an inversion.
+BUTTON_ALIASES = (
+    (MENU, "BUTTON_MENU_PIN_ALIAS"),
+    (UP, "BUTTON_UP_PIN_ALIAS"),
+    (DOWN, "BUTTON_DOWN_PIN_ALIAS"),
+    (SELECT, "BUTTON_SELECT_PIN_ALIAS"),
+)
+# Kept free in the bounded outbox for the acknowledgements a refresh in flight is
+# about to need. A button must never be the reason the panel stops reporting.
+BUTTON_OUTBOX_HEADROOM = 4
+
+
+def build_button_pad(logger):
+    """Claim the four button pins. Returns ``(pad, pins, detail)``.
+
+    Never raises. A missing alias, a pin already claimed by the firmware, or a
+    board that does not have these names all produce ``(None, (), reason)`` and a
+    session that runs without buttons.
+    """
+    if not getattr(config, "ENABLE_MAGTAG_BUTTONS", False):
+        return None, (), "buttons disabled in config"
+    pins = []
+    buttons = []
+    try:
+        for action, setting in BUTTON_ALIASES:
+            alias = getattr(config, setting, None)
+            if not alias:
+                raise ValueError("no pin alias for the " + action + " button")
+            pin = digitalio.DigitalInOut(getattr(board, alias))
+            pin.direction = digitalio.Direction.INPUT
+            pin.pull = digitalio.Pull.UP
+            pins.append(pin)
+            # Bound late on purpose: ``pin`` is rebound each iteration, so the
+            # reader has to close over this button's own object rather than the
+            # loop variable.
+            buttons.append((action, (lambda held: lambda: not held.value)(pin)))
+        pad = ButtonPad(
+            buttons,
+            debounce_seconds=config.BUTTON_DEBOUNCE_SECONDS,
+            minimum_interval_seconds=config.BUTTON_MINIMUM_INTERVAL_SECONDS,
+        )
+    except Exception as button_error:  # noqa: BLE001 - degraded, not fatal
+        for pin in pins:
+            try:
+                pin.deinit()
+            except Exception:
+                pass
+        detail = str(button_error)
+        logger({"event": "dev_display_buttons_unavailable", "detail": detail,
+                "keyboard_navigation_unaffected": True})
+        return None, (), detail
+    logger({
+        "event": "dev_display_buttons_ready",
+        "actions": [action for action, _ in BUTTON_ALIASES],
+        "aliases": [getattr(config, setting) for _, setting in BUTTON_ALIASES],
+        "debounce_seconds": config.BUTTON_DEBOUNCE_SECONDS,
+        "minimum_interval_seconds": config.BUTTON_MINIMUM_INTERVAL_SECONDS,
+    })
+    return pad, tuple(pins), None
+
 
 uart = None
 display = None
@@ -135,10 +224,17 @@ except Exception as construction_error:  # noqa: BLE001 - reported, not swallowe
             "filesystem_remounted": False, "guard_written": False})
 
 sessions = 0
+buttons = None
+button_detail = None
 if display is not None:
+    # After the display, and outside its try: a board that cannot claim its
+    # buttons is still a board that can draw, and the writer still has a
+    # keyboard. Degraded, reported, and started anyway.
+    buttons, button_pins, button_detail = build_button_pad(logger)
     logger({"event": "dev_display_ready",
             "rx_alias": config.UART_RX_PIN_ALIAS,
-            "tx_alias": config.UART_TX_PIN_ALIAS, "baud": config.UART_BAUD})
+            "tx_alias": config.UART_TX_PIN_ALIAS, "baud": config.UART_BAUD,
+            "buttons": buttons is not None, "button_detail": button_detail})
 
     def new_session():
         parser = FrameParser()
@@ -152,6 +248,8 @@ if display is not None:
     inflight_started = None
     bytes_received = 0
     bytes_sent = 0
+    buttons_sent = 0
+    buttons_dropped = 0
     try:
         while True:
             chunks = []
@@ -162,6 +260,24 @@ if display is not None:
                     chunks.append(chunk)
                     bytes_received += len(chunk)
                 available = min(uart.in_waiting, config.UART_READ_BUDGET)
+            if buttons is not None:
+                # Polled before the scheduler runs, so a press taken this pass
+                # leaves on this pass's outbox drain rather than waiting a lap.
+                for action, ordinal, pressed_ms in buttons.poll(time.monotonic()):
+                    if len(outbox) >= outbox.capacity - BUTTON_OUTBOX_HEADROOM:
+                        buttons_dropped += 1
+                        logger({"event": "dev_display_button_dropped",
+                                "action": action, "ordinal": ordinal,
+                                "outbox_depth": len(outbox)})
+                        continue
+                    outbox.offer(BUTTON_EVENT, scheduler.displayed_revision, {
+                        "action_code": ACTION_CODES[action],
+                        "ordinal": ordinal,
+                        "pressed_ms": pressed_ms,
+                    })
+                    buttons_sent += 1
+                    logger({"event": "dev_display_button_pressed",
+                            "action": action, "ordinal": ordinal})
             before = scheduler.inflight
             scheduler.service(chunks)
             if (
@@ -212,8 +328,12 @@ if display is not None:
                     "crc_failures": parser.crc_failures,
                     "latest_received_revision": scheduler.latest_revision,
                     "displayed_revision": scheduler.displayed_revision,
+                    "button_frames_sent": buttons_sent,
+                    "button_frames_dropped": buttons_dropped,
                 }
                 summary.update(stats.describe())
+                if buttons is not None:
+                    summary.update(buttons.summary())
                 logger(summary)
                 # Ready for the next Fruit Jam start with no reset and no guard
                 # to clear. Revisions restart from zero, so the parser and
@@ -222,6 +342,8 @@ if display is not None:
                 inflight_started = None
                 bytes_received = 0
                 bytes_sent = 0
+                buttons_sent = 0
+                buttons_dropped = 0
                 logger({"event": "dev_display_awaiting_next_session",
                         "sessions_served": sessions})
             time.sleep(0.002)
@@ -250,4 +372,10 @@ if display is not None:
 # the next start needs no cleanup, no deletion, and no safe mode.
 logger({"event": "dev_display_stopped", "detail": error,
         "sessions_served": sessions, "restartable": True,
-        "guard_written": False, "filesystem_remounted": False})
+        "guard_written": False, "filesystem_remounted": False,
+        "buttons": buttons is not None, "button_detail": button_detail,
+        "button_presses": None if buttons is None else buttons.presses,
+        "button_bounces_rejected": (
+            None if buttons is None else buttons.bounces_rejected),
+        "button_repeats_suppressed": (
+            None if buttons is None else buttons.repeats_suppressed)})

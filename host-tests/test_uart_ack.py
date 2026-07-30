@@ -12,7 +12,8 @@ from magwrite.ack_scheduler import AckDisplayScheduler, AckSchedulerError
 from magwrite.status_message import decode_status, encode_status
 from magwrite.status_queue import StatusQueue, StatusQueueOverflow
 from magwrite.uart_protocol import (
-    DISPLAY_CAUGHT_UP, DISPLAY_ERROR, END_OF_TEST, FRAME_ACCEPTED,
+    BUTTON_EVENT, DISPLAY_CAUGHT_UP, DISPLAY_ERROR, END_OF_TEST,
+    FRAME_ACCEPTED,
     FRAME_REJECTED, Frame, FrameParser, HELLO, MAX_RECEIVE_BUFFER,
     REFRESH_COMPLETED, REFRESH_STARTED, STATUS_HELLO, TEST_COMPLETE,
     VERSION, VIEWPORT, encode_frame,
@@ -67,6 +68,11 @@ FIELDS = {
         "accepted_count": 6, "rendered_count": 4, "superseded_count": 2,
         "refresh_count": 4, "error_count": 0,
     },
+    # V1.5. The return channel's first message that is not about the display,
+    # and it is in this table deliberately: every guarantee the acknowledgements
+    # get -- round-trip determinism, cross-board payload parity, CRC, chunked
+    # parsing, malformed refusal -- is the same guarantee buttons now need.
+    BUTTON_EVENT: {"action_code": 3, "ordinal": 41, "pressed_ms": 123456},
 }
 
 
@@ -173,7 +179,8 @@ class StatusProtocolTests(unittest.TestCase):
         for name in (
             "STATUS_HELLO", "FRAME_ACCEPTED", "REFRESH_STARTED",
             "REFRESH_COMPLETED", "DISPLAY_CAUGHT_UP", "FRAME_REJECTED",
-            "DISPLAY_ERROR", "TEST_COMPLETE", "MAX_PAYLOAD_SIZE",
+            "DISPLAY_ERROR", "TEST_COMPLETE", "BUTTON_EVENT",
+            "MAX_PAYLOAD_SIZE",
         ):
             self.assertEqual(getattr(module, name), getattr(tx_protocol, name))
 

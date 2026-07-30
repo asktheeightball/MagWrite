@@ -75,7 +75,7 @@ The return path uses the same version-1 frame and CRC:
 1 HELLO; 2 VIEWPORT; 3 END_OF_SCENARIO; 4 END_OF_TEST
 5 STATUS_HELLO; 6 FRAME_ACCEPTED; 7 REFRESH_STARTED
 8 REFRESH_COMPLETED; 9 DISPLAY_CAUGHT_UP; 10 FRAME_REJECTED
-11 DISPLAY_ERROR; 12 TEST_COMPLETE
+11 DISPLAY_ERROR; 12 TEST_COMPLETE; 13 BUTTON_EVENT
 ```
 
 The header revision identifies the affected viewport. Status payloads are
@@ -96,6 +96,7 @@ DISPLAY_ERROR      u8 code, u32 in-flight, u32 latest, u32 displayed,
                    bounded ASCII reason (maximum 32)
 TEST_COMPLETE      u32 displayed, u32 viewport CRC32, five u16 counts:
                    accepted, rendered, superseded, refresh, error
+BUTTON_EVENT       u8 action code, u32 press ordinal, u32 pressed ms
 ```
 
 `FRAME_ACCEPTED` never means displayed. `REFRESH_COMPLETED` is emitted only
@@ -103,6 +104,39 @@ after panel busy is idle. `DISPLAY_CAUGHT_UP` requires no in-flight refresh,
 no pending viewport, and displayed revision equal to latest accepted revision.
 Status queues and acknowledgement histories are bounded; overflow is fatal and
 the physical harness never retries automatically.
+
+### BUTTON_EVENT (implemented, host verified; physical NOT RUN)
+
+Added in V1.5, and deliberately not given a channel of its own. It is the same
+version-1 frame, the same CRC-32, and the same MagTag-to-Fruit Jam sequence
+numbering as every acknowledgement above, which is what gives it gap detection
+and duplicate rejection without inventing either.
+
+Action codes are fixed: `1 MENU`, `2 UP`, `3 DOWN`, `4 SELECT`. They are
+**normalized actions, not button identities** — the MagTag never reports which
+physical switch closed, and never reports what the action should do. The header
+revision carries the MagTag's currently displayed revision and is informational.
+
+`ordinal` is the MagTag's own monotonic count of accepted presses, starting at
+one, and is separate from the frame sequence because the frame sequence counts
+every status frame. The Fruit Jam refuses any ordinal at or below the highest one
+it has accepted, so a frame redelivered after a resynchronisation cannot move a
+selection twice.
+
+Rules:
+
+- the MagTag debounces locally by **stability**, not by a press lockout: a
+  reading must hold for the debounce interval before it is believed, on both
+  edges, so release chatter cannot read as a second press;
+- one press produces exactly one event; a held button never repeats;
+- the same action is refused twice inside a minimum interval close to one panel
+  refresh;
+- button frames share the bounded status outbox with acknowledgements, with
+  headroom reserved for the acknowledgements an in-flight refresh is about to
+  need. A press that would eat into that headroom is dropped and counted;
+- the Fruit Jam's inbox is bounded and drops the **oldest** on overflow, because
+  a backlog is stale intention;
+- an unrecognised action code is refused and counted, never guessed.
 
 The acknowledgement run is eight input frames: HELLO, six VIEWPORTs
 (revisions 1..6), and END_OF_TEST. Revisions 2..5 form the supersession burst.

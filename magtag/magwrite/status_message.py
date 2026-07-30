@@ -1,6 +1,7 @@
 """Bounded payloads for MagTag-to-Fruit Jam status frames."""
 
 from magwrite.uart_protocol import (
+    BUTTON_EVENT,
     DISPLAY_CAUGHT_UP,
     DISPLAY_ERROR,
     FRAME_ACCEPTED,
@@ -102,6 +103,16 @@ def encode_status(message_type, fields):
             + _u16(fields["refresh_count"])
             + _u16(fields["error_count"])
         )
+    if message_type == BUTTON_EVENT:
+        # The ordinal is the MagTag's own count of accepted presses, starting at
+        # one. It is what lets the Fruit Jam drop a duplicate without needing to
+        # know anything about contact bounce, and it is separate from the frame
+        # sequence because the frame sequence counts every status frame.
+        return (
+            bytes((fields["action_code"],))
+            + _u32(fields["ordinal"])
+            + _u32(fields["pressed_ms"])
+        )
     raise ValueError("not a status message type")
 
 
@@ -195,5 +206,12 @@ def decode_status(message_type, payload):
             "superseded_count": int.from_bytes(payload[12:14], "big"),
             "refresh_count": int.from_bytes(payload[14:16], "big"),
             "error_count": int.from_bytes(payload[16:18], "big"),
+        }
+    if message_type == BUTTON_EVENT:
+        _require(payload, 9)
+        return {
+            "action_code": payload[0],
+            "ordinal": int.from_bytes(payload[1:5], "big"),
+            "pressed_ms": int.from_bytes(payload[5:9], "big"),
         }
     raise ValueError("not a status message type")

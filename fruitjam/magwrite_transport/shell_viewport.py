@@ -23,10 +23,9 @@ carried one. Error text is the obvious repeat of that mistake, because it is the
 one string on the device that comes from an exception rather than from a literal.
 """
 
-from magwrite_transport import save_state as save_state_module
 from magwrite_transport.deterministic_viewports import encode_viewport
 from magwrite_transport.shell import (
-    STATE_DRAFTS, STATE_ERROR, STATE_EXIT, STATE_MAIN_MENU, STATE_SAVE_STATUS,
+    STATE_DRAFTS, STATE_ERROR, STATE_EXIT, STATE_MAIN_MENU,
 )
 
 # Distinct from the editor's scenario id so a shell frame is never mistaken for a
@@ -38,7 +37,6 @@ MAX_LINE_CHARS = 28
 MAX_FIELD_CHARS = 20
 
 MENU_TITLE = "MAGWRITE MENU"
-SAVE_TITLE = "MAGWRITE SAVE"
 ERROR_TITLE = "MAGWRITE ERROR"
 EXIT_TITLE = "MAGWRITE"
 DRAFTS_TITLE = "MAGWRITE DRAFTS"
@@ -179,33 +177,6 @@ def drafts_payload(shell, save_indicator=None):
     return _encode(DRAFTS_TITLE, tuple(lines), row, 0, status)
 
 
-def save_payload(shell, editor, save_indicator=None, state=None):
-    """What leaving the editor did, and both ways back out of this screen.
-
-    The document is described rather than shown. The writer has just left it, and
-    repeating five lines of their draft under the word SAVED would invite exactly
-    the misreading this screen exists to prevent -- that the state on the panel is
-    the state on the card.
-    """
-    state = state if state is not None else shell.save_state
-    if state is None:
-        headline = "NOT SAVING"
-    else:
-        headline = save_state_module.label(state)
-    # The document's own title when there is one, so a writer with four journal
-    # entries and three notes can tell which one they just left.
-    label = shell.panel_title()
-    lines = [
-        headline,
-        "%d CHARS  %d LINES" % (editor.character_count(), len(editor.lines)),
-        label if label else "DOCUMENT",
-        "ENTER  MENU",
-        "ESC  KEEP WRITING",
-    ]
-    status = _status("D%03d" % (editor.document_revision % 1000), save_indicator)
-    return _encode(SAVE_TITLE, tuple(lines), 0, 0, status)
-
-
 def error_payload(shell, save_indicator=None):
     """A recoverable failure. The document is still in the editor behind it."""
     reason = wrap(shell.error_reason or "UNKNOWN FAULT", MAX_LINE_CHARS, 3)
@@ -235,8 +206,6 @@ def payload(shell, editor, save_indicator=None):
         return menu_payload(shell, save_indicator)
     if state == STATE_DRAFTS:
         return drafts_payload(shell, save_indicator)
-    if state == STATE_SAVE_STATUS:
-        return save_payload(shell, editor, save_indicator)
     if state == STATE_ERROR:
         return error_payload(shell, save_indicator)
     if state == STATE_EXIT:

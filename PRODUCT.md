@@ -43,7 +43,7 @@ A writer or journaler who wants to:
 6. The MagTag reports frame acceptance, refresh start, refresh completion, displayed revision, and errors.
 7. The e-paper display catches up through non-blocking partial refreshes.
 8. Autosave and recovery run independently from display refresh.
-9. MagTag button events are sent to the Fruit Jam, which decides their meaning.
+9. MagTag button events are sent to the Fruit Jam, which decides their meaning. Leaving a document saves it silently and returns to the menu; only a save that actually failed shows a screen.
 10. The writer can create, open, save, rename, and archive plain-text documents.
 
 ## Version 1 scope
@@ -63,7 +63,9 @@ A writer or journaler who wants to:
 - deferred/non-blocking e-paper updates;
 - periodic full ghost-clearing refresh based on measured behavior;
 - bidirectional display acknowledgements;
-- MagTag button events reported to Fruit Jam;
+- MagTag button events reported to Fruit Jam, as the primary shell control
+  surface: the writer navigates with their thumbs and types with their hands, and
+  no part of the intended flow requires the keyboard to answer a menu;
 - local plain-text storage on microSD;
 - append-only recovery journal;
 - autosave and manual save;

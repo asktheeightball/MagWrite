@@ -19,8 +19,9 @@ if os.path.join(ROOT, "fruitjam") not in sys.path:
     sys.path.append(os.path.join(ROOT, "fruitjam"))
 
 from magwrite.ack_scheduler import AckDisplayScheduler
+from magwrite.buttons import ACTIONS as BUTTON_ACTIONS, ACTION_CODES, ButtonPad
 from magwrite.status_queue import StatusQueue
-from magwrite.uart_protocol import FrameParser as InputParser
+from magwrite.uart_protocol import BUTTON_EVENT, FrameParser as InputParser
 from magwrite.viewport_renderer import render_viewport
 from magwrite_transport.hid_keymap import (
     MODIFIER_LEFT_SHIFT, NAMED_USAGES, PRINTABLE_USAGES, USAGE_ESCAPE,
@@ -123,6 +124,45 @@ def finish():
     return press_release(USAGE_ESCAPE)
 
 
+class SimulatedButton:
+    """One physical button, held down for a bounded stretch of simulated time.
+
+    Models the thing that actually matters: a contact is closed for a while, not
+    for an instant. ``bounce_seconds`` chatters the reading for the first moments
+    of each edge, which is what the debounce has to survive, and it is on by
+    default because a bench button always bounces.
+    """
+
+    # Wide enough to span several polls of the display loop, so a test that
+    # claims to exercise bounce actually does. Real switches chatter for single
+    # -digit milliseconds; this is pessimistic on purpose.
+    BOUNCE_SECONDS = 0.012
+
+    def __init__(self, clock, bounce_seconds=BOUNCE_SECONDS):
+        self.clock = clock
+        self.bounce_seconds = bounce_seconds
+        self.windows = []
+        self.reads = 0
+
+    def press(self, at, seconds=0.08):
+        """Hold the button from ``at`` for ``seconds`` of simulated time."""
+        self.windows.append((at, at + seconds))
+        return self
+
+    def __call__(self):
+        now = self.clock()
+        self.reads += 1
+        for start, end in self.windows:
+            if start <= now < end:
+                if self.bounce_seconds and now - start < self.bounce_seconds:
+                    # Chatter: alternate on each sample inside the bounce window.
+                    return bool(self.reads % 2)
+                return True
+            if end <= now < end + self.bounce_seconds:
+                return bool(self.reads % 2)
+        return False
+
+
 class SimulatedClock:
     def __init__(self):
         self.now = 0.0
@@ -167,7 +207,7 @@ class FakeKeyboardBackend:
 
     def __init__(self, reports=(), descriptor=None, reports_per_poll=1,
                  open_error=None, disconnect_after=None, clock=None,
-                 interval_seconds=0.0):
+                 interval_seconds=0.0, start_delay_seconds=0.0):
         self.reports = list(reports)
         # A human types at a rate the panel cannot match. Pacing the release of
         # reports against the simulated clock is what makes the host prediction
@@ -176,7 +216,11 @@ class FakeKeyboardBackend:
         # coalesces into a handful of frames.
         self.clock = clock
         self.interval_seconds = interval_seconds
-        self.next_release = 0.0
+        # Holds the first keystroke back, so a script can navigate the shell
+        # before it starts typing into it. Without it, a run that opens a
+        # document with a button types its first characters at a menu, where they
+        # are correctly ignored -- and the test would be measuring that instead.
+        self.next_release = start_delay_seconds
         self.descriptor = descriptor if descriptor is not None else {
             "vendor_id": "36B0", "product_id": "3002", "interface": 0,
             "endpoint": 0x81, "protocol": "boot_keyboard",
@@ -237,18 +281,35 @@ class KeyboardLink:
 
     def __init__(self, reports=(), log=None, render=render_viewport, panel=None,
                  backend=None, status_queue_capacity=32, adapter_options=None,
-                 typing_interval_seconds=0.0, **session_options):
+                 typing_interval_seconds=0.0, typing_start_seconds=0.0,
+                 buttons=None, **session_options):
         self.clock = SimulatedClock()
         self.records = []
         self.log = log if log is not None else self.records.append
         self.panel = panel or SimulatedPanel(self.clock)
         self.outbox = StatusQueue(status_queue_capacity)
+        # ``buttons=True`` fits the four the MagTag has; a mapping of
+        # action -> SimulatedButton is accepted for a partial pad. Either way the
+        # test drives the real ``ButtonPad`` through the real encoder, the real
+        # frame, and the real parser: nothing on the button path is stubbed
+        # except the metal.
+        if buttons is True:
+            buttons = {
+                action: SimulatedButton(self.clock)
+                for action in BUTTON_ACTIONS
+            }
+        self.contacts = dict(buttons or {})
+        self.pad = ButtonPad(
+            [(action, button) for action, button in self.contacts.items()]
+        ) if self.contacts else None
+        self.button_frames_sent = 0
         self.scheduler = AckDisplayScheduler(
             InputParser(), self.panel, render, self.outbox, self.clock,
             completion_capacity=64,
         )
         self.backend = backend if backend is not None else FakeKeyboardBackend(
-            reports, clock=self.clock, interval_seconds=typing_interval_seconds
+            reports, clock=self.clock, interval_seconds=typing_interval_seconds,
+            start_delay_seconds=typing_start_seconds,
         )
         options = dict(adapter_options or {})
         self.session = LiveTypingSession(
@@ -266,6 +327,17 @@ class KeyboardLink:
         self.iterations += 1
         self.session.service()
         chunks = self.session.take_outbound()
+        if self.pad is not None:
+            # Exactly the MagTag runtime's order: poll, offer, then let the
+            # scheduler run and the outbox drain in one pass.
+            for action, ordinal, pressed_ms in self.pad.poll(self.clock.now):
+                self.outbox.offer(
+                    BUTTON_EVENT, self.scheduler.displayed_revision, {
+                        "action_code": ACTION_CODES[action],
+                        "ordinal": ordinal, "pressed_ms": pressed_ms,
+                    }
+                )
+                self.button_frames_sent += 1
         self.scheduler.service(chunks)
         while len(self.outbox):
             item = self.outbox.pop()
@@ -275,6 +347,19 @@ class KeyboardLink:
 
     def run(self, maximum_iterations=200000):
         while not self.session.complete:
+            if self.iterations >= maximum_iterations:
+                raise RuntimeError("live keyboard simulation did not converge")
+            self.step()
+        return self
+
+    def run_until(self, seconds, maximum_iterations=200000):
+        """Run to a point on the simulated clock rather than to a stop.
+
+        A button script is a sequence of presses at known times, and most of
+        them do not end the session -- the interesting states are the ones the
+        writer is left sitting in. This is how a test reaches one.
+        """
+        while self.clock.now < seconds and not self.session.complete:
             if self.iterations >= maximum_iterations:
                 raise RuntimeError("live keyboard simulation did not converge")
             self.step()

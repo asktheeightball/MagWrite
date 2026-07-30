@@ -1,9 +1,9 @@
 """Bounded acknowledgement lifecycle and timeout state machine."""
 
 from magwrite_transport.protocol import (
-    DISPLAY_CAUGHT_UP, DISPLAY_ERROR, FRAME_ACCEPTED, FRAME_REJECTED,
-    REFRESH_COMPLETED, REFRESH_STARTED, STATUS_HELLO, TEST_COMPLETE,
-    VERSION,
+    BUTTON_EVENT, DISPLAY_CAUGHT_UP, DISPLAY_ERROR, FRAME_ACCEPTED,
+    FRAME_REJECTED, REFRESH_COMPLETED, REFRESH_STARTED, STATUS_HELLO,
+    TEST_COMPLETE, VERSION,
 )
 from magwrite_transport.status_message import decode_status
 
@@ -75,6 +75,7 @@ class AckTracker:
         self.status_stale = 0
         self.status_sequence_gaps = 0
         self.errors = 0
+        self.button_events = 0
         self.final_complete = False
         self.final_displayed_revision = 0
         self.final_hash = 0
@@ -128,6 +129,14 @@ class AckTracker:
             return None
         fields = decode_status(frame.message_type, frame.payload)
         revision = frame.revision
+        if frame.message_type == BUTTON_EVENT:
+            # V1.5. Handled first and returned immediately: a button says nothing
+            # about any viewport, so it must not be looked up against a revision
+            # and must never mark one accepted, started, or displayed. It shares
+            # this channel's sequence numbering -- which is what gives it
+            # duplicate and gap detection for free -- and nothing else.
+            self.button_events += 1
+            return fields
         if frame.message_type == STATUS_HELLO:
             if fields["protocol_version"] != VERSION:
                 raise AckError("status hello protocol mismatch")

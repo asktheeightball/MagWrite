@@ -33,6 +33,26 @@ USB_KEYBOARD_ARMING_TIMEOUT_SECONDS = 1800
 # development session is open-ended and is stopped by the operator, not by a
 # certification budget. See magtag/dev_display_runtime.py.
 DEV_DISPLAY_RUNTIME_MODE = "DISABLED"
+# ---------------------------------------------------------- MagTag buttons
+# V1.5. Enabled by default, unlike every harness in this repository, and for the
+# same reason persistence and the shell are: this is the product's primary
+# control surface, not a hardware experiment. It claims no guard, writes nothing,
+# remounts nothing, and reads four GPIOs. A pin alias the board does not expose
+# is a reported degraded mode -- the display runs and the keyboard still drives
+# the shell -- never a refusal to start.
+ENABLE_MAGTAG_BUTTONS = True
+# The four front buttons, left to right, and the normalized action each sends.
+# Back-to-menu and select are the outer two so a thumb cannot confuse them with
+# the movement pair between them. Only names the board actually exposes are
+# trusted, exactly as for the UART and microSD pins.
+BUTTON_MENU_PIN_ALIAS = "BUTTON_A"
+BUTTON_UP_PIN_ALIAS = "BUTTON_B"
+BUTTON_DOWN_PIN_ALIAS = "BUTTON_C"
+BUTTON_SELECT_PIN_ALIAS = "BUTTON_D"
+# These mirror magwrite/buttons.py, which is the single source of truth and
+# carries the reasoning behind each value; a host test asserts the two agree.
+BUTTON_DEBOUNCE_SECONDS = 0.025
+BUTTON_MINIMUM_INTERVAL_SECONDS = 0.25
 FULL_REFRESH_INTERVAL = 50
 EVENT_QUEUE_CAPACITY = 128
 MAX_LINES = 64

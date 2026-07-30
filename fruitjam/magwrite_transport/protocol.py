@@ -20,10 +20,17 @@ DISPLAY_CAUGHT_UP = 9
 FRAME_REJECTED = 10
 DISPLAY_ERROR = 11
 TEST_COMPLETE = 12
+# V1.5. The return channel's first message that is not about the display. It
+# rides the identical frame, version, CRC-32, and sequence numbering as every
+# acknowledgement, which is the whole reason buttons needed no second transport:
+# a button frame is duplicate-suppressed and gap-detected by the machinery the
+# acknowledgements already proved.
+BUTTON_EVENT = 13
 MESSAGE_TYPES = (
     HELLO, VIEWPORT, END_OF_SCENARIO, END_OF_TEST,
     STATUS_HELLO, FRAME_ACCEPTED, REFRESH_STARTED, REFRESH_COMPLETED,
     DISPLAY_CAUGHT_UP, FRAME_REJECTED, DISPLAY_ERROR, TEST_COMPLETE,
+    BUTTON_EVENT,
 )
 MESSAGE_NAMES = {
     HELLO: "HELLO", VIEWPORT: "VIEWPORT",
@@ -32,6 +39,7 @@ MESSAGE_NAMES = {
     REFRESH_STARTED: "REFRESH_STARTED", REFRESH_COMPLETED: "REFRESH_COMPLETED",
     DISPLAY_CAUGHT_UP: "DISPLAY_CAUGHT_UP", FRAME_REJECTED: "FRAME_REJECTED",
     DISPLAY_ERROR: "DISPLAY_ERROR", TEST_COMPLETE: "TEST_COMPLETE",
+    BUTTON_EVENT: "BUTTON_EVENT",
 }
 
 

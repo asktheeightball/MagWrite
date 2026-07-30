@@ -15,9 +15,11 @@ The loop order is input-first and is never inverted:
     1. poll the USB host adapter within a bounded report budget
     2. normalize new keyboard events into the bounded queue
     3. drain queued events, routing each to the shell or the editor
-    4. drain bounded MagTag status frames and update acknowledgement state
+    4. drain bounded MagTag status and button frames, updating acknowledgement
+       state and the bounded button inbox
     5. run autosave, checkpoint, and manual save work when due
-    6. apply the shell's own control gesture and adopt the resulting screen
+    6. apply MagTag button actions and the shell's own control gesture, and
+       adopt the resulting screen
     7. build only the newest required viewport, coalescing stale states
     8. transmit at most one newest pending viewport
     9. check timeouts and stop conditions
@@ -42,9 +44,35 @@ reproducible. With it present three things change, and nothing else does:
 There is still exactly one editor for the life of the session. The shell never
 constructs, clears, or reloads it, which is why no transition can lose unsaved
 work: nothing is closed.
+
+Leaving the editor, and the buttons — V1.5
+------------------------------------------
+
+Two changes, and they are the same change seen from two ends.
+
+**Leaving the editor is now one gesture.** The checkpoint that the Save/Status
+screen existed to force is unchanged and still unconditional, but it happens
+*here*, silently, before the shell is told to go anywhere -- so the destination
+can depend on whether it worked. A checkpoint that succeeded goes straight to the
+main menu with no confirmation; one that actually failed goes to the error screen
+the shell already had, which is the only save outcome a writer can act on. No
+card at all is not a failure: it is the reported degraded mode the panel has been
+drawing as ``X`` since V1.2, and it must not put an error screen between the
+writer and their menu every time they leave a document.
+
+**The MagTag's four buttons are the primary shell controls.** They arrive as
+``BUTTON_EVENT`` frames on the return channel that already carries display
+acknowledgements, through the same frame, CRC-32, and sequence numbering, and are
+applied at stage 6 alongside the keyboard's finish gesture -- after input and
+durability, before any frame is built. The MagTag sends normalized actions and
+nothing else; every question of what an action *means* is answered on this side,
+because this side owns shell and document state.
 """
 
 from magwrite_transport.ack_tracker import AckTracker
+from magwrite_transport.button_input import (
+    MENU as BUTTON_MENU, ButtonInbox,
+)
 from magwrite_transport.editor import (
     BoundedEventQueue, EditRejected, MultilineEditor, QueueOverflow,
     SequenceTracker,
@@ -56,12 +84,14 @@ from magwrite_transport.pacing import (
     QUIET_SECONDS, REASON_CAUGHT_UP, SEND_WINDOW, SENDING_REASONS,
     SUSTAINED_MIN_SEND_SECONDS, DisplayPacer,
 )
+from magwrite_transport.persistence import ACTION_FAILED
 from magwrite_transport.protocol import (
-    END_OF_TEST, HELLO, VIEWPORT, FrameParser, crc32, encode_frame,
+    BUTTON_EVENT, END_OF_TEST, HELLO, VIEWPORT, FrameParser, crc32,
+    encode_frame,
 )
 from magwrite_transport.shell import (
     REQUEST_JOURNAL, REQUEST_OPEN, REQUEST_QUICK_NOTE, REQUEST_RECENT,
-    ROUTE_EDITOR, STATE_DRAFTS, STATE_EDITOR, STATE_SAVE_STATUS,
+    ROUTE_EDITOR, STATE_DRAFTS, STATE_EDITOR,
 )
 from magwrite_transport.shell_viewport import payload as shell_payload
 from magwrite_transport.usb_keyboard_adapter import (
@@ -169,6 +199,16 @@ class LiveTypingSession:
         self.document_switches = 0
         self.document_open_failures = 0
         self.finish_requests_serviced = 0
+        # V1.5. Constructed unconditionally, and cheap: it is a list and seven
+        # counters. A build with no shell still counts what arrived rather than
+        # dropping it unrecorded, which is what makes "the MagTag is sending and
+        # the Fruit Jam is ignoring" a distinguishable state on the bench.
+        self.buttons = ButtonInbox(log=log)
+        self.button_actions_applied = 0
+        # Counted, not merely logged: a checkpoint that refused on the way out of
+        # a document is the one save failure that reaches the writer's eye, so it
+        # is the one the session summary has to be able to answer for.
+        self.editor_exit_save_failures = 0
         self.shell_visible_revision = None if shell is None else shell.visible_revision
         self.shell_state_seen = None if shell is None else shell.state
         if shell is not None:
@@ -329,6 +369,16 @@ class LiveTypingSession:
             self.status_counts[frame.message_type] = (
                 self.status_counts.get(frame.message_type, 0) + 1
             )
+            if frame.message_type == BUTTON_EVENT:
+                # V1.5. Taken out of the status path here rather than in the
+                # tracker, which is about display acknowledgements and stays
+                # about display acknowledgements. A button is neither timed nor
+                # reconciled against a viewport; it is queued, bounded, and
+                # duplicate-suppressed, and applied at stage 6 with the rest of
+                # the workflow state.
+                if fields is not None:
+                    self.buttons.offer(fields)
+                continue
             self.latency.note_status(now, frame.message_type, frame.revision)
             self.log({
                 "event": "live_status_received",
@@ -499,41 +549,31 @@ class LiveTypingSession:
     # ------------------------------------------------------------ shell stage
 
     def _service_shell(self, now):
-        """Stage 6: the shell's own control gesture, and the redraw it implies.
+        """Stage 6: MagTag buttons, the shell's control gesture, and the redraw.
 
-        The finish gesture is the only control the shell takes from outside the
-        normalized event stream, because it is the only one the keyboard layer
-        reports as a control rather than an editor event.
+        The two controls the shell takes from outside the normalized event stream
+        are the keyboard's finish gesture -- the only key the keyboard layer
+        reports as a control rather than an editor event -- and, from V1.5, the
+        MagTag's four buttons, which arrive as frames rather than keystrokes.
+
+        Both are serviced only with an empty input queue, for the reason the
+        pre-shell stop required it: every keystroke pressed before the gesture is
+        already in the authoritative document, so leaving the editor can never
+        outrun the writing it is leaving.
         """
         if self.shell is None:
             return
+        quiet = not len(self.queue)
+        if quiet:
+            self._service_buttons(now)
         requests = getattr(self.adapter, "finish_requests", 0)
-        if requests > self.finish_requests_serviced and not len(self.queue):
-            # An empty queue is required for the same reason the pre-shell stop
-            # required it: every keystroke pressed before the gesture is already
-            # in the authoritative document, so leaving the editor can never
-            # outrun the writing it is leaving.
-            #
+        if requests > self.finish_requests_serviced and quiet:
             # Collapsed rather than counted out, exactly as manual save is. A
             # burst of one gesture means one action, and on a panel that trails
             # by a second or more an accidental double press must not silently
             # skip a level.
             self.finish_requests_serviced = requests
-            previous = self.shell.state
-            self.shell.back()
-            if previous == STATE_EDITOR and self.shell.state == STATE_SAVE_STATUS:
-                # The point of the screen. Leaving the editor is the moment the
-                # writer is most likely to walk away, so the document is made
-                # durable on the way out rather than left to a threshold.
-                if self.persistence is not None:
-                    self.manual_saves += 1
-                    self.persistence.save_now(now, self.editor)
-                self.log({
-                    "event": "shell_left_editor",
-                    "document_id": self.shell.document_id,
-                    "document_revision": self.editor.document_revision,
-                    "characters": self.editor.character_count(),
-                })
+            self._shell_back(now)
         # V1.4. Serviced here, in the same iteration the writer's keystroke was
         # routed and before any frame is built, so a mode never puts a stale
         # document on the panel for even one refresh.
@@ -547,6 +587,80 @@ class LiveTypingSession:
             # save indicator uses. The editor stays the only owner of both
             # revision numbers.
             self.editor.note_visible_change()
+
+    # ------------------------------------------------------------ button stage
+
+    def _service_buttons(self, now):
+        """Apply the MagTag button actions the return channel delivered. V1.5.
+
+        Bounded twice: the inbox itself holds at most a handful, and this drains
+        the whole of it in one iteration so a press can never sit behind a frame.
+        Draining rather than rate-limiting is deliberate -- the inbox has already
+        thrown away everything stale, so what is left is what the writer meant.
+        """
+        applied = 0
+        while True:
+            taken = self.buttons.take()
+            if taken is None:
+                break
+            action, ordinal = taken
+            applied += 1
+            self.button_actions_applied += 1
+            before = self.shell.state
+            if action == BUTTON_MENU and before == STATE_EDITOR:
+                # The one button action that is not the shell's alone to make: it
+                # leaves a document, and leaving a document checkpoints it. Same
+                # path as Escape, deliberately -- one definition of what leaving
+                # the editor costs and what happens when it fails.
+                self._shell_back(now)
+            else:
+                self.shell.button(action)
+            self.log({
+                "event": "shell_button_applied", "action": action,
+                "ordinal": ordinal, "from": before, "to": self.shell.state,
+            })
+        return applied
+
+    def _shell_back(self, now):
+        """The back gesture, from Escape or from the MagTag's menu button.
+
+        Leaving the editor is the moment the writer is most likely to walk away,
+        so the document is made durable on the way out rather than left to a
+        threshold. That was the Save/Status screen's whole justification and it is
+        kept; the screen is not. The save runs **before** the transition so the
+        destination can depend on the result:
+
+        * checkpointed, or no card to checkpoint to -- go straight to the menu;
+        * the write actually failed -- the error screen, which is the one save
+          outcome the writer can do anything about.
+
+        A card-less bench is not an error. It is the degraded mode the panel has
+        drawn as ``X`` since V1.2, and putting an error screen in front of every
+        exit would recreate the interruption this change removed.
+        """
+        if self.shell.state != STATE_EDITOR:
+            return self.shell.back()
+        action = None
+        if self.persistence is not None:
+            self.manual_saves += 1
+            action = self.persistence.save_now(now, self.editor)
+        self._refresh_save_indicator()
+        self.log({
+            "event": "shell_left_editor",
+            "document_id": self.shell.document_id,
+            "document_revision": self.editor.document_revision,
+            "characters": self.editor.character_count(),
+            "save_action": action,
+            "save_state": (
+                None if self.persistence is None else self.persistence.state
+            ),
+        })
+        if action == ACTION_FAILED:
+            self.editor_exit_save_failures += 1
+            return self.shell.fault(
+                self.persistence.error or "the document could not be saved"
+            )
+        return self.shell.back()
 
     # ---------------------------------------------------------- library stage
 
@@ -811,9 +925,13 @@ class LiveTypingSession:
         if self.persistence is not None:
             record["manual_save_requests"] = self.save_requests_serviced
             record.update(self.persistence.summary())
+        record["button_frames_received"] = self.status_counts.get(BUTTON_EVENT, 0)
+        record["button_actions_applied"] = self.button_actions_applied
+        record.update(self.buttons.summary())
         if self.shell is not None:
             record["shell_routed_events"] = self.shell_events
             record["finish_requests_serviced"] = self.finish_requests_serviced
+            record["editor_exit_save_failures"] = self.editor_exit_save_failures
             record.update(self.shell.summary())
         if self.library is not None:
             record["documents_opened"] = self.documents_opened

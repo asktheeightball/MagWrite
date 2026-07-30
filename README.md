@@ -24,7 +24,7 @@ Original Adafruit MagTag
 - four-button control surface
 ```
 
-The Fruit Jam owns document, cursor, layout, storage, and workflow state. The MagTag renders complete semantic viewports, reports physical display state, and will send normalized button events back to the Fruit Jam.
+The Fruit Jam owns document, cursor, layout, storage, and workflow state. The MagTag renders complete semantic viewports, reports physical display state, and sends normalized button events back to the Fruit Jam.
 
 The LOLIN32 Lite Bluetooth bridge is deferred. It should be considered only if the required keyboard is Bluetooth-only and cannot use wired USB or a standard USB receiver.
 
@@ -56,15 +56,19 @@ The project has physically verified:
 - the MagWrite Shell;
 - the four writing modes, over an append-only document catalogue.
 
+Host-verified and awaiting a bench check: the one-gesture exit from a document,
+and the four MagTag buttons as the primary shell controls.
+
 ## Current milestone order
 
 1. ~~Physically verify the integrated multiline editor and five-line MagTag layout.~~
 2. ~~Integrate one known USB HID keyboard directly on the Fruit Jam.~~
 3. ~~Add microSD autosave, forced-power-loss recovery, and the four writing modes.~~
-4. Support a wireless keyboard with a USB receiver. **<- current**
-5. Bring the bench to one-cable power.
-6. Build the minimum standalone writing workflow.
-7. Add MagTag button events over the existing return UART link.
+4. ~~Add MagTag button events over the existing return UART link, and remove the
+   Save/Status interruption.~~
+5. Support a wireless keyboard with a USB receiver. **<- current**
+6. Bring the bench to one-cable power.
+7. Build the minimum standalone writing workflow.
 8. Integrate one rechargeable battery and one charging port.
 9. Complete enclosure and product hardening.
 
