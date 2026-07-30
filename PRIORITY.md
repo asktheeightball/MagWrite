@@ -16,42 +16,40 @@ Do not create new certification harnesses, evidence packages, compatibility inve
 2. ~~Move directly to V1.2: microSD persistence.~~ Implemented, host-verified.
 3. ~~Confirm the microSD pin aliases and run one physical forced-power-loss test.~~ Done 2026-07-30.
 4. ~~Build the MagWrite Shell.~~ Implemented, host-verified.
-5. Run one physical shell session on the bench. **<- next**
-6. Add Journal, Quick Note, Drafts, and Recent.
+5. ~~Run one physical shell session on the bench.~~ Done 2026-07-30.
+6. Add Journal, Quick Note, Drafts, and Recent. **<- next**
 7. Complete the minimum standalone workflow.
 8. Defer optional buttons, keyboard edge cases, battery, enclosure, and hardening until their roadmap phase.
 
 ## Active product task
 
-**V1.3 — MagWrite Shell — IMPLEMENTED, HOST-VERIFIED**
+**V1.4 — Journal, Quick Note, Drafts, and Recent — NOT STARTED**
 
-Every requirement is built and covered by the host suite. See `docs/SHELL.md`
-for the design and `ROADMAP.md` for the requirement map.
+The four writing modes, built on the shell and on persistence. `ROADMAP.md`
+carries the requirements. Two things V1.3 handed forward, both recorded there in
+full:
 
-Four states — Main Menu, Editor, Save/Status, Error — plus the terminal Exit the
-session reads to stop. The main menu exposes Journal, Quick Note, Drafts, and
-Recent; for this phase all four route into the one proven document, which is the
-scope the phase was given.
+- the shell already carries and draws the mode, and that is the seam V1.4
+  attaches per-mode policy to. Nothing new is needed to know which item was
+  chosen;
+- **a restored session does not restore its mode.** Only the state is derived
+  from recovery, deliberately. V1.4 has to decide what a restored mode means —
+  most likely by making the mode a property of the recovered document, which is
+  where it belongs — and that decision cannot be deferred past this phase,
+  because it is the first phase in which the mode does anything.
 
-The shell owns application state and nothing else. It holds no editor, no
-document, no store, no clock, and no transport, and there is exactly one
+**V1.3 — MagWrite Shell — PHYSICALLY VERIFIED 2026-07-30.** Evidence:
+`docs/FRUITJAM_V13_SHELL_SERIAL.jsonl` and
+`docs/MAGTAG_V13_SHELL_SERIAL.jsonl`; the full account is in `ROADMAP.md`. All
+twelve exit criteria met across three bench sessions, including a real cable pull
+that recovered from the journal into the editor, and four bounded failures that
+each reached the recoverable error state with the document intact. See
+`docs/SHELL.md` for the design and `ROADMAP.md` for the requirement map.
+
+The shell owns application state and nothing else, and there is exactly one
 `MultilineEditor` for the life of the session — which is why no transition can
-lose unsaved work: nothing is ever closed. Every exit from the editor passes
-through Save/Status, which forces a checkpoint on the way out.
-
-Navigation adds no keymap entry. Up, Down, and Enter are already normalized
-editor events; the finish gesture already existed with physical evidence behind
-it, and under the shell it means **back**, with the root still being the clean
-stop. Ctrl-S is unchanged.
-
-`ENABLE_SHELL = False` reproduces the V1.2 behaviour, and every viewport payload
-the physical runs measured, exactly.
-
-**Next: one physical bench session.** Not a new certification harness — the
-development runtime brings the shell up and logs every transition. What it has to
-show is the exit criterion: moving between the shell and a document repeatedly
-without losing state or stalling the display, and a restart landing back in the
-editor on the recovered document.
+lose unsaved work: nothing is ever closed. `ENABLE_SHELL = False` reproduces the
+V1.2 behaviour, and every viewport payload the physical runs measured, exactly.
 
 **V1.2 — Single-document persistence and recovery — PHYSICALLY VERIFIED
 2026-07-30.** Evidence: `docs/FRUITJAM_SD_PROBE.jsonl` and
@@ -66,6 +64,13 @@ The following are explicitly non-blocking unless they prevent normal writing:
 
 - the stale test count in `host-tests/README.md`, corrected again in V1.3 and
   still worth a standing check;
+- the MagTag holds parser state after an *interrupted* Fruit Jam session and
+  refuses the next handshake with `duplicate or reversed input sequence`, which
+  the Fruit Jam reports as `status_hello timeout`. Restarting the MagTag first
+  clears it, and `docs/DEVELOPMENT_RUNTIME.md` now says so. Cost two false starts
+  in the V1.3 bench run. A session that ends abnormally arguably ought to be
+  recoverable without an operator knowing this, but that is transport hardening,
+  not a shell defect;
 - `FakeKeyboardBackend.typing_interval_seconds` in the host simulator delivers a
   report every *two* intervals, not one: the interval gate is evaluated before
   the per-poll gate and consumes a slot even on the polls where the per-poll gate

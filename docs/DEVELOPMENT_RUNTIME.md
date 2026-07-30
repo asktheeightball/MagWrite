@@ -146,10 +146,19 @@ log. It never writes to the port.
   over USB — autoreload is on. No guard to clear, no file to delete, no safe
   mode.
 - **Ctrl-C** at either console is treated as a legitimate stop, not a fault.
-- The MagTag does not need restarting between Fruit Jam sessions. When a session
-  completes it logs `dev_display_session_summary`, rebuilds its parser and
-  scheduler, logs `dev_display_awaiting_next_session`, and is ready for the next
-  start.
+- The MagTag does not need restarting between **completed** Fruit Jam sessions.
+  When a session completes it logs `dev_display_session_summary`, rebuilds its
+  parser and scheduler, logs `dev_display_awaiting_next_session`, and is ready
+  for the next start.
+
+  **After an interrupted session it does.** A Fruit Jam that vanished mid-frame —
+  a pulled cable, a reset, a timeout — leaves the MagTag holding parser state
+  from a session that never ended, and the next Fruit Jam's handshake arrives
+  looking like a duplicate. The MagTag stops with `duplicate or reversed input
+  sequence` and `sessions_served: 0`, and the Fruit Jam reports `status_hello
+  timeout` and ends `result: ERROR`. Neither message names the real cause. Both
+  boards are fine; restart the MagTag first, wait for `dev_display_ready`, then
+  restart the Fruit Jam. This cost two false starts during the V1.3 bench run.
 
 If construction fails — no keyboard, a bad pin alias, a driver hash mismatch —
 the board logs `dev_runtime_construction_failed` or

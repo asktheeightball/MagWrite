@@ -142,6 +142,15 @@ There is nothing to keep in step here: a recovered document means the writer was
 writing, so the shell opens where their words are rather than making them find
 their way back through a menu.
 
+The **mode** is not restored with the state — `shell_restored` reports `JOURNAL`
+after a session that ended in `RECENT`, as the 2026-07-30 bench run shows. In
+V1.3 that is cosmetic, because all four items route into the one document, and it
+follows from the same refusal: the mode is not derivable from what the card
+returned, so restoring it would need the second file this section just declined.
+V1.4 gives modes their own policy and has to decide what a restored mode means —
+either the mode becomes a property of the recovered document, which is where it
+belongs, or the writer picks it again. That decision is V1.4's, not this phase's.
+
 ## Drawing: the same renderer, the same pacing
 
 A shell screen is a semantic viewport like any other. It goes out through the
@@ -208,7 +217,13 @@ an accidental double press must not silently skip a level.
 - no new certification harness. The development runtime already brings the shell
   up and logs every transition.
 
-## Physical bench plan
+## Physical bench plan — run 2026-07-30, all twelve criteria met
+
+The run is recorded in full in `ROADMAP.md`; the captures are
+`docs/FRUITJAM_V13_SHELL_SERIAL.jsonl` and
+`docs/MAGTAG_V13_SHELL_SERIAL.jsonl`. What follows is the plan as written, kept
+because it is what the run was judged against, with the three places reality
+departed from it noted inline.
 
 Not a certification harness, and nothing here claims a guard, remounts a
 filesystem, or writes an evidence file. It is the ordinary development runtime,
@@ -234,6 +249,13 @@ What the run has to show, in order:
 1. `dev_runtime_ready` carries `shell_state: MAIN_MENU` and
    `stop_from: MAIN_MENU`, and the panel draws the four menu items with `>` on
    Journal;
+
+   *On the day it carried `shell_state: EDITOR`, because the card still held the
+   V1.2 document and the opening state is derived from what recovery returned.
+   That is this design working, not failing — the plan was written as though the
+   card would be empty, which on a bench that has already run V1.2 it never is.
+   The menu was reached with Escape then Enter instead, and requirement 9 was
+   evidenced at boot for free.*
 2. Down, Down, Enter opens Drafts — `shell_selection_moved` twice,
    `shell_mode_entered`, `shell_transition` to `EDITOR` — and the document title
    reads `DRAFTS L01 C00`;
@@ -252,8 +274,23 @@ What the run has to show, in order:
 7. pull the USB cable mid-session, then restart: `document_recovery`,
    `live_document_restored`, and `shell_restored` with `state: EDITOR` — the
    board comes back into the document, not the menu;
+
+   *Recovery came from `source: JOURNAL` rather than the tidy `CHECKPOINT` a
+   clean stop leaves, which is the harder of the two and the reason this step is
+   a cable pull rather than a reset. Restart the **MagTag** first afterwards: it
+   is still holding parser state from the session that was cut off, and will
+   refuse the next handshake. See `docs/DEVELOPMENT_RUNTIME.md`.*
 8. Escape, Enter, Escape from the recovered document is the clean stop:
    `dev_runtime_session_summary` then `dev_runtime_stopped`.
+
+9. *The plan as first written had no step for the recoverable error state, which
+   left the one requirement that cannot be argued from the host suite alone
+   untested — the whole point of failing closed is what the hardware does when it
+   happens. Added on the day: press Enter about thirty-three times. The document
+   line bound is 32, the refused edit produces `live_event_rejected` then
+   `shell_fault`, and the panel shows `MAGWRITE ERROR` with `WORK IS KEPT`. Enter
+   returns to the menu with the document intact. It was reached four times and
+   the session survived every one.*
 
 Capture both consoles with `tools/capture_serial.py`, which is read-only, and
 flush the captures before reading them — a buffered capture has faked a hardware

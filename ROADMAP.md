@@ -34,7 +34,7 @@ this list wins.
 | --- | --- | --- | --- |
 | 1 | Responsiveness and keyboard completeness | V1.1 | Host-verified; one physical attempt FAILED, certification retired |
 | 2 | microSD persistence and forced-power-loss recovery | Priority 4 | PHYSICALLY VERIFIED 2026-07-30 |
-| 3 | MagWrite Shell | V1.3 | Implemented, host-verified; physical run pending |
+| 3 | MagWrite Shell | V1.3 | PHYSICALLY VERIFIED 2026-07-30 |
 | 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | Not started |
 | 5 | Standalone workflow | Priority 5 | Not started |
 | 6 | Optional MagTag buttons | Priority 2 | Not started, optional |
@@ -468,7 +468,7 @@ restart.
 
 **Exit met.**
 
-## V1.3 — MagWrite Shell — IMPLEMENTED, HOST-VERIFIED
+## V1.3 — MagWrite Shell — PHYSICALLY VERIFIED
 
 The application shell the writing modes live in. It comes after persistence
 because a shell that cannot reliably open and save a document is a menu, not a
@@ -515,8 +515,68 @@ framework.
 **Exit:** the writer can move between the shell and a document repeatedly
 without losing state or stalling the display. The host suite proves the logic —
 `host-tests/test_shell.py` drives the whole path with scripted USB reports
-through the real editor, storage, transport, and MagTag renderer. The physical
-run is pending.
+through the real editor, storage, transport, and MagTag renderer — and the bench
+run below proves it on the boards.
+
+### Physical verification — 2026-07-30, commit `19afaa9`
+
+Run on the bench with the ordinary development runtime per `docs/SHELL.md`. No
+guard was claimed, no filesystem was remounted, and both boards stayed
+host-writable throughout — the deploy, three restarts, and this write-up all went
+over USB while the runtime was live. Evidence:
+`docs/FRUITJAM_V13_SHELL_SERIAL.jsonl` and `docs/MAGTAG_V13_SHELL_SERIAL.jsonl`,
+with the `.timestamped.jsonl` companions for correlating the two consoles.
+
+Fruit Jam `FFDBA7B15146C218` on CircuitPython 10.2.1, MagTag `C7FD1A005DEA` on
+9.1.1, EPOMAKER TH40 on the USB host port, layout `EPOMAKER_TH40`, card mounted
+at `/sd`. Three sessions: two ended `result: COMPLETE` from the main menu, and
+the middle one was ended by pulling the USB cable, which was the point of it.
+
+All twelve exit criteria observed:
+
+| # | Criterion | Observation |
+| --- | --- | --- |
+| 1 | main menu renders | `MAGWRITE MENU`, four items, `>` on the selection, status `MENU 1/4`; confirmed on the panel by the operator |
+| 2 | Up/Down navigation | `shell_selection_moved` across the full range 0–3, clamped at both ends, never wrapped |
+| 3 | Enter opens the item | `shell_mode_entered` for `JOURNAL`, `QUICK_NOTE`, `DRAFTS`, and `RECENT`, each followed by `shell_transition` `reason: "menu selection"` → `EDITOR` |
+| 4 | writing still works | `live_event_processed` per keystroke, revisions 74→83 and 84→127, pacing and catch-up unchanged from V1.2 |
+| 5 | Esc leaves through Save/Status | 8 × `shell_left_editor`; no path out of the editor bypassed it |
+| 6 | Save/Status forces a checkpoint | `document_checkpointed` with `manual: true` on every one |
+| 7 | Enter returns to the menu | `shell_transition` `from: SAVE_STATUS` `reason: "confirmed"` |
+| 8 | Esc resumes without losing text | 5 × `reason: "resumed writing"`; character count and cursor identical across each round trip |
+| 9 | restart and power loss restore | clean restart recovered `source: CHECKPOINT` revision 83; the **cable pull** recovered `source: JOURNAL` revision 127, 125 chars, 32 lines, cursor row 31 col 12, `truncated_final_record: false`, `rejected_records: 0` — and `shell_restored` `state: EDITOR` put the writer back in the words, not the menu |
+| 10 | bounded failure is recoverable | 4 × `live_event_rejected` `"document line capacity reached"` → `shell_fault` → `ERROR` → `MAIN_MENU`, session alive and document intact each time. No `LiveSessionError`, no stop |
+| 11 | Esc from the main menu stops cleanly | `reason: "stopped from the main menu"` → `EXIT`, `dev_runtime_session_summary` then `dev_runtime_stopped`, `result: COMPLETE` |
+| 12 | boards host-writable, no guards | every summary `guard_written: false`, `filesystem_remounted: false`, `restartable: true` |
+
+Transport was clean across the run: 23 viewport frames sent and 23 accepted,
+final transmitted and displayed revision both 27, `crc_failures: 0`,
+`parser_rejections: 0`, `resynchronization_events: 0`, `status_sequence_gaps: 0`,
+`queue_overflows: 0`, `stale_renders: 0`, `viewport_frames_superseded: 0`. The
+panel did 1 full and 22 partial refreshes, mean 946 ms, maximum 1046 ms — the
+shell's screens go out through the document's pacing and cost the panel nothing
+new, which is what sharing the renderer was for.
+
+`shell_ignored_events: 12` is the quiet result worth naming: a dozen keystrokes
+aimed at a shell screen were discarded rather than reaching the draft. The
+requirement that no transition loses work has an unstated twin — no transition
+may *invent* work — and that counter is the evidence for it.
+
+Two observations recorded rather than fixed, neither blocking:
+
+- **the mode is not restored across a restart.** `shell_restored` reports
+  `mode: JOURNAL` after a session that ended in `DRAFTS` or `RECENT`. Only the
+  *state* is derived from recovery, deliberately, and in V1.3 all four items
+  route into the one document, so it is cosmetic here. It stops being cosmetic in
+  V1.4, where a mode carries its own policy, and belongs to that phase;
+- **the MagTag must be restarted after an interrupted session, not only after a
+  completed one.** Twice it held parser state from a session that never finished
+  — once from the V1.2 run, once from the cable pull — and rejected the next
+  Fruit Jam's handshake with `duplicate or reversed input sequence`, which the
+  Fruit Jam then reported as `status_hello timeout`. Restarting the MagTag first
+  cleared it both times. `docs/DEVELOPMENT_RUNTIME.md` overstated this and has
+  been corrected. It is a bring-up ordering fact, not a shell defect: no shell
+  frame was involved and no document was affected.
 
 ## V1.4 — Journal, Quick Note, Drafts, and Recent
 
