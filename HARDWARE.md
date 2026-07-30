@@ -359,14 +359,17 @@ Do not connect one battery simultaneously to the independent charger circuits on
       refreshes at 3586 ms and 3525 ms with no brownout, 24 partial refreshes
       averaging 924 ms, 23 button presses all applied, and zero faults of any
       kind. Nothing warm to the touch; panel clean.
-- [ ] Run the physical standalone check, `docs/STANDALONE_CHECK.md`. **NOT RUN.**
-      V1.6 makes the shipped configuration on both boards the writing appliance —
-      no flag, no console, no host-mounted volume, no start order — and it is
-      host-verified across 1,185 tests. Eleven steps on the bench with neither
-      board connected to the PC are what would make it a physical claim, and
-      until then it is not one. Step 10 is the important one: start with the
-      keyboard *disconnected*, then plug it in, and confirm writing becomes
-      available with no reboot.
+- [x] Run the physical standalone check, `docs/STANDALONE_CHECK.md`. **PASSED
+      2026-07-30**, every step, with no faults observed; result in
+      `docs/STANDALONE_CHECK.md`. V1.6 makes the shipped configuration on both
+      boards the writing appliance — no flag, no console, no host-mounted volume,
+      no start order — and it now behaves that way on the bench with neither board
+      connected to the PC. The two steps that mattered both passed: a keyboard
+      connected *after* startup became usable with no reboot, and the device left
+      idle past the removed 1800 s bound did not shut itself down.
+      **No evidence file, and by design** — the check removes both consoles, so
+      the panel is the only instrument and the operator's observation is the only
+      record. No current, timing, or refresh figure was measured or is claimed.
 - [ ] Measure active and idle current for each board and USB receiver. **Still
       open, and now the one thing bench power leaves unmeasured.** A USB power
       meter on the upstream cable closes it, and would also give the receiver

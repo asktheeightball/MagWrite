@@ -84,9 +84,12 @@ anything hot to the touch.
 
 ## What this check deliberately does not cover
 
-- **the 30-minute session** named in the roadmap's exit criterion. This check is
-  minutes long. Removing the run-length bounds makes a long session possible; it
-  is not evidence that one has been run;
+- **the 30-minute *writing* session** named in the roadmap's exit criterion. The
+  run did include an idle sit past the 1800 s bound V1.6 removed, and the device
+  was still live and still answering its buttons afterwards — so the specific
+  failure that ended a session on this bench is confirmed gone. That is evidence
+  the device does not stop itself; it is **not** evidence of thirty minutes of
+  sustained writing, which nothing here has run;
 - **current, thermal, or battery behaviour.** There is still no meter on the
   bench;
 - **the wireless receiver.** Untouched, and still blocked on hardware;
@@ -97,7 +100,58 @@ anything hot to the touch.
 
 ## Result
 
-**NOT YET RUN.** V1.6 is host-verified only, across 1,185 host tests including 49
-new ones written for exactly the failures above. No claim of physical
-verification is made and none may be recorded here until this check has been
-performed on the bench.
+**PASSED — 2026-07-30. Every step, with no faults observed.**
+
+Run on the shipped configuration, on both boards, from one USB-C cable into a
+charger, with neither board connected to the PC. The operator reported all steps
+passed and no faults of any kind: no unexplained reset, no stalled panel, no
+`STOPPED` screen, and nothing warm to the touch.
+
+What was confirmed, in the order it was performed:
+
+1. one USB-C connection into the Fruit Jam started **both boards automatically**,
+   with no reset, no start order, and nothing pressed;
+2. the panel showed startup progress and reached the recovered document;
+3. the previous document and its mode came back;
+4. the MagTag buttons opened the menu and selected a document;
+5. a short paragraph typed from the keyboard;
+6. Escape saved silently and returned **directly** to the menu;
+7. the reopened document was intact;
+8. power removed and restored recovered the **same** document automatically;
+9. a start with **the keyboard disconnected** reached a usable menu on buttons,
+   and the keyboard connected afterwards became usable **without a reboot**;
+10. the device left idle **past the 1800 s bound that V1.6 removed** did not shut
+    itself down.
+
+Step 9 is the defect this check exists for, and step 10 is the one that was
+caught on hardware rather than argued from the code — the idle timeout that
+switched the device off mid-session during the one-cable run. Both are now
+confirmed fixed on the physical device.
+
+### What this result is, and is not, evidence of
+
+**There is no evidence file for this run, and there cannot be one.** Every
+earlier phase in this repository is backed by a `.jsonl` serial capture; this
+check removes both consoles by design, so the only instrument is the panel and
+the only record is the operator's observation. That is a weaker form of evidence
+than V1.2 through V1.5 carry, and it is the correct form for this check: a
+console attached to either board would mean the configuration under test was not
+the shipped one. No timing, refresh count, character count, or frame total is
+claimed here, because nothing measured any.
+
+### Deployment state at the time of the run
+
+Both boards were brought to V1.6 immediately before the run and verified
+file-by-file against the repository:
+
+- **Fruit Jam** — 42 `.py` files, 0 hash mismatches; `ENABLE_STANDALONE = True`,
+  `ENABLE_DEV_RUNTIME = False`;
+- **MagTag** — 40 `.py` files, 0 hash mismatches; `ENABLE_STANDALONE = True`,
+  `PHYSICAL_TEST_MODE = "MAGTAG_STANDALONE"`, `DEV_DISPLAY_RUNTIME_MODE =
+  "DISABLED"`, `magwrite/startup_screens.py` present, and the re-baselining
+  handshake (`ack_scheduler._may_rebaseline`) deployed.
+
+Both boards had been left **hand-armed for their V1.5 development runtimes** and
+were disarmed to the shipped defaults for this check, which is the state step 2
+of the preparation requires. No harness guard file, `lib/` package, or unrelated
+file on either volume was removed.

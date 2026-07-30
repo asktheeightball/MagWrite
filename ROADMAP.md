@@ -38,7 +38,7 @@ this list wins.
 | 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | PHYSICALLY VERIFIED 2026-07-30 |
 | 5 | Shell UX: one-gesture exit, and MagTag buttons | V1.5 | PHYSICALLY VERIFIED 2026-07-30 |
 | 6 | One-cable bench power | One-cable bench power | PHYSICALLY VERIFIED 2026-07-30 |
-| 7 | Minimum standalone workflow | V1.6 | Implemented and host-verified; physical check NOT RUN |
+| 7 | Minimum standalone workflow | V1.6 | PHYSICALLY VERIFIED 2026-07-30 |
 | 8 | Battery, enclosure, and hardening | Priorities 6 and 7 | Not started |
 
 Writing must feel right before anything is stored, and storage must be
@@ -1343,10 +1343,11 @@ thermocouple, and it is recorded as exactly that.
 It is not a soak test. Two cold boots and a few minutes of writing each is what
 this check is; long-duration behaviour belongs to Priority 7.
 
-## V1.6 — Minimum standalone workflow — IMPLEMENTED AND HOST-VERIFIED
+## V1.6 — Minimum standalone workflow — PHYSICALLY VERIFIED
 
 The design is [docs/STANDALONE.md](docs/STANDALONE.md) and the physical check is
-[docs/STANDALONE_CHECK.md](docs/STANDALONE_CHECK.md), which **has not been run**.
+[docs/STANDALONE_CHECK.md](docs/STANDALONE_CHECK.md), which **passed on
+2026-07-30, every step, with no faults observed**.
 
 ### Original requirements
 
@@ -1512,11 +1513,38 @@ built from an exception message containing characters the panel has no glyph for
   editor exit checkpoints, so removing power is safe at any moment. Predictable
   startup was the part of that item this phase owed; power management belongs to
   V1.7, where there is something to manage;
-- **the 30-minute session.** Removing the run-length bounds makes one possible.
-  It is not evidence that one has been run, and nothing here claims it is;
-- **any physical result at all.** No board has run this build. `docs/STANDALONE_CHECK.md`
-  is the eleven-step check that would settle it, and its result section says
-  NOT YET RUN.
+- **the 30-minute *writing* session.** The physical run sat idle past the 1800 s
+  bound V1.6 removed and was still live afterwards, so the device is confirmed
+  not to stop itself. That is not thirty minutes of sustained writing, and
+  nothing here claims it is.
+
+### Physical verification — 2026-07-30 — PASSED
+
+`docs/STANDALONE_CHECK.md` was run on the shipped configuration of both boards,
+from one USB-C cable into a charger, with neither board connected to the PC. All
+steps passed and no faults were observed.
+
+The two failures the phase was really about were both confirmed fixed on
+hardware: **a keyboard connected after startup became usable with no reboot**,
+and **the device left idle past the removed timeout did not switch itself off**.
+Both boards started automatically from one cable with no reset and no start
+order, the previous document and mode recovered, the buttons drove the menu,
+Escape saved silently and returned straight to it, and a power cycle brought the
+same document back.
+
+Before the run both boards were still carrying V1.5 and were still **hand-armed
+for their development runtimes**; each was deployed to V1.6 and verified
+file-by-file (42 and 40 `.py` files, zero hash mismatches) with the harness
+arming cleared to the shipped defaults.
+
+**This result carries no evidence file, and the reason is the check's design.**
+Every phase from V1.2 to V1.5 is backed by a `.jsonl` serial capture. This check
+removes both consoles, because a console attached to either board would mean the
+configuration under test was not the shipped one — so the panel is the only
+instrument and the operator's observation is the only record. No timing, refresh
+count, or character total is claimed, because nothing measured any. That is a
+weaker form of evidence than the earlier phases carry and the correct form for
+this one.
 
 ## Priority 6 — Unified single-battery power — V1.7
 

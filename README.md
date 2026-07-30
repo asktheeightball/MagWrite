@@ -59,7 +59,11 @@ The project has physically verified:
 - the one-gesture exit from a document, and the four MagTag buttons as the
   primary shell controls;
 - one USB-C cable into the Fruit Jam starting the complete device by itself, with
-  no reset and no start order.
+  no reset and no start order;
+- the minimum standalone writing workflow, with no development computer: startup,
+  document recovery, button navigation, writing, silent save, recovery across a
+  power cycle, a keyboard connected after startup, and no self-shutdown when
+  left idle.
 
 ## Current milestone order
 
@@ -73,10 +77,9 @@ The project has physically verified:
 6. ~~Bring the bench to one-cable power.~~ Physically verified 2026-07-30. A
    direct 5 V feed between the boards is refused, because neither board has a 5 V
    input; see [docs/BENCH_POWER.md](docs/BENCH_POWER.md).
-7. Build the minimum standalone writing workflow. **<- current.** Implemented
-   and host-verified; the physical check in
-   [docs/STANDALONE_CHECK.md](docs/STANDALONE_CHECK.md) has not been run.
-8. Integrate one rechargeable battery and one charging port.
+7. ~~Build the minimum standalone writing workflow.~~ Physically verified
+   2026-07-30 — see [docs/STANDALONE_CHECK.md](docs/STANDALONE_CHECK.md).
+8. Integrate one rechargeable battery and one charging port. **<- current.**
 9. Complete enclosure and product hardening.
 
 ## Running it

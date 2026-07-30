@@ -29,15 +29,45 @@ Do not create new certification harnesses, evidence packages, compatibility inve
 11. ~~Bring the bench to one-cable power.~~ **PHYSICALLY VERIFIED 2026-07-30.**
     One USB-C cable into the Fruit Jam, the MagTag on a Fruit Jam USB-A host
     port, and the complete device starts by itself.
-12. Complete the minimum standalone workflow. **<- current.** Implemented and
-    host-verified; the physical check has not been run.
-13. Defer keyboard edge cases, battery, enclosure, and hardening until their roadmap phase.
+12. ~~Complete the minimum standalone workflow.~~ **PHYSICALLY VERIFIED
+    2026-07-30.** The device is a standalone writing machine: one cable, both
+    boards start by themselves, the document comes back, and it neither loses a
+    late keyboard nor switches itself off.
+13. Integrate one rechargeable battery and one charging port — V1.7. **<- current.**
+14. Defer keyboard edge cases, enclosure, and hardening until their roadmap phase.
 
 ## Active product task
 
-**V1.6, the minimum standalone workflow — IMPLEMENTED AND HOST-VERIFIED, NOT YET
-PHYSICALLY CHECKED.** The design is `docs/STANDALONE.md`, the check is
-`docs/STANDALONE_CHECK.md`, and the account is in `ROADMAP.md`.
+**V1.7, battery and charging.** See `ROADMAP.md` Priority 6. The USB power meter
+that phase needs is what finally answers the current question left open by the
+bench power audit, and no figure from this bench may be assumed until one is
+measured.
+
+## Previous product task
+
+**V1.6, the minimum standalone workflow — PHYSICALLY VERIFIED 2026-07-30.** The
+design is `docs/STANDALONE.md`, the check is `docs/STANDALONE_CHECK.md`, and the
+account is in `ROADMAP.md`.
+
+**All steps passed with no faults observed.** One USB-C cable into a charger,
+neither board on the PC: both started automatically with no reset and no start
+order, the panel showed startup progress and reached the recovered document, the
+previous document and mode came back, the buttons opened the menu and selected a
+document, a paragraph typed, Escape saved silently and returned straight to the
+menu, the reopened text was intact, a power cycle recovered the same document,
+**a keyboard connected after startup became usable without a reboot**, and **the
+device left idle past the removed 1800 s bound did not shut itself down**. The
+last two are the defects the phase existed to fix.
+
+Both boards were still carrying V1.5 and still hand-armed for their development
+runtimes; each was deployed to V1.6 and verified file-by-file — 42 and 40 `.py`
+files, zero hash mismatches — with the arming cleared to the shipped defaults.
+
+**This result has no evidence file and cannot have one.** The check removes both
+consoles by design, so the panel is the only instrument and the operator's
+observation is the only record. Nothing measured a timing, a refresh count, or a
+character total, and nothing claims one. Every phase from V1.2 to V1.5 carries a
+`.jsonl` capture; this one deliberately does not.
 
 **The shipped configuration is now the writing appliance.** Both boards start
 into the product path with no flag set, no console attached, no volume mounted on
@@ -94,10 +124,11 @@ pin — now reaches the panel too, which is why the display is constructed befor
 the UART. The Fruit Jam adds `NO KEYBOARD - PLUG ONE IN` on the spare menu row
 and a `k` in the status field of every frame.
 
-**Not claimed:** anything physical. 1,185 host tests pass, 49 of them new and
-written for exactly the five failures above, but no board has run this build.
-`docs/STANDALONE_CHECK.md` is the eleven-step check that would settle it, and its
-result section says NOT YET RUN.
+**Settled on hardware 2026-07-30.** 1,185 host tests pass, 49 of them new and
+written for exactly the five failures above, and `docs/STANDALONE_CHECK.md` has
+now been run on the physical device: every step passed with no faults observed.
+Failures 1 and 2 — the late keyboard and the idle shutdown — were confirmed fixed
+on the bench rather than only in the suite.
 
 **Not delivered, and named rather than hidden:** rename and archive, dated
 journal entries, and sleep/wake/shutdown. The roadmap's V1.6 list included the
@@ -211,12 +242,19 @@ Carry forward, from V1.4 and V1.5:
 
 ## Next product task
 
-**Run `docs/STANDALONE_CHECK.md` on the bench.** It is eleven steps and needs no
-console, no capture, and no PC — which is the point of it. Until it has run, V1.6
-is a host-verified build and nothing more, and the check's result section says so.
+**V1.7 — one rechargeable battery and one charging port.** `ROADMAP.md` Priority
+6 carries the requirements: one protected single cell, one charger with
+power-path/load-sharing, one system power switch, regulated supply for both
+boards, no parallel charger circuits, brownout margin, and **measured** peak,
+active, idle, and refresh current.
 
-After that, **V1.7 battery**, where a USB power meter finally answers the current
-question that has been open since the bench power audit.
+That last item is the standing debt. **A USB power meter on the upstream cable is
+the one purchase that unblocks this phase**, and no current figure has ever been
+taken on this bench — the one-cable phase closed without one and said so. Nothing
+about the battery design can be sized honestly until it exists.
+
+The device is a usable standalone writing machine as of V1.6, so V1.7 is about
+making it portable rather than making it work.
 
 The dongle phase stays blocked on hardware that is not here. The hope that power
 might change its result was narrowed by the audit — the receiver's supply comes
