@@ -106,11 +106,46 @@ Unchanged from the verified milestone, and physically confirmed:
    with its cursor where it was.
 4. The panel opens on the **main menu**: Journal, Quick Note, Drafts, Recent.
    Move with **Up** and **Down**, open with **Enter**. If a document was
-   recovered the runtime skips the menu and opens straight into the editor on it.
+   recovered the runtime skips the menu and opens straight into the editor on it,
+   in the mode that document belongs to.
 5. Type. The MagTag trails and catches up. **Ctrl-S** saves immediately.
    **Escape** leaves the editor to the save screen, which checkpoints on the way
    through; from there **Enter** goes to the menu and **Escape** goes back into
    the document. See `docs/SHELL.md`.
+
+### What each menu item does, from V1.4
+
+See `docs/MODES.md` for the design.
+
+| Item | What it opens |
+| --- | --- |
+| Journal | the newest journal entry, cursor at the end of it; a new numbered entry when the last one is nearly full |
+| Quick Note | a new, empty document, immediately |
+| Drafts | a list of every document, newest first — Up/Down, Enter to open, Escape to go back |
+| Recent | the document that was open last |
+
+Leaving one document for another **checkpoints the first one first**, always, so
+a mode switch never hands a document over with work only in RAM.
+
+### Deploying V1.4 onto a card that already has a draft
+
+Nothing to do, and deliberately nothing to undo. The V1.2/V1.3 files are already
+correct under the per-document naming, so the first V1.4 start adopts the
+existing document by appending one catalogue record and opening it. Watch for:
+
+```json
+{"event":"document_migrated","document_id":"active","kind":"DRAFT"}
+{"event":"document_catalogue","documents":1,"active_document":"active"}
+```
+
+The existing draft appears in **Drafts** as `DRAFT`. No file is moved, renamed,
+or rewritten, and `recovery/checkpoint.log` is left exactly where it is.
+
+Two new files appear over the first session: `/sd/magwrite/index.log`, and a
+`recovery/active.ckpt.log` at the first checkpoint.
+
+To read the card back without starting a session, `tools/fruitjam_recovery_check.py`
+now reports the catalogue, every entry, and the active document before the text.
 
 To run the pre-shell V1.2 behaviour instead, set `ENABLE_SHELL = False` on the
 Fruit Jam. Everything below then behaves exactly as it did before V1.3.
