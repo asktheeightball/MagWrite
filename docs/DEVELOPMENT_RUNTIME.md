@@ -104,12 +104,18 @@ log. It never writes to the port.
 
 ## Stopping and restarting
 
-- **Clean stop:** press the **Application (menu) key**, HID usage `0x65`. The
-  session drains, the final viewport is forced out and reconciled, and the
-  runtime logs `dev_runtime_session_summary` followed by `dev_runtime_stopped`.
-  Escape (`0x29`) also stops it, but the EPOMAKER TH40 can only reach Escape
-  through an Fn layer that switches the keyboard out of USB mode, so Application
-  is the usable control.
+- **Clean stop:** press **Escape**, HID usage `0x29`, or the **Application
+  (menu) key**, `0x65`. Either drains the session, forces out and reconciles the
+  final viewport, and logs `dev_runtime_session_summary` followed by
+  `dev_runtime_stopped`.
+
+  On the **EPOMAKER TH40**, Escape is the one that works, and two sessions on
+  2026-07-29 confirm it: usage `0x29` arrives cleanly and stops the runtime. The
+  key labelled Application sends modifier `0x40` with **no usage byte**, so
+  nothing reaches the board as a finish request and the session stays live until
+  the idle bound. Watch for `usb_keyboard_finish_requested` on the console; if a
+  keypress meant to stop the run produced only a `hid_report_received` with a
+  modifier and no keys, that key is on an Fn layer and did not stop anything.
 - **Restart:** press reset, press Ctrl-D at the REPL, or simply save any file
   over USB — autoreload is on. No guard to clear, no file to delete, no safe
   mode.

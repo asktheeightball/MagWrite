@@ -273,9 +273,13 @@ refreshes 873–1122 ms, mean ≈1050 ms.
 ### Keyboard completeness
 
 Apostrophe, double quote, Delete, Home, End, Caps Lock on and off, Shift with
-Caps Lock, and repeat for Backspace, Delete, arrows and printable characters —
-with cancellation on release — are all covered end to end by host tests that
-assert the resulting document.
+Caps Lock, and repeat for Backspace, Delete and the arrows — with cancellation
+on release — are all covered end to end by host tests that assert the resulting
+document.
+
+Printable characters and Enter were also repeatable when this phase shipped;
+that was corrected on 2026-07-29 after the first ordinary writing session. See
+*Key repeat corrected* below.
 
 The EPOMAKER TH40's apostrophe was diagnosed before anything was changed. It
 sends usage `0x2E` (`=`/`+`) **with modifier byte `0`**, so it is neither a
@@ -333,8 +337,49 @@ It is not scheduled, and nothing later in V1 is blocked on it.
 the retired harness: wired USB keyboard, authoritative Fruit Jam editor,
 bidirectional UART, MagTag display, adaptive pacing, final reconciliation. It
 writes no guard, never remounts the filesystem away from the host, starts and
-stops as often as needed, and stops cleanly on the Application key `0x65`. It
-performs no verification and licenses no claim.
+stops as often as needed, and stops cleanly on Escape `0x29` or Application
+`0x65`. It performs no verification and licenses no claim.
+
+On the EPOMAKER TH40, Escape is the control that reaches the board. The key
+labelled as Application sends modifier `0x40` with **no usage byte**, so nothing
+arrives as a finish request; usage `0x29` arrives cleanly and stops the runtime.
+Recorded as an observation, not a defect: it is a keyboard-mapping matter and
+`PRIORITY.md` defers those.
+
+### Key repeat corrected — 2026-07-29
+
+The first ordinary writing session ended clean but produced a shorter document
+than intended. The Fruit Jam log accounted for it exactly — 121 events against
+21 characters, 50 of them Backspace, 27 of those repeats, and all 27 from three
+deliberate holds of 859 ms, 1234 ms and 1437 ms. The 500 ms onset and the
+cancellation on release were both correct and the log proved it: no repeat ever
+fired on a tap, and none ever followed a release.
+
+The defect was the eligible set. Printable characters and Enter were repeatable,
+so resting a finger on a letter duplicated it and holding Enter inserted blank
+lines — quietly, because the panel trails typing by one to three seconds, so the
+damage reaches the authoritative document before the writer can see it.
+
+Repeat is now exactly the keys held on purpose to cover distance: Backspace,
+Delete, and the four arrows. Delay, interval, bounded catch-up, and
+newest-press ownership are unchanged. Host suite 679 tests passing.
+
+**Ordinary writing confirmed on hardware the same day.** A session typed three
+lines of prose and stopped cleanly on Escape:
+
+| | |
+| --- | --- |
+| Result | `COMPLETE`, no stop reason |
+| Events | 63 generated, 63 processed, 0 rejected |
+| Document | 63 characters, 4 lines — one character per keystroke |
+| Repeat events | **0** |
+| Reports | 128 received, 0 duplicate, 0 rollover, 0 unsupported |
+| Reconciliation | transmitted revision 63 = displayed revision 63, hash `CA09FBF6` both sides |
+| Panel | 9 refreshes, 1 full and 8 partial, 0 CRC failures |
+| Boards | no guard written, filesystem never remounted, both restartable |
+
+This confirms normal writing works. It is not a responsiveness measurement and
+licenses no timing claim.
 
 ## Priority 4 — Single-document persistence and recovery — V1.2
 
