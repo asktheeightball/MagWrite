@@ -64,17 +64,28 @@ USB_KEYBOARD_SESSION_TIMEOUT_SECONDS = 2700
 # reproduced exactly.
 ENABLE_PERSISTENCE = True
 # Pin aliases follow the same rule as the UART pins: only a name the board
-# actually exposes is trusted. When SD_SCK_PIN_ALIAS is None the board's shared
-# SPI() bus is used, which is the normal Fruit Jam wiring; the explicit aliases
-# exist for a board with a dedicated bus. A missing alias is reported as
-# NOT_CONFIGURED together with the SD names the board does expose, so a wrong
-# guess is one readable diagnostic line rather than a debugging session.
+# actually exposes is trusted. These four were read off the board in hand on
+# 2026-07-30 with `tools/fruitjam_sd_probe.py`, on Adafruit CircuitPython 10.2.1
+# / adafruit_fruit_jam / UID FFDBA7B15146C218, which reports:
+#
+#   SDA, SDIO_CLOCK, SDIO_COMMAND, SDIO_DATA0..3,
+#   SD_CARD_DETECT, SD_CS, SD_MISO, SD_MOSI, SD_SCK
+#
+# The card is on the **dedicated** SPI bus, not the shared board.SPI(). The
+# dedicated aliases are confirmed working: busio.SPI(SD_SCK, SD_MOSI, SD_MISO)
+# plus sdcardio.SDCard(bus, SD_CS) initialises a real card. Leaving these None
+# would have used board.SPI(), which is unproven here, so they are set
+# explicitly rather than left to a default that happened to be untested.
 SD_CS_PIN_ALIAS = "SD_CS"
-SD_SCK_PIN_ALIAS = None
-SD_MOSI_PIN_ALIAS = None
-SD_MISO_PIN_ALIAS = None
-# Optional. When the board exposes a card-detect line, an empty slot becomes an
-# observation instead of an inference from a failed initialisation.
+SD_SCK_PIN_ALIAS = "SD_SCK"
+SD_MOSI_PIN_ALIAS = "SD_MOSI"
+SD_MISO_PIN_ALIAS = "SD_MISO"
+# Deliberately None even though the board exposes SD_CARD_DETECT. On this
+# firmware the pin is already claimed before user code runs -- constructing a
+# DigitalInOut on it raises "SD_CARD_DETECT in use" -- so enabling it would only
+# produce a noise diagnostic on every boot. Card presence is inferred from
+# whether the card answers instead, which is the fallback the mount path was
+# built with. Revisit if a later CircuitPython release releases the pin.
 SD_CARD_DETECT_PIN_ALIAS = None
 SD_MOUNT_POINT = "/sd"
 DOCUMENT_ROOT = "/sd/magwrite"

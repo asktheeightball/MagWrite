@@ -202,18 +202,67 @@ viewport, and transport code.
 Every hardware module is injected, so mount detection — empty slot, unformatted
 card, wrong pin alias, missing SD driver — is exercised on CPython.
 
-## Physical confirmation still owed
+## Hardware findings — 2026-07-30
 
-Two things are host-verified and not yet proved on hardware.
+Probed with `tools/fruitjam_sd_probe.py` on Adafruit CircuitPython 10.2.1,
+`adafruit_fruit_jam`, UID `FFDBA7B15146C218`. Evidence:
+`docs/FRUITJAM_SD_PROBE.jsonl`.
 
-**The microSD pin aliases.** `config.SD_CS_PIN_ALIAS` defaults to `"SD_CS"` with
-the board's shared `SPI()` bus, which is the normal Fruit Jam wiring, but no
-alias in this repository has been read off the board in hand. This follows the
-same rule as the UART pins: an unconfirmed alias is a guess. A wrong guess is not
-a crash — bring-up reports `NOT_CONFIGURED` together with the `SD`-prefixed names
-the board actually exposes, which is one readable diagnostic line rather than a
-debugging session.
+### Confirmed
+
+**Pin aliases, read off the board.** It exposes `SD_CS`, `SD_SCK`, `SD_MOSI`,
+`SD_MISO`, `SD_CARD_DETECT`, and a separate four-bit `SDIO_*` interface.
+
+The card is on the **dedicated** SPI bus. `busio.SPI(SD_SCK, SD_MOSI, SD_MISO)`
+plus `sdcardio.SDCard(bus, SD_CS)` initialises a real card, so `config.py` now
+names those four aliases explicitly rather than falling back to the shared
+`board.SPI()`, which is unproven on this board. This is the one configuration
+change the hardware actually required.
+
+**`SD_CARD_DETECT` is unusable on this firmware.** The pin is already claimed
+before user code runs — constructing a `DigitalInOut` on it raises
+`SD_CARD_DETECT in use` — so `SD_CARD_DETECT_PIN_ALIAS` stays `None` and card
+presence is inferred from whether the card answers. The optional card-detect path
+remains implemented and tested for a firmware that releases the pin.
+
+**`sdcardio`, `os.sync`, and `os.statvfs` are all present**, so durability and
+free-space reporting run at full strength rather than degrading.
+
+**The degraded path works on real hardware.** The shipped `sd_storage.mount`
+returned:
+
+```json
+{"storage_status":"UNMOUNTABLE",
+ "storage_detail":"cannot mount a FAT filesystem: [Errno 19] No such device"}
+```
+
+That is the designed answer, and the `NO_CARD`/`UNMOUNTABLE` split earned its
+keep on the first real card: it tells the operator to format it, not to check
+whether it is seated.
+
+### Blocked
+
+**The card in the slot carries no usable filesystem.** It is a 946 MB card
+(1,937,920 blocks) that reads reliably and has a valid `0x55AA` MBR signature,
+but:
+
+- its single partition entry is type `0x06` (FAT16), not FAT32;
+- that partition claims 1,939,323 sectors starting at LBA 133, which runs
+  **past the end of the card** — a corrupt or stale partition table;
+- no valid FAT volume boot record exists at LBA 133 or at any of the twelve
+  other conventional offsets scanned. The sector the table points at begins with
+  the bytes `USB`, suggesting a raw image was written to the card at some point.
+
+So `storage.mount` fails with `ENODEV`, correctly.
+
+This blocks the V1.2 exit condition: without a mountable card there is no
+autosave to observe, no Ctrl-S to confirm, and no forced-power-loss recovery to
+perform. Reformatting the card would destroy whatever it currently holds, which
+is not a decision this document gets to make.
+
+### Still owed
 
 **The V1.2 exit condition itself.** "A writing session survives forced power loss
 with the final acknowledged edit recovered" is a claim about hardware. The host
 suite proves the logic; only pulling power from the real board proves the claim.
+It needs a card with a FAT filesystem on it.

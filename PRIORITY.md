@@ -31,15 +31,25 @@ The acknowledged revision is the latest revision accepted by the **Fruit Jam
 editor**, not the MagTag display. Display acknowledgements govern pacing; editor
 acceptance governs durability.
 
-Two items remain before the V1.2 exit can be claimed, and both need hardware:
+Hardware bring-up ran on 2026-07-30. The pin aliases are now **read off the
+board** and set in `config.py`: the card is on the dedicated SPI bus
+(`SD_SCK`/`SD_MOSI`/`SD_MISO`/`SD_CS`), not the shared `board.SPI()`. The
+shipped mount path was exercised on real hardware and reported correctly.
 
-- **read the microSD pin aliases off the board** and set them in `config.py`.
-  The default is `SD_CS` on the shared `SPI()` bus. A wrong alias reports
-  `NOT_CONFIGURED` with the names the board does expose; it does not crash;
-- **one physical forced-power-loss run**: type, pull power, restart, confirm the
-  recovered document and cursor.
+**One item blocks the V1.2 exit, and it is not a software defect:**
 
-Neither is a new certification harness. The development runtime already brings
+- the microSD card currently in the Fruit Jam **carries no usable filesystem**.
+  946 MB, reads reliably, valid MBR signature, but its single partition entry is
+  FAT16 claiming more sectors than the card has, and no FAT volume boot record
+  exists at that offset or twelve others. `storage.mount` fails with `ENODEV`,
+  correctly, and the runtime reports `UNMOUNTABLE`.
+
+Until a card with a FAT filesystem is in the slot there is no autosave to
+observe, no Ctrl-S to confirm, and no forced-power-loss recovery to perform.
+Reformatting destroys whatever the card holds, so it awaits an explicit
+decision.
+
+This is not a new certification harness. The development runtime already brings
 persistence up and logs the mount status, the recovery, and the save state.
 
 ## Deferred backlog

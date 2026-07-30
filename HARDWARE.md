@@ -204,16 +204,26 @@ Do not connect one battery simultaneously to the independent charger circuits on
 - [ ] Determine whether the Fruit Jam host port supplies enough current for a
       2.4 GHz receiver's radio, or retry with a wired USB keyboard.
 - [ ] Verify keyboard reconnect, modifiers, hold, and repeat.
-- [ ] Read the microSD pin aliases off the board and set them in
-      `fruitjam/config.py`. The default is `SD_CS` on the shared `SPI()` bus,
-      which is unconfirmed on the board in hand. A wrong alias reports
-      `NOT_CONFIGURED` together with the `SD`-prefixed names the board does
-      expose, so this is one diagnostic line, not a debugging session.
+- [x] Read the microSD pin aliases off the board and set them in
+      `fruitjam/config.py`. Done 2026-07-30 with `tools/fruitjam_sd_probe.py`;
+      evidence `docs/FRUITJAM_SD_PROBE.jsonl`. The board exposes `SD_CS`,
+      `SD_SCK`, `SD_MOSI`, `SD_MISO`, `SD_CARD_DETECT`, and a separate `SDIO_*`
+      interface. The card is on the **dedicated** SPI bus, so those four aliases
+      are now named explicitly rather than using the shared `board.SPI()`.
+      `SD_CARD_DETECT` is claimed by the firmware before user code runs, so the
+      optional card-detect path stays disabled.
+- [ ] **Provide a microSD card with a FAT filesystem.** The card currently in
+      the slot is 946 MB, reads reliably, and has a valid MBR signature, but its
+      one partition entry is type `0x06` (FAT16) claiming more sectors than the
+      card physically has, and no FAT volume boot record exists at that offset or
+      at twelve other conventional offsets. `storage.mount` fails with
+      `[Errno 19] No such device`, and the runtime correctly reports
+      `UNMOUNTABLE`. Reformatting destroys whatever the card holds.
 - [ ] Verify microSD autosave and forced-power-loss recovery. The logic is
       host-verified in full, including power cut at every byte offset of a
       journal append; see `docs/PERSISTENCE.md`. What is owed is the physical
       run: type, pull power mid-session, restart, confirm the recovered document
-      and cursor.
+      and cursor. Blocked on the card above.
 - [ ] Measure active and idle current for each board and USB receiver.
 - [ ] Determine and verify safe single-battery capacity, charging, and distribution topology.
 - [ ] Complete enclosure and field-use testing.

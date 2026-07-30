@@ -1,0 +1,9 @@
+{"event":"uart_tx_refused","reason":"disabled"}
+{"event":"sd_probe_started"}
+{"has_shared_spi":true,"has_sdcardio":true,"has_os_statvfs":true,"event":"sd_probe_aliases","has_os_sync":true,"aliases":["SDA","SDIO_CLOCK","SDIO_COMMAND","SDIO_DATA0","SDIO_DATA1","SDIO_DATA2","SDIO_DATA3","SD_CARD_DETECT","SD_CS","SD_MISO","SD_MOSI","SD_SCK"]}
+{"detail":"SD_CARD_DETECT in use","event":"sd_probe_card_detect_unavailable"}
+{"event":"sd_probe_card","megabytes":946,"blocks":1937920}
+{"partitions":[{"fits_on_card":false,"start_lba":133,"type":"0x06","index":1,"sectors":1939323}],"signature":"0x55AA","event":"sd_probe_mbr"}
+{"scanned":[0,1,32,63,64,128,132,133,134,2048,4096,8192,16384],"event":"sd_probe_fat_scan","volumes_found":[]}
+{"mount_point":null,"event":"sd_probe_real_mount","storage_detail":"cannot mount a FAT filesystem: [Errno 19] No such device","storage_status":"UNMOUNTABLE"}
+{"event":"sd_probe_complete"}

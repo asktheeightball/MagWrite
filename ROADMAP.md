@@ -413,14 +413,37 @@ final acknowledged edit recovered. The host suite proves the logic, including a
 sweep that cuts power at every byte offset of a journal append. Only pulling
 power from the real board proves the claim.
 
-Two items are owed before the exit can be claimed:
+### Hardware bring-up — 2026-07-30
 
-1. **microSD pin aliases have not been read off the board.**
-   `config.SD_CS_PIN_ALIAS` defaults to `"SD_CS"` on the shared `SPI()` bus. A
-   wrong guess is not a crash: bring-up reports `NOT_CONFIGURED` along with the
-   `SD`-prefixed names the board does expose.
-2. **A physical forced-power-loss run.** Type, pull power mid-session, restart,
-   and confirm the recovered document and cursor.
+Probed with `tools/fruitjam_sd_probe.py` on CircuitPython 10.2.1,
+`adafruit_fruit_jam`, UID `FFDBA7B15146C218`. Evidence:
+`docs/FRUITJAM_SD_PROBE.jsonl`.
+
+Confirmed on the board:
+
+- pin aliases read off the board — `SD_CS`, `SD_SCK`, `SD_MOSI`, `SD_MISO`,
+  `SD_CARD_DETECT`, plus a separate `SDIO_*` interface;
+- the card sits on the **dedicated** SPI bus, so `config.py` now names those
+  four aliases explicitly instead of using the unproven shared `board.SPI()`.
+  This was the one configuration change the hardware required;
+- `SD_CARD_DETECT` is claimed by the firmware before user code runs, so the
+  optional card-detect path stays disabled and presence is inferred;
+- `sdcardio`, `os.sync`, and `os.statvfs` are all present;
+- the shipped `sd_storage.mount` correctly reported `UNMOUNTABLE` with
+  `[Errno 19] No such device` for the card described below.
+
+**Blocked:** the card in the slot carries no usable filesystem. It is 946 MB,
+reads reliably, and has a valid MBR signature, but its one partition entry is
+type `0x06` (FAT16) claiming more sectors than the card physically has, and no
+FAT volume boot record exists at that offset or at twelve other conventional
+offsets. `storage.mount` therefore fails with `ENODEV`, correctly.
+
+Without a mountable card there is no autosave to observe, no Ctrl-S to confirm,
+and no forced-power-loss recovery to perform. Reformatting destroys whatever the
+card currently holds, so it awaits an explicit decision.
+
+**Owed:** a card with a FAT filesystem, then the physical run — type, pull power
+mid-session, restart, confirm the recovered document and cursor.
 
 ## V1.3 — MagWrite Shell
 
