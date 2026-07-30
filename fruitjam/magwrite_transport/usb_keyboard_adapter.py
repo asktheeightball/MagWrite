@@ -66,6 +66,15 @@ class UsbKeyboardAdapter:
         self.events_generated = 0
         self.repeat_events = 0
         self.finish_requested = False
+        # The same gesture counted as well as latched. The latch is what every
+        # one-shot harness reads -- for a run that ends once, "has it been asked
+        # to stop" is the whole question -- and it is left exactly as it was so
+        # those harnesses keep the behaviour they were verified with. The shell
+        # asks a different question: the finish gesture is *back*, pressed many
+        # times in one session, and a latch cannot tell one press from four. This
+        # is the counter the save control already uses, for the reason recorded
+        # immediately below it.
+        self.finish_requests = 0
         # A monotonic count rather than a flag the session has to clear. Two
         # objects sharing a mutable boolean is how a save request gets lost or
         # serviced twice; a counter lets the consumer track what it has honoured
@@ -186,8 +195,10 @@ class UsbKeyboardAdapter:
         for control, detail in controls:
             if control == CONTROL_FINISH:
                 self.finish_requested = True
+                self.finish_requests += 1
                 self.log({"event": "usb_keyboard_finish_requested",
-                          "usage": detail})
+                          "usage": detail,
+                          "finish_requests": self.finish_requests})
             elif control == CONTROL_SAVE:
                 self.save_requests += 1
                 self.log({"event": "usb_keyboard_save_requested",
@@ -265,6 +276,7 @@ class UsbKeyboardAdapter:
             "repeat_resynchronizations": self.repeat.resynchronizations,
             "unsupported_usages": self.unsupported_usages,
             "save_requests": self.save_requests,
+            "finish_requests": self.finish_requests,
             "caps_lock_toggles": self.translator.caps_lock_toggles,
             "keyboard_layout": self.translator.layout.name,
             "remapped_usages": self.translator.remapped_usages,

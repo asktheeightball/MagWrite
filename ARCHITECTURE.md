@@ -66,6 +66,9 @@ InputAdapter boundary (normalized InputEvent)
 bounded event queue, explicit overflow
         |
         v
+MagWrite shell (routing only: to the editor, or consumed by a screen)
+        |
+        v
 Fruit Jam authoritative multiline editor
         +-- document text and line structure
         +-- cursor row/column and preferred visual column
@@ -118,6 +121,44 @@ unrecognised one is counted as unsupported. Before this rule existed, Ctrl-S
 inserted a literal `s`, so the reflex every writer has for "save" silently
 corrupted the document at the moment they believed they were protecting it.
 
+## Application shell
+
+Added in V1.3; `docs/SHELL.md` carries the design and the reasoning.
+
+One host-safe state machine above the editor, and the only owner of application
+state. It holds no editor, no document, no store, no clock, and no transport: it
+decides where the writer is and where input goes.
+
+```text
+MAIN_MENU --Enter--> EDITOR --Esc--> SAVE_STATUS --Enter--> MAIN_MENU
+    |                                     |
+   Esc                                   Esc --> EDITOR
+    v
+  EXIT                    any fault --> ERROR --Enter--> MAIN_MENU
+```
+
+The rules that keep it safe:
+
+- **one editor for the life of the session.** The shell never constructs,
+  clears, or reloads it, so no transition can lose unsaved work — nothing is
+  closed. Leaving the editor additionally forces a checkpoint on the way out;
+- **no new keys.** Up, Down, and Enter are already normalized editor events, and
+  the finish gesture already existed. Under the shell it means *back*, and at the
+  root it is still the clean stop;
+- **the editor still owns both revisions.** A shell screen is visible state the
+  editor does not own, so it advances `viewport_revision` through the same single
+  door the save indicator uses;
+- **one renderer and one pacing policy.** A shell screen is a semantic viewport
+  like any other and goes out through the proven encoder, transport,
+  acknowledgement, and pacing path. The MagTag cannot tell a menu from a document;
+- **fail closed.** Every transition funnels through one door, and anything it
+  cannot make sense of becomes a recoverable error screen. The shell does not
+  raise.
+
+For this phase the four menu items — Journal, Quick Note, Drafts, Recent — all
+route into the one document. The mode is carried and drawn, and is the seam V1.4
+attaches its per-mode policy to.
+
 ## Responsibility boundaries
 
 ### Fruit Jam application
@@ -127,6 +168,7 @@ The Fruit Jam owns:
 - USB HID keyboard discovery and input normalization;
 - normalized semantic input events;
 - bounded input-event buffering;
+- application shell state, mode, and input routing;
 - authoritative document text and line structure;
 - editor commands and cursor position;
 - wrapping, scrolling, and viewport construction;
@@ -207,7 +249,9 @@ The protocol should support bounded press, release, and deliberate long-press ev
 2. Apply them to the authoritative editor.
 3. Drain available MagTag UART status and button-event bytes.
 4. Parse complete return frames within a bounded budget.
-5. Apply valid button events to Fruit Jam-owned workflow state.
+5. Apply valid button events and shell control gestures to Fruit Jam-owned
+   workflow state. Normalized keyboard events are routed at stage 2: to the
+   authoritative editor, or consumed by the shell screen that owns the panel.
 6. Update acknowledgement state.
 7. Run autosave, checkpoint, and manual-save work when due — at most one storage
    operation per iteration while writing, and always before the viewport stages,

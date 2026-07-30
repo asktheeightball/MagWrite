@@ -33,10 +33,17 @@ class EditorViewport:
     def window(self, editor):
         return self.layout.window(editor.lines, editor.row, editor.column)
 
-    def title_text(self, editor):
-        """Title plus the authoritative logical cursor position."""
+    def title_text(self, editor, title=None):
+        """Title plus the authoritative logical cursor position.
+
+        ``title`` overrides the default for one frame. The shell uses it to name
+        the mode the document was opened through, which costs no state here: the
+        viewport builder stays a pure function of what it is handed, and the mode
+        remains owned by the shell rather than copied into the display layer.
+        """
         return "%s L%02d C%02d" % (
-            self.title, (editor.row + 1) % 100, editor.column % 100,
+            title if title else self.title,
+            (editor.row + 1) % 100, editor.column % 100,
         )
 
     def status_text(self, editor, window, save_indicator=None):
@@ -63,7 +70,7 @@ class EditorViewport:
             text = text + " " + save_indicator
         return text
 
-    def payload(self, editor, scenario_id, save_indicator=None):
+    def payload(self, editor, scenario_id, save_indicator=None, title=None):
         """Encode the complete semantic viewport for this editor state."""
         window = self.window(editor)
         lines = window["lines"]
@@ -71,7 +78,7 @@ class EditorViewport:
             lines = ("",)
         return encode_viewport(
             scenario_id,
-            self.title_text(editor),
+            self.title_text(editor, title),
             lines,
             window["cursor_row"],
             window["cursor_column"],

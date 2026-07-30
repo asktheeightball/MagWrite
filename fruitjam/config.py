@@ -103,6 +103,16 @@ CHECKPOINT_RECORDS = 24
 CHECKPOINT_MAX_RECORDS = 48
 CHECKPOINT_MAX_AGE_SECONDS = 120.0
 CHECKPOINT_IDLE_SECONDS = 3.0
+# ----------------------------------------------------------- MagWrite shell
+# Enabled by default for the same reason persistence is: the shell is the product
+# path, not a hardware experiment. Setting this False runs the editor with no
+# shell at all, which is exactly how the V1.2 behaviour -- and every viewport
+# payload the physical runs measured -- is reproduced.
+#
+# With the shell on, the finish gesture (Escape, or Keyboard Application on a 40%
+# board) means *back* rather than stop: it leaves the editor through the save
+# screen, and from the main menu it is still the clean stop. Ctrl-S is unchanged.
+ENABLE_SHELL = True
 # "LATEST" opens the most recent draft the card holds; "NEW" starts an empty
 # document and discards the stored one. Opening the latest draft is the default
 # because losing work to a mode switch is the failure this phase exists to

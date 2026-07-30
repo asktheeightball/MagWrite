@@ -34,7 +34,7 @@ this list wins.
 | --- | --- | --- | --- |
 | 1 | Responsiveness and keyboard completeness | V1.1 | Host-verified; one physical attempt FAILED, certification retired |
 | 2 | microSD persistence and forced-power-loss recovery | Priority 4 | PHYSICALLY VERIFIED 2026-07-30 |
-| 3 | MagWrite Shell | V1.3 | Not started |
+| 3 | MagWrite Shell | V1.3 | Implemented, host-verified; physical run pending |
 | 4 | Journal, Quick Note, Drafts, and Recent | V1.4 | Not started |
 | 5 | Standalone workflow | Priority 5 | Not started |
 | 6 | Optional MagTag buttons | Priority 2 | Not started, optional |
@@ -468,22 +468,55 @@ restart.
 
 **Exit met.**
 
-## V1.3 — MagWrite Shell
+## V1.3 — MagWrite Shell — IMPLEMENTED, HOST-VERIFIED
 
 The application shell the writing modes live in. It comes after persistence
 because a shell that cannot reliably open and save a document is a menu, not a
-product.
+product. `docs/SHELL.md` carries the design and the reasoning.
 
-Requirements:
+Requirements, all implemented and host-verified:
 
-- one owner of application state on the Fruit Jam, distinct from the editor;
-- explicit modes with defined entry, exit, and back behaviour;
-- a viewport the shell can draw that reuses the proven renderer and pacing;
-- keyboard-driven navigation with no dependency on MagTag buttons;
-- bounded, fail-closed transitions with no unsaved-work loss on any path.
+| Requirement | Where |
+| --- | --- |
+| one owner of application state, distinct from the editor | `shell.Shell`, no editor, store, clock, or transport |
+| explicit states with entry, exit, back, and failure behaviour | `MAIN_MENU`, `EDITOR`, `SAVE_STATUS`, `ERROR`, `EXIT` |
+| Journal, Quick Note, Drafts, and Recent on the main menu | `shell.MENU_ITEMS`, all routing into the one document |
+| a viewport reusing the proven renderer and pacing | `shell_viewport`, same `encode_viewport`, scenario 7 |
+| keyboard-driven navigation, no MagTag buttons | Up, Down, Enter, and the existing finish gesture |
+| the document preserved across every transition | one `MultilineEditor` for the session; the shell never touches it |
+| no recoverable work lost leaving or re-entering the editor | every exit passes through `SAVE_STATUS`, which checkpoints |
+| the correct state restored after restart or power loss | `Shell.restore`, derived from what recovery returned |
+| bounded, fail-closed transitions | one `_transition` door; anything unknown becomes `ERROR` |
+
+Three decisions worth recording, each argued in full in `docs/SHELL.md`:
+
+- **the shell adds no keymap entry.** Up, Down, and Enter are already normalized
+  editor events, and the finish gesture already existed with physical evidence
+  behind it. Under the shell it means *back* — leave the current state toward its
+  parent — and at the root it is still the clean stop;
+- **Save/Status is a guard, not an information screen.** Leaving the editor goes
+  through it and entering it forces a checkpoint, because leaving is when the
+  writer is most likely to walk away and unsaved work is most exposed;
+- **the opening state is derived, not stored.** Persisting it would mean a second
+  file that must stay in step with the journal through a power cut, which is the
+  two-file atomicity problem the storage design already refused once. A recovered
+  document means the writer was writing, so the shell opens where the words are.
+
+One real behaviour changed: reaching the document bound used to raise and end the
+session. The refused edit changes nothing, so the document is intact; it is now
+shown on a recoverable error screen. With `ENABLE_SHELL = False` the pre-shell
+behaviour, and every viewport payload the physical runs measured, is reproduced
+exactly.
+
+Scope held where the phase set it: no document browser, no per-mode storage
+format, no MagTag button work, no keyboard-mapping detours, no new certification
+framework.
 
 **Exit:** the writer can move between the shell and a document repeatedly
-without losing state or stalling the display.
+without losing state or stalling the display. The host suite proves the logic —
+`host-tests/test_shell.py` drives the whole path with scripted USB reports
+through the real editor, storage, transport, and MagTag renderer. The physical
+run is pending.
 
 ## V1.4 — Journal, Quick Note, Drafts, and Recent
 

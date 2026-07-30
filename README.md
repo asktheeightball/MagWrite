@@ -10,6 +10,7 @@ Wired USB keyboard or wireless keyboard with USB receiver
         v
 Adafruit Fruit Jam
 - USB HID host
+- application shell and input routing
 - authoritative multiline editor
 - viewport generation
 - microSD storage and forced-power-loss recovery
@@ -72,7 +73,7 @@ docs/               build, wiring, testing, reports, and research notes
 keyboard-bridge/    deferred LOLIN32 Bluetooth adapter work, if later required
 ```
 
-See [PRODUCT.md](PRODUCT.md), [ROADMAP.md](ROADMAP.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [HARDWARE.md](HARDWARE.md) for the current specification and decisions.
+See [PRODUCT.md](PRODUCT.md), [ROADMAP.md](ROADMAP.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [HARDWARE.md](HARDWARE.md) for the current specification and decisions. [docs/PERSISTENCE.md](docs/PERSISTENCE.md) and [docs/SHELL.md](docs/SHELL.md) carry the storage and shell designs.
 
 ## Related research
 

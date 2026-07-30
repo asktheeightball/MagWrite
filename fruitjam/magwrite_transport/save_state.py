@@ -48,6 +48,21 @@ INDICATORS = {
     NO_CARD: "x",
 }
 
+# The same states written out, for the shell's save screen, where there is room
+# for a word and no reason to make the writer decode a letter.
+#
+# These are not the state names. ``NO_CARD`` contains an underscore, which has no
+# glyph in the proven 3x5 table, so drawing the identifier would raise
+# ``KeyError`` on the panel -- the exact failure the first save indicator hit
+# with "=" and "*". A host test asserts every label here is renderable.
+LABELS = {
+    SAVED: "SAVED",
+    RECOVERABLE: "RECOVERABLE",
+    UNSAVED: "UNSAVED",
+    ERROR: "SAVE ERROR",
+    NO_CARD: "NO CARD",
+}
+
 
 def evaluate(
     acknowledged_revision, journaled_revision, checkpoint_revision,
@@ -77,3 +92,10 @@ def indicator(state):
     if state not in INDICATORS:
         raise ValueError("unknown save state: " + str(state))
     return INDICATORS[state]
+
+
+def label(state):
+    """Return the written-out, panel-renderable name for ``state``."""
+    if state not in LABELS:
+        raise ValueError("unknown save state: " + str(state))
+    return LABELS[state]

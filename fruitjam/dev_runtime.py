@@ -34,11 +34,18 @@ So this runtime:
 The one-shot harnesses are untouched and stay available for the next real
 verification milestone.
 
-Press the Application (menu) key, HID usage ``0x65``, to stop cleanly. Escape
-also stops, but the EPOMAKER TH40 can only reach it through an Fn layer that
-switches the keyboard out of USB mode, so Application is the usable control.
-Press Ctrl-S to save immediately. After a clean stop the board is immediately
-restartable: press reset, press Ctrl-D at the REPL, or just save a file over USB.
+Escape, HID usage ``0x29``, is the finish gesture; Keyboard Application, ``0x65``,
+is the same control for boards whose Escape is only on an Fn layer. On the
+EPOMAKER TH40 used for this phase it is Escape that works -- two sessions on
+2026-07-29 confirmed that its Application-labelled key sends a modifier with no
+usage byte, so nothing reaches the board. See ``docs/DEVELOPMENT_RUNTIME.md``.
+
+Under the shell, added in V1.3, that gesture means **back**: it leaves the editor
+through the save screen, and pressed again at the main menu it is the clean stop
+it has always been. With ``ENABLE_SHELL`` off it stops immediately from anywhere,
+exactly as it did before. Ctrl-S saves immediately in either case. After a clean
+stop the board is immediately restartable: press reset, press Ctrl-D at the REPL,
+or just save a file over USB.
 
 Persistence, added in V1.2, does not compromise any of the above. The microSD
 card is a separate filesystem from CIRCUITPY, so mounting it needs no
@@ -56,6 +63,7 @@ from magwrite_transport.latency import LatencyRecorder
 from magwrite_transport.live_session import LiveTypingSession
 from magwrite_transport.pacing import DisplayPacer
 from magwrite_transport.protocol import MAX_PAYLOAD_SIZE, VERSION
+from magwrite_transport.shell import Shell
 
 DEV_RUNTIME_MODE = "FRUITJAM_DEV_RUNTIME"
 
@@ -100,6 +108,7 @@ result = "STOPPED"
 error = None
 persistence = None
 mount_result = None
+shell = None
 
 # Construction is fenced off from the run loop because the two fail for
 # different reasons and want different reporting. Either way the filesystem was
@@ -129,6 +138,12 @@ try:
         config, time.monotonic(), log, board_module=board, sdcardio=sdcardio,
         storage_module=storage_module, busio=busio, digitalio=digitalio,
     )
+    # The shell is constructed before the session so the session opens with a
+    # screen already decided. It owns no document and no store: it decides where
+    # the writer is and where input goes, and the one editor below outlives every
+    # transition it makes.
+    if getattr(config, "ENABLE_SHELL", False):
+        shell = Shell(log=log)
     session = LiveTypingSession(
         time.monotonic, log,
         adapter_factory=lambda queue: UsbKeyboardAdapter(
@@ -156,9 +171,13 @@ try:
         max_viewport_frames=DEV_MAX_VIEWPORT_FRAMES,
         max_protocol_frames=DEV_MAX_PROTOCOL_FRAMES,
         persistence=persistence,
+        shell=shell,
     )
     if persistence.recovery is not None and persistence.recovery.recovered:
         session.restore(persistence.recovery.snapshot)
+    elif shell is not None:
+        # Nothing survived, so the writer was not writing. Open at the menu.
+        shell.restore(False)
 except Exception as construction_error:  # noqa: BLE001 - reported, not swallowed
     error = str(construction_error)
     log({"event": "dev_runtime_construction_failed", "detail": error,
@@ -169,9 +188,19 @@ if session is not None:
              "rx_alias": config.UART_RX_PIN_ALIAS, "baud": config.UART_BAUD,
              "startup_delay_seconds": config.STARTUP_DELAY_SECONDS,
              "keyboard_layout": config.USB_KEYBOARD_LAYOUT,
-             "stop_key": "APPLICATION", "save_key": "CTRL-S"}
+             "stop_key": "ESCAPE", "stop_key_alternate": "APPLICATION",
+             "save_key": "CTRL-S"}
     ready.update(mount_result.summary())
     ready["save_state"] = persistence.state
+    if shell is None:
+        ready["stop_from"] = "ANYWHERE"
+    else:
+        # The same gesture and the same keys. Under the shell it means back, so
+        # the stop is the one taken at the root; inside a document it leaves the
+        # editor through the save screen instead of ending the session.
+        ready.update(shell.summary())
+        ready["stop_from"] = "MAIN_MENU"
+        ready["back_key"] = "ESCAPE"
     log(ready)
     time.sleep(config.STARTUP_DELAY_SECONDS)
     try:

@@ -14,14 +14,34 @@ The loop order is input-first and is never inverted:
 
     1. poll the USB host adapter within a bounded report budget
     2. normalize new keyboard events into the bounded queue
-    3. drain and apply queued events to the authoritative editor
+    3. drain queued events, routing each to the shell or the editor
     4. drain bounded MagTag status frames and update acknowledgement state
-    5. build only the newest required viewport, coalescing stale states
-    6. transmit at most one newest pending viewport
-    7. check timeouts and stop conditions
+    5. run autosave, checkpoint, and manual save work when due
+    6. apply the shell's own control gesture and adopt the resulting screen
+    7. build only the newest required viewport, coalescing stale states
+    8. transmit at most one newest pending viewport
+    9. check timeouts and stop conditions
 
 Neither half blocks the other: the USB read timeout is milliseconds, and a
 display refresh in flight never suspends polling.
+
+The optional shell
+------------------
+
+``shell`` is optional on the same terms ``persistence`` is, and for the same
+reason: with it absent every stage behaves exactly as it did for the runs that
+produced the existing physical evidence, so those payloads and CRC-32s stay
+reproducible. With it present three things change, and nothing else does:
+
+* input is *routed* rather than assumed to belong to the editor;
+* the shell may put its own screen on the panel, through the same encoder,
+  revision, pacing, and acknowledgement path the document uses;
+* the finish gesture means **back**, and only the shell reaching its terminal
+  state ends the session.
+
+There is still exactly one editor for the life of the session. The shell never
+constructs, clears, or reloads it, which is why no transition can lose unsaved
+work: nothing is closed.
 """
 
 from magwrite_transport.ack_tracker import AckTracker
@@ -39,6 +59,10 @@ from magwrite_transport.pacing import (
 from magwrite_transport.protocol import (
     END_OF_TEST, HELLO, VIEWPORT, FrameParser, crc32, encode_frame,
 )
+from magwrite_transport.shell import (
+    ROUTE_EDITOR, STATE_EDITOR, STATE_SAVE_STATUS,
+)
+from magwrite_transport.shell_viewport import payload as shell_payload
 from magwrite_transport.usb_keyboard_adapter import (
     MAX_KEYBOARD_EVENTS, UsbKeyboardAdapterError,
 )
@@ -95,7 +119,7 @@ class LiveTypingSession:
         session_timeout_seconds=SESSION_TIMEOUT_SECONDS,
         viewport=None, tracker=None, editor=None, pacer=None, latency=None,
         max_viewport_frames=MAX_VIEWPORT_FRAMES,
-        max_protocol_frames=MAX_PROTOCOL_FRAMES, persistence=None,
+        max_protocol_frames=MAX_PROTOCOL_FRAMES, persistence=None, shell=None,
     ):
         self.monotonic = monotonic
         self.log = log
@@ -127,6 +151,21 @@ class LiveTypingSession:
         self.save_indicator = None if persistence is None else persistence.indicator
         self.save_requests_serviced = 0
         self.manual_saves = 0
+        # Optional on exactly the same terms as persistence, and for the same
+        # reason: with it absent every stage below behaves as it did for the runs
+        # that produced the existing physical evidence, so those payloads and
+        # CRC-32s stay reproducible. With it present the finish gesture means
+        # *back*, the shell decides which screen is on the panel, and input is
+        # routed rather than assumed to belong to the editor.
+        self.shell = shell
+        self.finish_requests_serviced = 0
+        self.shell_visible_revision = None if shell is None else shell.visible_revision
+        if shell is not None:
+            # The shell has a screen from the moment it exists, and the send path
+            # treats viewport revision 0 as "nothing has ever been visible" and
+            # declines to build a frame for it. Without this the opening menu
+            # would never be drawn.
+            self.editor.note_visible_change()
         self.idle_timeout_seconds = idle_timeout_seconds
         self.session_timeout_seconds = session_timeout_seconds
         self.phase = PHASE_HELLO
@@ -137,6 +176,7 @@ class LiveTypingSession:
         self.bytes_received = 0
         self.events_processed = 0
         self.events_rejected = 0
+        self.shell_events = 0
         self.queue_overflows = 0
         self.last_sent_payload = None
         self.last_sent_revision = 0
@@ -201,13 +241,22 @@ class LiveTypingSession:
         return produced
 
     def _drain_input(self, now):
-        """Stage 3: apply queued events to the authoritative editor."""
+        """Stage 3: route queued events, applying editor ones to the editor."""
         applied = 0
         while applied < INPUT_DRAIN_BUDGET:
             event = self.queue.get()
             if event is None:
                 break
             self.sequence_tracker.accept(event)
+            applied += 1
+            self.last_activity_at = now
+            if self.shell is not None and self.shell.route(event) != ROUTE_EDITOR:
+                # The shell consumed it. Nothing reaches the document, so a
+                # keystroke aimed at a menu can never appear in the draft, and
+                # pacing is deliberately not told the writer is typing: menu
+                # navigation should redraw as promptly as a pause does.
+                self.shell_events += 1
+                continue
             before_document = self.editor.document_revision
             try:
                 self.editor.apply(event)
@@ -218,10 +267,16 @@ class LiveTypingSession:
                     "kind": event.kind, "value": event.value,
                     "reason": str(error),
                 })
-                raise LiveSessionError("unexpected rejected edit: " + str(error))
+                if self.shell is None:
+                    raise LiveSessionError("unexpected rejected edit: " + str(error))
+                # Requirement 11, and a real improvement rather than a formality:
+                # reaching the document bound used to end the session outright.
+                # The refused edit changed nothing, so the document is intact --
+                # it is shown on a recoverable screen and the writer goes back to
+                # it. Fail closed, keep the work.
+                self.shell.fault(str(error))
+                continue
             self.events_processed += 1
-            applied += 1
-            self.last_activity_at = now
             # Pacing needs to know the writer is still typing, so it can tell a
             # sustained burst from a pause it should catch up after. The same
             # fact is handed to the passive latency recorder, which additionally
@@ -284,12 +339,24 @@ class LiveTypingSession:
         revision = self.editor.viewport_revision
         if revision == 0:
             return None
+        if self.shell is not None:
+            screen = shell_payload(self.shell, self.editor, self.save_indicator)
+            if screen is not None:
+                # A shell screen is a semantic viewport like any other: same
+                # encoder, same bounds, same revision, same pacing. The editor
+                # still owns the revision number, which is what stops two
+                # different payloads from ever going out under one revision.
+                return revision, screen
+            return revision, self.viewport.payload(
+                self.editor, LIVE_SCENARIO_ID, self.save_indicator,
+                self.shell.mode_label(),
+            )
         return revision, self.viewport.payload(
             self.editor, LIVE_SCENARIO_ID, self.save_indicator
         )
 
     def _maybe_send_viewport(self, now, force=False):
-        """Stages 5 and 6: coalesce stale states, send at most one newest."""
+        """Stages 7 and 8: coalesce stale states, send at most one newest."""
         built = self._build_viewport()
         if built is None:
             return False
@@ -359,6 +426,13 @@ class LiveTypingSession:
         if self.persistence is not None:
             self.persistence.adopt(self.editor)
             self.save_indicator = self.persistence.indicator
+        if self.shell is not None:
+            # Requirement 10, and the whole of it: a recovered document means the
+            # writer was writing, so the shell opens where their words are rather
+            # than making them find their way back through a menu.
+            self.shell.restore(True, snapshot.revision)
+            self.shell_visible_revision = self.shell.visible_revision
+            self.editor.note_visible_change()
         self.log({
             "event": "live_document_restored",
             "revision": snapshot.revision, "characters": len(snapshot.text),
@@ -367,7 +441,7 @@ class LiveTypingSession:
         })
 
     def _service_persistence(self, now):
-        """Stage 7: autosave, checkpoint, and manual save work when due."""
+        """Stage 5: autosave, checkpoint, and manual save work when due."""
         if self.persistence is None:
             return
         requests = getattr(self.adapter, "save_requests", 0)
@@ -380,6 +454,14 @@ class LiveTypingSession:
             self.persistence.save_now(now, self.editor)
         else:
             self.persistence.service(now, self.editor)
+        self._refresh_save_indicator()
+
+    def _refresh_save_indicator(self):
+        """Adopt the current save state as visible state."""
+        if self.persistence is None:
+            return
+        if self.shell is not None:
+            self.shell.note_save_state(self.persistence.state)
         indicator = self.persistence.indicator
         if indicator != self.save_indicator:
             self.save_indicator = indicator
@@ -388,6 +470,52 @@ class LiveTypingSession:
             # last while carrying the same revision number, and the
             # acknowledgement tracker would be reconciling two different frames
             # against one revision.
+            self.editor.note_visible_change()
+
+    # ------------------------------------------------------------ shell stage
+
+    def _service_shell(self, now):
+        """Stage 6: the shell's own control gesture, and the redraw it implies.
+
+        The finish gesture is the only control the shell takes from outside the
+        normalized event stream, because it is the only one the keyboard layer
+        reports as a control rather than an editor event.
+        """
+        if self.shell is None:
+            return
+        requests = getattr(self.adapter, "finish_requests", 0)
+        if requests > self.finish_requests_serviced and not len(self.queue):
+            # An empty queue is required for the same reason the pre-shell stop
+            # required it: every keystroke pressed before the gesture is already
+            # in the authoritative document, so leaving the editor can never
+            # outrun the writing it is leaving.
+            #
+            # Collapsed rather than counted out, exactly as manual save is. A
+            # burst of one gesture means one action, and on a panel that trails
+            # by a second or more an accidental double press must not silently
+            # skip a level.
+            self.finish_requests_serviced = requests
+            previous = self.shell.state
+            self.shell.back()
+            if previous == STATE_EDITOR and self.shell.state == STATE_SAVE_STATUS:
+                # The point of the screen. Leaving the editor is the moment the
+                # writer is most likely to walk away, so the document is made
+                # durable on the way out rather than left to a threshold.
+                if self.persistence is not None:
+                    self.manual_saves += 1
+                    self.persistence.save_now(now, self.editor)
+                self.log({
+                    "event": "shell_left_editor",
+                    "document_revision": self.editor.document_revision,
+                    "characters": self.editor.character_count(),
+                })
+        self._refresh_save_indicator()
+        if self.shell.visible_revision != self.shell_visible_revision:
+            self.shell_visible_revision = self.shell.visible_revision
+            # The shell's screens are visible state the editor does not own, so
+            # they advance the viewport revision through the same single door the
+            # save indicator uses. The editor stays the only owner of both
+            # revision numbers.
             self.editor.note_visible_change()
 
     def _final_viewport_displayed(self):
@@ -407,7 +535,7 @@ class LiveTypingSession:
         if self.phase == PHASE_DONE:
             return
 
-        # Stages 1 to 3: input is always polled, normalized, and applied before
+        # Stages 1 to 3: input is always polled, normalized, and routed before
         # any viewport work, so display timing can never reorder or drop an edit.
         if self.phase in (PHASE_HELLO, PHASE_LIVE):
             self._poll_keyboard(now)
@@ -417,14 +545,20 @@ class LiveTypingSession:
         # Stage 4.
         self._drain_status(now)
 
-        # Stage 7, which runs *before* the viewport stages exactly as the
+        # Stage 5, which runs *before* the viewport stages exactly as the
         # architecture's loop order specifies. Durability is never made to wait
         # on a display refresh, and the save indicator the viewport draws is
         # already current by the time the frame is built.
         if self.phase in (PHASE_LIVE, PHASE_DRAIN):
             self._service_persistence(now)
 
-        # Stages 5 and 6.
+        # Stage 6 of the architecture's loop order: workflow state owned by the
+        # Fruit Jam, applied after input and durability and before any frame is
+        # built, so the screen that goes out is the one the writer just asked for.
+        if self.phase == PHASE_LIVE:
+            self._service_shell(now)
+
+        # Stages 7 and 8.
         if self.phase == PHASE_HELLO:
             if self.frame_sequence == 0:
                 self._emit(HELLO, 0, HELLO_PAYLOAD)
@@ -436,7 +570,16 @@ class LiveTypingSession:
                 })
         elif self.phase == PHASE_LIVE:
             self._maybe_send_viewport(now)
-            if self.adapter.finish_requested and not len(self.queue):
+            # Without a shell the finish gesture ends the session, exactly as it
+            # did for every run that produced the existing evidence. With one it
+            # means *back*, and only the shell reaching its own terminal state
+            # ends the session -- which is what makes the gesture safe to press
+            # inside a document.
+            stopping = (
+                self.shell.exiting if self.shell is not None
+                else self.adapter.finish_requested
+            )
+            if stopping and not len(self.queue):
                 self.phase = PHASE_DRAIN
                 # A deliberate stop is the one moment a checkpoint is
                 # unambiguously worth its cost, so it does not wait for a
@@ -450,7 +593,7 @@ class LiveTypingSession:
                     "text": self.editor.text,
                 })
         elif self.phase == PHASE_DRAIN:
-            if self.editor.viewport_revision == 0:
+            if self.editor.viewport_revision == 0 and self.shell is None:
                 # Escape was pressed without a single edit, so there is no final
                 # viewport to reconcile. Stop explicitly rather than wait out the
                 # session bound for a frame that can never be built.
@@ -473,7 +616,7 @@ class LiveTypingSession:
                     "final_hash": "%08X" % self.tracker.final_hash,
                 })
 
-        # Stage 7.
+        # Stage 9.
         self.tracker.check_timeouts(now)
         if now - self.started_at > self.session_timeout_seconds:
             raise LiveSessionError("live session timeout")
@@ -539,4 +682,8 @@ class LiveTypingSession:
         if self.persistence is not None:
             record["manual_save_requests"] = self.save_requests_serviced
             record.update(self.persistence.summary())
+        if self.shell is not None:
+            record["shell_routed_events"] = self.shell_events
+            record["finish_requests_serviced"] = self.finish_requests_serviced
+            record.update(self.shell.summary())
         return record

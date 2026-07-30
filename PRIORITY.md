@@ -15,57 +15,65 @@ Do not create new certification harnesses, evidence packages, compatibility inve
 1. ~~Finish the current ordinary writing session.~~ Done.
 2. ~~Move directly to V1.2: microSD persistence.~~ Implemented, host-verified.
 3. ~~Confirm the microSD pin aliases and run one physical forced-power-loss test.~~ Done 2026-07-30.
-4. Build the MagWrite Shell. **<- next**
-5. Add Journal, Quick Note, Drafts, and Recent.
-6. Complete the minimum standalone workflow.
-7. Defer optional buttons, keyboard edge cases, battery, enclosure, and hardening until their roadmap phase.
+4. ~~Build the MagWrite Shell.~~ Implemented, host-verified.
+5. Run one physical shell session on the bench. **<- next**
+6. Add Journal, Quick Note, Drafts, and Recent.
+7. Complete the minimum standalone workflow.
+8. Defer optional buttons, keyboard edge cases, battery, enclosure, and hardening until their roadmap phase.
 
 ## Active product task
 
-**V1.2 — Single-document persistence and recovery — PHYSICALLY VERIFIED**
+**V1.3 — MagWrite Shell — IMPLEMENTED, HOST-VERIFIED**
 
-Every requirement is built and covered by the host suite. See
-`docs/PERSISTENCE.md` for the design and `ROADMAP.md` for the requirement map.
+Every requirement is built and covered by the host suite. See `docs/SHELL.md`
+for the design and `ROADMAP.md` for the requirement map.
 
+Four states — Main Menu, Editor, Save/Status, Error — plus the terminal Exit the
+session reads to stop. The main menu exposes Journal, Quick Note, Drafts, and
+Recent; for this phase all four route into the one proven document, which is the
+scope the phase was given.
+
+The shell owns application state and nothing else. It holds no editor, no
+document, no store, no clock, and no transport, and there is exactly one
+`MultilineEditor` for the life of the session — which is why no transition can
+lose unsaved work: nothing is ever closed. Every exit from the editor passes
+through Save/Status, which forces a checkpoint on the way out.
+
+Navigation adds no keymap entry. Up, Down, and Enter are already normalized
+editor events; the finish gesture already existed with physical evidence behind
+it, and under the shell it means **back**, with the root still being the clean
+stop. Ctrl-S is unchanged.
+
+`ENABLE_SHELL = False` reproduces the V1.2 behaviour, and every viewport payload
+the physical runs measured, exactly.
+
+**Next: one physical bench session.** Not a new certification harness — the
+development runtime brings the shell up and logs every transition. What it has to
+show is the exit criterion: moving between the shell and a document repeatedly
+without losing state or stalling the display, and a restart landing back in the
+editor on the recovered document.
+
+**V1.2 — Single-document persistence and recovery — PHYSICALLY VERIFIED
+2026-07-30.** Evidence: `docs/FRUITJAM_SD_PROBE.jsonl` and
+`docs/FRUITJAM_V12_PERSISTENCE_SERIAL.jsonl`; the full account is in `ROADMAP.md`.
 The acknowledged revision is the latest revision accepted by the **Fruit Jam
-editor**, not the MagTag display. Display acknowledgements govern pacing; editor
+editor**, not the MagTag display: display acknowledgements govern pacing, editor
 acceptance governs durability.
-
-Hardware bring-up and physical verification ran on 2026-07-30. Evidence:
-`docs/FRUITJAM_SD_PROBE.jsonl` and `docs/FRUITJAM_V12_PERSISTENCE_SERIAL.jsonl`.
-
-The pin aliases are read off the board: the card is on the dedicated SPI bus
-(`SD_SCK`/`SD_MOSI`/`SD_MISO`/`SD_CS`), not the shared `board.SPI()`. The card
-found in the slot had no usable filesystem and was reformatted with explicit
-authorisation; FatFs chose FAT16 for a 946 MB volume, which V1.2 does not care
-about.
-
-**Exit met.** A writing session produced 12 autosaves and 3 checkpoints, Ctrl-S
-manual save worked and inserted no character, the save indicator moved
-`u` -> `r` -> `s`, and after the USB cable was pulled mid-session the restart
-recovered revision 73, 71 characters, cursor (2, 8) — exactly the last
-acknowledged edit, checked against the console's own per-keystroke record.
-
-One defect was found and fixed during the run: a mount survives a soft reboot, so
-every restart after the first raised `SD_SCK in use` and reported `NO_CARD` while
-a good card was mounted. `sd_storage.already_mounted` now adopts the existing
-mount.
-
-Recorded, not chased: the recovered text shows consistent character
-mis-mappings (`this` -> `tgus`). That is the deferred keyboard-mapping backlog;
-whatever the editor accepted was journaled and recovered faithfully.
-
-Next: V1.3, the MagWrite Shell.
-
-This is not a new certification harness. The development runtime already brings
-persistence up and logs the mount status, the recovery, and the save state.
 
 ## Deferred backlog
 
 The following are explicitly non-blocking unless they prevent normal writing:
 
-- the stale test count in `host-tests/README.md`, corrected in V1.2 but worth a
-  standing check;
+- the stale test count in `host-tests/README.md`, corrected again in V1.3 and
+  still worth a standing check;
+- `FakeKeyboardBackend.typing_interval_seconds` in the host simulator delivers a
+  report every *two* intervals, not one: the interval gate is evaluated before
+  the per-poll gate and consumes a slot even on the polls where the per-poll gate
+  suppresses the report. Found in V1.3 while a 0.25 s script produced a key
+  repeat; the product code is correct, a key held 500 ms is meant to repeat. It
+  means every test that passes that option is pacing at half the rate it reads
+  as. Fixing it would perturb the timing of several proven tests, so it is
+  recorded rather than changed mid-phase;
 - character mis-mappings seen in the V1.2 physical run (`this` typed as `tgus`,
   `is` as `us`) on the EPOMAKER TH40. Persistence stored and recovered exactly
   what the editor accepted, so this is a keyboard-mapping question, not a

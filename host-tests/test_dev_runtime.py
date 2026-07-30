@@ -364,7 +364,11 @@ class CleanStopTest(unittest.TestCase):
             self.assertIn('"guard_written": False', source, parts[-1])
             self.assertIn('"filesystem_remounted": False', source, parts[-1])
 
-    def test_the_operator_stop_control_is_the_application_key(self):
+    def test_the_operator_stop_control_is_escape_or_the_application_key(self):
+        # Both usages are the one finish control. Escape is the one that works on
+        # the EPOMAKER TH40 used for this phase -- its Application-labelled key
+        # sends a modifier with no usage byte -- so it is the name the runtime
+        # reports first. See docs/DEVELOPMENT_RUNTIME.md.
         from magwrite_transport.hid_keymap import (
             CONTROL_FINISH, CONTROL_USAGES, FINISH_USAGES, USAGE_APPLICATION,
             USAGE_ESCAPE,
@@ -373,8 +377,11 @@ class CleanStopTest(unittest.TestCase):
         self.assertEqual(CONTROL_USAGES[USAGE_APPLICATION], CONTROL_FINISH)
         self.assertEqual(CONTROL_USAGES[USAGE_ESCAPE], CONTROL_FINISH)
         self.assertIn(USAGE_APPLICATION, FINISH_USAGES)
-        self.assertIn("0x65", read(*FRUITJAM_ENTRY))
-        self.assertIn('"stop_key": "APPLICATION"', read(*FRUITJAM_ENTRY))
+        source = read(*FRUITJAM_ENTRY)
+        self.assertIn("0x65", source)
+        self.assertIn("0x29", source)
+        self.assertIn('"stop_key": "ESCAPE"', source)
+        self.assertIn('"stop_key_alternate": "APPLICATION"', source)
 
     def test_a_console_interrupt_is_a_stop_rather_than_a_fault(self):
         for parts in DEV_ENTRIES:
@@ -765,6 +772,61 @@ class RetirementTest(unittest.TestCase):
                 self.assertNotIn(guard, read(*parts), parts[-1])
 
 
+class ShellWiringTest(unittest.TestCase):
+    """The shell's device-entry wiring, asserted statically.
+
+    ``dev_runtime`` imports ``board`` and cannot be imported on the host, and
+    device-entry code the host suite never reached is the defect class that
+    blocked two prior physical attempts. So every line V1.3 adds there is
+    asserted here before anything is armed.
+    """
+
+    def test_the_shell_is_activated_by_its_own_named_setting(self):
+        source = read(*FRUITJAM_ENTRY)
+        self.assertIn("ENABLE_SHELL", source)
+        self.assertIn("Shell(log=log)", source)
+        self.assertIn("shell=shell", source)
+
+    def test_the_shipped_config_carries_the_setting_and_its_reasoning(self):
+        source = read("fruitjam", "config.py")
+        # Read as source, not imported: ``config`` resolves to the MagTag's on
+        # this path, and the setting under test is the Fruit Jam's.
+        self.assertIn("ENABLE_SHELL = True", source)
+        self.assertIn("finish gesture", source)
+
+    def test_the_shell_is_constructed_before_the_session_it_is_given_to(self):
+        source = read(*FRUITJAM_ENTRY)
+        self.assertLess(
+            source.index("Shell(log=log)"), source.index("LiveTypingSession(")
+        )
+
+    def test_the_opening_state_is_decided_from_what_the_card_returned(self):
+        source = read(*FRUITJAM_ENTRY)
+        self.assertIn("session.restore(persistence.recovery.snapshot)", source)
+        self.assertIn("shell.restore(False)", source)
+
+    def test_the_runtime_still_names_a_stop_control(self):
+        source = read(*FRUITJAM_ENTRY)
+        self.assertIn('"stop_from"', source)
+        self.assertIn('"MAIN_MENU"', source)
+
+    def test_the_shell_claims_no_guard_and_remounts_nothing(self):
+        body = code(*FRUITJAM_ENTRY)
+        for guard in EVERY_GUARD:
+            self.assertNotIn(guard, body)
+        self.assertNotIn("storage.remount", body)
+        self.assertNotIn("autoreload", body)
+
+    def test_the_shell_is_optional_in_the_session_it_drives(self):
+        # Optional on the same terms persistence is, so a runtime with the
+        # setting off reproduces the behaviour every physical run was measured
+        # with, rather than a nearby approximation of it.
+        from keyboard_simulator import KeyboardLink
+        session = KeyboardLink(reports=()).session
+        self.assertIsNone(session.shell)
+        self.assertIsNone(session.persistence)
+
+
 class HostSafetyTest(unittest.TestCase):
     """CircuitPython-only imports must stay out of anything the host loads."""
 
@@ -777,7 +839,7 @@ class HostSafetyTest(unittest.TestCase):
         "hid_keymap.py", "hid_keyboard.py", "keyboard_repeat.py",
         "keyboard_layout.py", "pacing.py", "latency.py", "live_session.py",
         "usb_device_state.py", "usb_hid_descriptors.py",
-        "usb_keyboard_adapter.py",
+        "usb_keyboard_adapter.py", "shell.py", "shell_viewport.py",
     )
 
     def test_the_shared_modules_stay_free_of_hardware_imports(self):

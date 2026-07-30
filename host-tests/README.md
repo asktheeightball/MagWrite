@@ -34,7 +34,10 @@ Logic that does not require CircuitPython or ESP32 hardware should be testable u
   alias, and a firmware build with no SD driver;
 - autosave and checkpoint thresholds, save state, and the save indicator;
 - forced power loss at every byte offset of a journal append, each checkpoint
-  interruption window, and a live session killed mid-word and resumed.
+  interruption window, and a live session killed mid-word and resumed;
+- every shell transition, including the ones that are supposed to be impossible,
+  the document surviving repeated moves between the shell and the editor, and
+  every shell screen encoded, decoded, and drawn with the real MagTag renderer.
 
 Hardware acceptance tests must remain separate and must not be marked passed by host simulation.
 
@@ -44,4 +47,4 @@ Run the current feasibility suite from the repository root:
 python -m unittest discover -s host-tests -p "test_*.py" -v
 ```
 
-The current suite contains 843 tests and has no third-party host dependencies.
+The current suite contains 929 tests and has no third-party host dependencies.

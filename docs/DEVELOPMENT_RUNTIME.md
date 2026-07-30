@@ -104,7 +104,16 @@ Unchanged from the verified milestone, and physically confirmed:
    handshakes. If a document was recovered from the card, `document_recovery` and
    `live_document_restored` appear too, and the editor opens on that document
    with its cursor where it was.
-4. Type. The MagTag trails and catches up. **Ctrl-S** saves immediately.
+4. The panel opens on the **main menu**: Journal, Quick Note, Drafts, Recent.
+   Move with **Up** and **Down**, open with **Enter**. If a document was
+   recovered the runtime skips the menu and opens straight into the editor on it.
+5. Type. The MagTag trails and catches up. **Ctrl-S** saves immediately.
+   **Escape** leaves the editor to the save screen, which checkpoints on the way
+   through; from there **Enter** goes to the menu and **Escape** goes back into
+   the document. See `docs/SHELL.md`.
+
+To run the pre-shell V1.2 behaviour instead, set `ENABLE_SHELL = False` on the
+Fruit Jam. Everything below then behaves exactly as it did before V1.3.
 
 Start the MagTag first. It is the side that answers the handshake, and starting
 it second just means the Fruit Jam's first HELLO goes nowhere.
@@ -118,6 +127,13 @@ log. It never writes to the port.
   (menu) key**, `0x65`. Either drains the session, forces out and reconciles the
   final viewport, and logs `dev_runtime_session_summary` followed by
   `dev_runtime_stopped`.
+
+  **With the shell on, that gesture means *back*, and the stop is the one taken
+  at the main menu.** Inside a document it goes to the save screen instead, so
+  reaching the stop from the editor is: Escape, Enter, Escape. `dev_runtime_ready`
+  reports `"stop_from": "MAIN_MENU"` when the shell is active and
+  `"stop_from": "ANYWHERE"` when it is not. Watch `shell_transition` on the
+  console to see where each press landed.
 
   On the **EPOMAKER TH40**, Escape is the one that works, and two sessions on
   2026-07-29 confirm it: usage `0x29` arrives cleanly and stops the runtime. The
@@ -156,7 +172,10 @@ Persistence adds `sd_mounted` or one of `sd_absent` / `sd_unmountable` /
 `sd_not_configured` / `sd_spi_failed` / `sd_init_failed`, then
 `document_recovery`, `live_document_restored`, `document_journaled`,
 `document_checkpointed`, `usb_keyboard_save_requested`, and
-`document_save_failed`. A wrong pin alias reports the `SD`-prefixed names the
+`document_save_failed`.
+
+The shell adds `shell_restored`, `shell_transition`, `shell_mode_entered`,
+`shell_selection_moved`, `shell_left_editor`, and `shell_fault`. A wrong pin alias reports the `SD`-prefixed names the
 board actually exposes, so it is one line to read rather than a hunt.
 
 MagTag: `dev_display_ready`, `dev_display_status_sent`,
