@@ -39,7 +39,7 @@ this list wins.
 | 5 | Shell UX: one-gesture exit, and MagTag buttons | V1.5 | PHYSICALLY VERIFIED 2026-07-30 |
 | 6 | One-cable bench power | One-cable bench power | PHYSICALLY VERIFIED 2026-07-30 |
 | 7 | Minimum standalone workflow | V1.6 | PHYSICALLY VERIFIED 2026-07-30 |
-| 8 | MagTag font and button footer | V1.7 | Host-verified; physical check outstanding |
+| 8 | MagTag font and button footer | V1.7 | PHYSICALLY VERIFIED 2026-07-31 |
 | 9 | Battery, enclosure, and hardening | Priorities 6 and 7 | Not started |
 
 Writing must feel right before anything is stored, and storage must be
@@ -1547,7 +1547,12 @@ count, or character total is claimed, because nothing measured any. That is a
 weaker form of evidence than the earlier phases carry and the correct form for
 this one.
 
-## V1.7 — MagTag font and button footer — HOST-VERIFIED, PHYSICAL CHECK OUTSTANDING
+## V1.7 — MagTag font and button footer — PHYSICALLY VERIFIED 2026-07-31
+
+**Final configuration: `terminalio.FONT`, native scale 1, a 6×12 cell, 48
+columns by 6 content rows.** Evidence
+`docs/FRUITJAM_V17_UI_SERIAL.jsonl`; the check is `docs/PANEL_UI_CHECK.md`.
+
 
 Two changes to what the writer looks at, and none to what the device does. The
 editor, shell, persistence, UART, keyboard, and standalone behaviour are all
@@ -1654,9 +1659,11 @@ readable as arrows only by someone who has already been told they are arrows.
 
 ### Coverage
 
-1,226 host tests pass, 41 of them new in `host-tests/test_panel_layout.py`, plus
-`compileall`, the UART validator, the CircuitPython compatibility sweep, and
-`git diff --check`. The new tests cover the font resolution rule, the derived
+1,228 host tests pass, 43 of them new — 41 in `host-tests/test_panel_layout.py`
+and two added in `host-tests/test_dev_runtime.py` after the bench found the
+blocker below — plus `compileall`, the UART validator, the CircuitPython
+compatibility sweep, and `git diff --check`. The new tests cover the font
+resolution rule, the derived
 geometry including the two "one more would not fit" bounds, the cross-board
 capacity agreement, the bounded glyph cache, and the footer on every screen.
 
@@ -1666,16 +1673,64 @@ blit was 4.3× the old table's, and caching each glyph's rows as integer bitmask
 brought the worst case back to 2× for twice the characters. The cache is bounded
 by the alphabet, because every character outside it raises before it is cached.
 
-### What is not claimed
+### Physical verification — 2026-07-31, commit `81cd177` — PASSED
 
-Everything physical. Whether scale 1 is comfortable to read at arm's length,
-whether the labels sit over the right buttons, whether the arrows read as arrows
-on e-paper, and whether a partial refresh leaves the footer clean are all
-questions only the device answers. The panel's left-to-right order being the
-bezel's is the one that has a cheap fix if it is wrong:
-`button_footer.FOOTER_ACTIONS` is a single line to reverse.
+All seven items of `docs/PANEL_UI_CHECK.md` passed, and the standalone cold boot
+from the charger recovered the document. The operator answered the four
+questions only a person can answer — the text is comfortable at normal writing
+distance, the editor and menus fit the 48×6 layout cleanly, `MENU`/▲/▼/`SELECT`
+sit over A/B/C/D, and the arrows read clearly with no overlap onto content.
 
-Battery work is paused until this is verified on hardware.
+The first pass ran with the upstream cable in the PC rather than the charger —
+the same one-cable rig with a console attached — so the mechanical half has a
+record: 4 button presses and 4 applied with **zero** duplicates, drops, or
+unknown actions; all four actions exercised, including `MENU` at the main menu
+doing nothing and not ending the session; 46 HID reports normalized to 23 events
+and 23 applied with none lost; the document recovered at 30 characters and grown
+to 53 across 3 checkpoints and 4 journal appends; a silent `CHECKPOINTED` /
+`SAVED` straight to the menu on exit; 8 viewports sent, 20 superseded, all 8
+displayed and hash-reconciled; and no fault of any kind.
+
+**The wider panel cost no refresh time.** One full refresh at 3,470 ms and seven
+partial refreshes averaging **898 ms**, against V1.6's 924 ms mean over 24
+partials — on roughly double the text. The glyph-row cache was added on a host
+measurement showing the naive blit at 4.3× the old table's work; the panel says
+that concern is closed.
+
+The left-to-right question is settled: the panel's order **is** the bezel's, A on
+the left. `button_footer.FOOTER_ACTIONS` needed no change.
+
+### The blocker the check found, which was not in the UI
+
+The first attempt never reached a document. The panel showed `STARTING` and then
+`WAITING`, and the MagTag was right: the Fruit Jam was not running at all.
+`dev_runtime.py` re-asserts the protocol constants as a literal — deliberately,
+to catch a `magwrite_transport` copied from a different version than the entry
+point beside it — and this phase raised `MAX_PAYLOAD_SIZE` from 192 to 384
+without updating it. It raised `protocol constants do not match the verified wire
+format` and dropped to the REPL inside nine seconds.
+
+**Every host check had passed, and none of them could have caught it.** 1,226
+tests, `compileall`, the UART validator, the compatibility sweep, and
+`git diff --check` were all green; `dev_runtime.py` imports `board` and cannot be
+imported on the host, and the sweep is a source-level scan for CPython-only
+names. This is the third time device-entry code the host suite cannot reach has
+cost a physical attempt, which is what `host-tests/test_dev_runtime.py` exists
+for, so the fix ships with the static assertion that closes it: the product entry
+point's literal must equal the current `protocol.MAX_PAYLOAD_SIZE`.
+
+The two guarded harnesses stay pinned at 192 and are now refused by the changed
+wire format. That is deliberate — they produced their evidence against a 192-byte
+maximum and updating the literal would claim otherwise — and a second test
+asserts the pinning, so it is a recorded decision rather than an oversight.
+Neither can be re-run without a decision about what it would then be proving.
+
+### What is still not claimed
+
+Nothing was measured about legibility, only observed, and that is the right form
+of evidence for a question about an image. No photograph was kept. The printable
+ASCII widening caused no visible rendering or editor defect and was accepted
+without a separate investigation.
 
 ## Priority 6 — Unified single-battery power — V1.8
 

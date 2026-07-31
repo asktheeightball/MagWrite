@@ -33,15 +33,63 @@ Do not create new certification harnesses, evidence packages, compatibility inve
     2026-07-30.** The device is a standalone writing machine: one cable, both
     boards start by themselves, the document comes back, and it neither loses a
     late keyboard nor switches itself off.
-13. Draw the MagTag UI in the built-in font and label the four buttons on the
-    panel — V1.7. **<- current**, host-verified, awaiting the physical check.
-14. Integrate one rechargeable battery and one charging port — V1.8.
+13. ~~Draw the MagTag UI in the built-in font and label the four buttons on the
+    panel — V1.7.~~ **PHYSICALLY VERIFIED 2026-07-31.**
+14. Integrate one rechargeable battery and one charging port — V1.8. **<- current.**
 15. Defer keyboard edge cases, enclosure, and hardening until their roadmap phase.
 
 ## Active product task
 
-**V1.7, the MagTag font and button footer.** Battery work is paused until this
-UI milestone is physically verified.
+**V1.8, battery and charging.** See `ROADMAP.md` Priority 6. The USB power meter
+that phase needs is what finally answers the current question left open by the
+bench power audit, and no figure from this bench may be assumed until one is
+measured. The V1.7 UI milestone that was blocking it is verified, below.
+
+## Previous product task
+
+**V1.7, the MagTag font and button footer — PHYSICALLY VERIFIED 2026-07-31.**
+Evidence `docs/FRUITJAM_V17_UI_SERIAL.jsonl`; the check is
+`docs/PANEL_UI_CHECK.md` and the full account is in `ROADMAP.md`.
+
+**The final configuration is `terminalio.FONT`, native scale 1, a 6×12 cell, 48
+columns by 6 content rows.**
+
+All seven check items passed and the standalone cold boot recovered the
+document. The operator confirmed the four things only a person can confirm — the
+text is comfortable at normal writing distance, the editor and menus fit the
+48×6 layout cleanly, `MENU`/▲/▼/`SELECT` sit over A/B/C/D, and the arrows read
+clearly without overlapping content. The panel's left-to-right order **is** the
+bezel's, so `button_footer.FOOTER_ACTIONS` needed no change.
+
+The first pass ran with the upstream cable in the PC rather than the charger, so
+unlike V1.6 the mechanical half has a record: 4 button presses and 4 applied with
+zero duplicates, drops, or unknown actions, all four actions exercised including
+`MENU` at the main menu doing nothing; 46 HID reports → 23 events → 23 applied
+with none lost; the document grown 30 → 53 characters across 3 checkpoints and 4
+journal appends; a silent `CHECKPOINTED` / `SAVED` straight to the menu; 8
+viewports all displayed and hash-reconciled; and no fault of any kind.
+
+**The wider panel cost no refresh time** — 898 ms mean over seven partial
+refreshes against V1.6's 924 ms over 24, on roughly double the text.
+
+**The check found one blocker, and it was not in the UI.** The Fruit Jam was not
+running at all: `dev_runtime.py` re-asserts the protocol constants as a literal
+and still demanded the old 192-byte payload maximum, so it raised and dropped to
+the REPL in nine seconds while the MagTag correctly waited for a board that would
+never speak. Every host check had passed and none could reach it — the file
+imports `board`. Fixed with the static assertion that closes the gap, then
+re-checked in the same session.
+
+Printable ASCII support caused no visible rendering or editor defect and was
+accepted without a separate investigation, as instructed.
+
+**Two consequences worth carrying forward:** the guarded harnesses
+`hardware_editor_test.py` and `hardware_usb_keyboard_test.py` are pinned at the
+192-byte wire format they were verified against and will now refuse to start —
+deliberately, and asserted by a test, but they cannot be re-run without a
+decision about what they would be proving. And the frozen 3×5 glyph table in
+`magtag/magwrite/test_pattern.py` is still deployed and still used by those
+harnesses.
 
 Two changes, both to what the writer looks at and neither to what the device
 does.
@@ -285,11 +333,11 @@ Carry forward, from V1.4 and V1.5:
   product id, and it behaved correctly under test: `36B0:3002` got `STANDARD` HID
   rather than the wired TH40's remap. That seam needs no change for a dongle.
 
-## Next product task
+## The active phase in detail
 
-**V1.8 — one rechargeable battery and one charging port.** Paused until the V1.7
-UI milestone above is physically verified. `ROADMAP.md` Priority
-6 carries the requirements: one protected single cell, one charger with
+**V1.8 — one rechargeable battery and one charging port.** Unblocked
+2026-07-31, when the V1.7 UI milestone it was paused behind was physically
+verified. `ROADMAP.md` Priority 6 carries the requirements: one protected single cell, one charger with
 power-path/load-sharing, one system power switch, regulated supply for both
 boards, no parallel charger circuits, brownout margin, and **measured** peak,
 active, idle, and refresh current.

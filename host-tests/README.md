@@ -98,12 +98,23 @@ Logic that does not require CircuitPython or ESP32 hardware should be testable u
   grow past the alphabet; and that every screen — editor, menu, drafts, startup,
   waiting, error, and one filled to the last row and column — carries the footer,
   draws nothing in the gap above it, and renders it **pixel for pixel identically**,
-  which is what lets a partial refresh leave it alone.
+  which is what lets a partial refresh leave it alone;
+- the wire-format literal each device entry point re-asserts, statically, because
+  those files import `board` and no host test can run them. V1.7 raised the
+  payload maximum and left `dev_runtime.py` demanding the old one, which passed
+  every host check and then refused to start the appliance on the bench. The
+  product entry point must equal the current `protocol.MAX_PAYLOAD_SIZE`; the two
+  guarded harnesses must stay pinned at what they were verified against.
 
 No test asserts a bound as a literal. Every size is derived from the editor's own
 constants, so these keep testing the property the next time the bounds move --
 which is a correction of a real defect: a test asserting that 5,000 characters
 were refused stopped testing anything the moment V1.4 raised the bound past it.
+
+There is exactly one deliberate exception, added in V1.7: the two guarded
+harnesses are asserted to still say `192`. That is not a bound being tested, it
+is a record of the wire format those harnesses produced their evidence against,
+and it is supposed to stop tracking the current constant.
 
 Hardware acceptance tests must remain separate and must not be marked passed by host simulation.
 
@@ -113,4 +124,4 @@ Run the current feasibility suite from the repository root:
 python -m unittest discover -s host-tests -p "test_*.py" -v
 ```
 
-The current suite contains 1,226 tests and has no third-party host dependencies.
+The current suite contains 1,228 tests and has no third-party host dependencies.

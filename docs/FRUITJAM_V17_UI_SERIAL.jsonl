@@ -1,0 +1,251 @@
+10.2.1\]0;🐍Done | 10.2.1\]0;🐍REPL | 10.2.1\
+Adafruit CircuitPython 10.2.1 on 2026-05-13; Adafruit Fruit Jam with rp2350b
+>>> 
+>>> 
+]0;🐍Done | 10.2.1\
+]0;🐍REPL | 10.2.1\
+Adafruit CircuitPython 10.2.1 on 2026-05-13; Adafruit Fruit Jam with rp2350b
+>>> 
+jg
+]0;🐍Done | 10.2.1\
+soft reboot
+[2K[0GAuto-reload is on. Simply save files over USB to run them or enter REPL to disable.
+[2K[0Gcode.py output:
+]0;🐍code.py | 10.2.1\
+Traceback (most recent call last):
+  File "code.py", line 51, in <module>
+  File "dev_runtime.py", line 174, in <module>
+RuntimeError: protocol constants do not match the verified wire format
+]0;🐍Done | 10.2.1\
+Code done running.
+Press any key to enter the REPL. Use CTRL-D to reload.
+soft reboot
+[2K[0GAuto-reload is on. Simply save files over USB to run them or enter REPL to disable.
+[2K[0Gcode.py output:
+]0;🐍code.py | 10.2.1\
+Traceback (most recent call last):
+  File "code.py", line 51, in <module>
+  File "dev_runtime.py", line 174, in <module>
+RuntimeError: protocol constants do not match the verified wire format
+]0;🐍Done | 10.2.1\
+Code done running.
+Press any key to enter the REPL. Use CTRL-D to reload.
+soft reboot
+[2K[0GAuto-reload is on. Simply save files over USB to run them or enter REPL to disable.
+[2K[0Gcode.py output:
+]0;🐍code.py | 10.2.1\
+{"mount_point":"/sd","event":"sd_already_mounted"}
+{"mirror_stale":false,"truncated_final_record":false,"revision":331,"checkpoint_records":4,"source":"CHECKPOINT","journal_records":0,"recovered":true,"cursor_row":32,"characters":259,"event":"document_recovery","rejected_records":0,"cursor_column":133}
+{"truncated_final_record":false,"revision":469,"checkpoint_records":2,"recovered":true,"characters":30,"cursor_row":1,"journal_records":0,"rejected_records":0,"mirror_stale":false,"cursor_column":0,"source":"CHECKPOINT","event":"document_recovery","document_id":"n0005"}
+{"title":"NOTE 5","document_id":"n0005","event":"document_active","opened":14,"kind":"NOTE"}
+{"index_rejected_records":0,"index_records":15,"index_last_error":null,"index_appends":0,"active_document":"n0005","index_truncated_final_record":false,"event":"document_catalogue","index_compactions":0,"documents":7}
+{"title":"NOTE 5","state":"MAIN_MENU","document_id":"n0005","event":"shell_document_opened","mode":"QUICK_NOTE","kind":"NOTE"}
+{"visible_revision":3,"reason":"recovered document","to":"EDITOR","event":"shell_transition","mode":"QUICK_NOTE","from":"MAIN_MENU"}
+{"state":"EDITOR","title":"NOTE 5","revision":469,"mode":"QUICK_NOTE","document_id":"n0005","event":"shell_restored","recovered":true}
+{"document_id":"n0005","title":"NOTE 5","kind":"NOTE","event":"live_document_restored","characters":30,"revision":469,"cursor_row":1,"lines":2,"cursor_column":0}
+{"shell_save_state":null,"shell_document_kind":"NOTE","keyboard_layout":"AUTO","shell_button_actions":0,"storage_detail":"adopted a filesystem already mounted at /sd","shell_visible_revision":3,"shell_buttons_ignored":0,"startup_delay_seconds":3.0,"baud":115200,"shell_document_id":"n0005","shell_entries":0,"save_key":"CTRL-S","shell_ignored_events":0,"shell_mode":"QUICK_NOTE","shell_backs":0,"event":"dev_runtime_ready","shell_drafts_listed":0,"shell_documents_opened":1,"shell_allow_exit":false,"shell_document_title":"NOTE 5","session_timeout_seconds":null,"display_handshake_retry_seconds":3.0,"stop_key":"ESCAPE","display_handshake":"RETRIES_UNTIL_READY","idle_timeout_seconds":null,"shell_error_reason":null,"shell_exits_refused":0,"shell_state":"EDITOR","shell_keyboard_ready":true,"stop_key_alternate":"APPLICATION","profile":"STANDALONE","save_state":"SAVED","tx_alias":"A0","mount_point":"/sd","stop_from":"NOWHERE","back_key":"ESCAPE","buttons":"MAGTAG_MENU_UP_DOWN_SELECT","shell_selection":1,"storage_status":"MOUNTED","rx_alias":"A1","shell_requests":0,"shell_faults":0}
+{"reason":"open attempt 1, unbounded","event":"usb_keyboard_state","open_attempts":1,"to":"ENUMERATING","from":"NO_DEVICE"}
+{"reason":null,"event":"usb_keyboard_state","open_attempts":1,"to":"READY","from":"ENUMERATING"}
+{"protocol":"boot_keyboard","product_id":"304E","product":"EPOMAKER TH40","interface_subclass":1,"vendor_id":"36B0","endpoint":129,"interface_protocol":1,"interface":0,"max_packet_size":8,"interval":1,"interface_class":3,"manufacturer":"RDMCTMZT","speed":2,"hid_interfaces":3,"serial_number":null,"event":"usb_keyboard_connected"}
+{"note":"Sends 0x2E with no modifier from its apostrophe key; 0x34 is never emitted. Diagnosed from FRUITJAM_USB_KEYBOARD_SERIAL.jsonl.","event":"usb_keyboard_layout_selected","selection":"AUTO","layout":{"vendor_id":"36B0","product_id":"304E","usage_remaps":{"0x2E":"0x34"},"layout":"EPOMAKER_TH40"}}
+{"sequence":1,"event":"live_status_received","revision":0,"message_type":5,"fields":{"displayed_revision":0,"test_id":"MAGWRITE-UART-ACK","protocol_version":1,"app_version":1,"receiver_ready":true,"display_ready":true}}
+{"display_wait_seconds":0.09,"event":"live_typing_started","usb_ready":true,"hello_attempts":1}
+{"document_revision":469,"text_hash":"1E35982A","revision":3,"outstanding":1,"pacing_reason":"ONSET","event":"live_viewport_sent","sequence":2}
+{"sequence":2,"event":"live_status_received","revision":3,"message_type":6,"fields":{"received_sequence":2,"pending_revision":3,"superseded":false}}
+{"sequence":3,"event":"live_status_received","revision":3,"message_type":7,"fields":{"refresh_mode":1,"viewport_sequence":2,"latest_received_revision":3,"previous_displayed_revision":0}}
+{"sequence":4,"event":"live_status_received","revision":3,"message_type":8,"fields":{"stale":false,"viewport_sequence":2,"duration_ms":3470,"latest_received_revision":3}}
+{"sequence":5,"event":"live_status_received","revision":3,"message_type":9,"fields":{"displayed_revision":3,"latest_received_revision":3,"viewport_hash":506828842}}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[23,0,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":0,"usage":23,"mapped_usage":23,"kind":"CHAR","value":"t","repeat":false}
+{"sequence":0,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":1,"cursor_column":1,"value":"t","document_revision":470,"viewport_revision":4}
+{"lines":2,"event":"live_document_revision_changed","document_revision":470,"characters":31}
+{"characters":31,"event":"document_checkpointed","revision":470,"manual":false,"save_state":"SAVED"}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[23,8,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":1,"usage":8,"mapped_usage":8,"kind":"CHAR","value":"e","repeat":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[8,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[8,22,0,0,0,0],"duplicate":false}
+{"queue_depth":2,"event":"keyboard_event_normalized","sequence":2,"usage":22,"mapped_usage":22,"kind":"CHAR","value":"s","repeat":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[8,22,23,0,0,0],"duplicate":false}
+{"queue_depth":3,"event":"keyboard_event_normalized","sequence":3,"usage":23,"mapped_usage":23,"kind":"CHAR","value":"t","repeat":false}
+{"sequence":1,"queue_depth":2,"kind":"CHAR","event":"live_event_processed","cursor_row":1,"cursor_column":2,"value":"e","document_revision":471,"viewport_revision":5}
+{"lines":2,"event":"live_document_revision_changed","document_revision":471,"characters":32}
+{"sequence":2,"queue_depth":1,"kind":"CHAR","event":"live_event_processed","cursor_row":1,"cursor_column":3,"value":"s","document_revision":472,"viewport_revision":6}
+{"lines":2,"event":"live_document_revision_changed","document_revision":472,"characters":33}
+{"sequence":3,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":1,"cursor_column":4,"value":"t","document_revision":473,"viewport_revision":7}
+{"lines":2,"event":"live_document_revision_changed","document_revision":473,"characters":34}
+{"event":"live_viewport_superseded","superseded_revision":4,"newest_revision":8}
+{"document_revision":473,"text_hash":"5CAB25AD","revision":8,"outstanding":1,"pacing_reason":"SUSTAINED","event":"live_viewport_sent","sequence":3}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[22,23,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[23,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[0,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[12,0,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":4,"usage":12,"mapped_usage":12,"kind":"CHAR","value":"i","repeat":false}
+{"sequence":4,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":1,"cursor_column":5,"value":"i","document_revision":474,"viewport_revision":9}
+{"lines":2,"event":"live_document_revision_changed","document_revision":474,"characters":35}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[12,17,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":5,"usage":17,"mapped_usage":17,"kind":"CHAR","value":"n","repeat":false}
+{"sequence":5,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":1,"cursor_column":6,"value":"n","document_revision":475,"viewport_revision":10}
+{"lines":2,"event":"live_document_revision_changed","document_revision":475,"characters":36}
+{"event":"live_viewport_superseded","superseded_revision":9,"newest_revision":10}
+{"sequence":6,"event":"live_status_received","revision":8,"message_type":6,"fields":{"received_sequence":3,"pending_revision":8,"superseded":false}}
+{"sequence":7,"event":"live_status_received","revision":8,"message_type":7,"fields":{"refresh_mode":0,"viewport_sequence":3,"latest_received_revision":8,"previous_displayed_revision":3}}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[17,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[17,10,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":6,"usage":10,"mapped_usage":10,"kind":"CHAR","value":"g","repeat":false}
+{"sequence":6,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":1,"cursor_column":7,"value":"g","document_revision":476,"viewport_revision":11}
+{"lines":2,"event":"live_document_revision_changed","document_revision":476,"characters":37}
+{"event":"live_viewport_superseded","superseded_revision":10,"newest_revision":11}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[10,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[0,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[44,0,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":7,"usage":44,"mapped_usage":44,"kind":"CHAR","value":" ","repeat":false}
+{"sequence":7,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":1,"cursor_column":8,"value":" ","document_revision":477,"viewport_revision":12}
+{"lines":2,"event":"live_document_revision_changed","document_revision":477,"characters":38}
+{"event":"live_viewport_superseded","superseded_revision":11,"newest_revision":12}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[0,0,0,0,0,0],"duplicate":false}
+{"sequence":8,"event":"live_status_received","revision":8,"message_type":8,"fields":{"stale":false,"viewport_sequence":3,"duration_ms":895,"latest_received_revision":8}}
+{"sequence":9,"event":"live_status_received","revision":8,"message_type":9,"fields":{"displayed_revision":8,"latest_received_revision":8,"viewport_hash":1554720173}}
+{"document_revision":477,"text_hash":"A2CF28CA","revision":12,"outstanding":1,"pacing_reason":"CAUGHT_UP","event":"live_viewport_sent","sequence":4}
+{"characters":38,"event":"document_journaled","revision":477,"journal_records":1,"save_state":"RECOVERABLE"}
+{"sequence":10,"event":"live_status_received","revision":12,"message_type":6,"fields":{"received_sequence":4,"pending_revision":12,"superseded":false}}
+{"sequence":11,"event":"live_status_received","revision":12,"message_type":7,"fields":{"refresh_mode":0,"viewport_sequence":4,"latest_received_revision":12,"previous_displayed_revision":8}}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[40,0,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":8,"usage":40,"mapped_usage":40,"kind":"ENTER","value":"","repeat":false}
+{"sequence":8,"queue_depth":0,"kind":"ENTER","event":"live_event_processed","cursor_row":2,"cursor_column":0,"value":"","document_revision":478,"viewport_revision":14}
+{"lines":3,"event":"live_document_revision_changed","document_revision":478,"characters":39}
+{"event":"live_viewport_superseded","superseded_revision":13,"newest_revision":15}
+{"sequence":12,"event":"live_status_received","revision":12,"message_type":8,"fields":{"stale":false,"viewport_sequence":4,"duration_ms":912,"latest_received_revision":12}}
+{"sequence":13,"event":"live_status_received","revision":12,"message_type":9,"fields":{"displayed_revision":12,"latest_received_revision":12,"viewport_hash":2731485386}}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[0,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[9,0,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":9,"usage":9,"mapped_usage":9,"kind":"CHAR","value":"f","repeat":false}
+{"sequence":9,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":2,"cursor_column":1,"value":"f","document_revision":479,"viewport_revision":16}
+{"lines":3,"event":"live_document_revision_changed","document_revision":479,"characters":40}
+{"event":"live_viewport_superseded","superseded_revision":15,"newest_revision":16}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[9,18,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":10,"usage":18,"mapped_usage":18,"kind":"CHAR","value":"o","repeat":false}
+{"sequence":10,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":2,"cursor_column":2,"value":"o","document_revision":480,"viewport_revision":17}
+{"lines":3,"event":"live_document_revision_changed","document_revision":480,"characters":41}
+{"event":"live_viewport_superseded","superseded_revision":16,"newest_revision":17}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[18,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[18,17,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":11,"usage":17,"mapped_usage":17,"kind":"CHAR","value":"n","repeat":false}
+{"sequence":11,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":2,"cursor_column":3,"value":"n","document_revision":481,"viewport_revision":18}
+{"lines":3,"event":"live_document_revision_changed","document_revision":481,"characters":42}
+{"event":"live_viewport_superseded","superseded_revision":17,"newest_revision":18}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[17,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[17,23,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":12,"usage":23,"mapped_usage":23,"kind":"CHAR","value":"t","repeat":false}
+{"sequence":12,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":2,"cursor_column":4,"value":"t","document_revision":482,"viewport_revision":19}
+{"lines":3,"event":"live_document_revision_changed","document_revision":482,"characters":43}
+{"event":"live_viewport_superseded","superseded_revision":18,"newest_revision":19}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[23,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[0,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[44,0,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":13,"usage":44,"mapped_usage":44,"kind":"CHAR","value":" ","repeat":false}
+{"sequence":13,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":2,"cursor_column":5,"value":" ","document_revision":483,"viewport_revision":20}
+{"lines":3,"event":"live_document_revision_changed","document_revision":483,"characters":44}
+{"event":"live_viewport_superseded","superseded_revision":19,"newest_revision":20}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[44,12,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":14,"usage":12,"mapped_usage":12,"kind":"CHAR","value":"i","repeat":false}
+{"sequence":14,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":2,"cursor_column":6,"value":"i","document_revision":484,"viewport_revision":21}
+{"lines":3,"event":"live_document_revision_changed","document_revision":484,"characters":45}
+{"event":"live_viewport_superseded","superseded_revision":20,"newest_revision":21}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[12,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[12,22,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":15,"usage":22,"mapped_usage":22,"kind":"CHAR","value":"s","repeat":false}
+{"sequence":15,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":2,"cursor_column":7,"value":"s","document_revision":485,"viewport_revision":22}
+{"lines":3,"event":"live_document_revision_changed","document_revision":485,"characters":46}
+{"event":"live_viewport_superseded","superseded_revision":21,"newest_revision":22}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[22,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[0,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[44,0,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":16,"usage":44,"mapped_usage":44,"kind":"CHAR","value":" ","repeat":false}
+{"sequence":16,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":2,"cursor_column":8,"value":" ","document_revision":486,"viewport_revision":23}
+{"lines":3,"event":"live_document_revision_changed","document_revision":486,"characters":47}
+{"event":"live_viewport_superseded","superseded_revision":22,"newest_revision":23}
+{"characters":47,"event":"document_journaled","revision":486,"journal_records":2,"save_state":"RECOVERABLE"}
+{"event":"live_viewport_superseded","superseded_revision":23,"newest_revision":24}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[0,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[5,0,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":17,"usage":5,"mapped_usage":5,"kind":"CHAR","value":"b","repeat":false}
+{"sequence":17,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":2,"cursor_column":9,"value":"b","document_revision":487,"viewport_revision":25}
+{"lines":3,"event":"live_document_revision_changed","document_revision":487,"characters":48}
+{"event":"live_viewport_superseded","superseded_revision":24,"newest_revision":26}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[5,8,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":18,"usage":8,"mapped_usage":8,"kind":"CHAR","value":"e","repeat":false}
+{"sequence":18,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":2,"cursor_column":10,"value":"e","document_revision":488,"viewport_revision":27}
+{"lines":3,"event":"live_document_revision_changed","document_revision":488,"characters":49}
+{"event":"live_viewport_superseded","superseded_revision":26,"newest_revision":27}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[8,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[8,23,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":19,"usage":23,"mapped_usage":23,"kind":"CHAR","value":"t","repeat":false}
+{"sequence":19,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":2,"cursor_column":11,"value":"t","document_revision":489,"viewport_revision":28}
+{"lines":3,"event":"live_document_revision_changed","document_revision":489,"characters":50}
+{"event":"live_viewport_superseded","superseded_revision":27,"newest_revision":28}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[23,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[0,0,0,0,0,0],"duplicate":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[23,0,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":20,"usage":23,"mapped_usage":23,"kind":"CHAR","value":"t","repeat":false}
+{"sequence":20,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":2,"cursor_column":12,"value":"t","document_revision":490,"viewport_revision":29}
+{"lines":3,"event":"live_document_revision_changed","document_revision":490,"characters":51}
+{"event":"live_viewport_superseded","superseded_revision":28,"newest_revision":29}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[0,0,0,0,0,0],"duplicate":false}
+{"document_revision":490,"text_hash":"E05CE6E6","revision":29,"outstanding":1,"pacing_reason":"SUSTAINED","event":"live_viewport_sent","sequence":5}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[8,0,0,0,0,0],"duplicate":false}
+{"queue_depth":1,"event":"keyboard_event_normalized","sequence":21,"usage":8,"mapped_usage":8,"kind":"CHAR","value":"e","repeat":false}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[8,21,0,0,0,0],"duplicate":false}
+{"queue_depth":2,"event":"keyboard_event_normalized","sequence":22,"usage":21,"mapped_usage":21,"kind":"CHAR","value":"r","repeat":false}
+{"sequence":21,"queue_depth":1,"kind":"CHAR","event":"live_event_processed","cursor_row":2,"cursor_column":13,"value":"e","document_revision":491,"viewport_revision":30}
+{"lines":3,"event":"live_document_revision_changed","document_revision":491,"characters":52}
+{"sequence":22,"queue_depth":0,"kind":"CHAR","event":"live_event_processed","cursor_row":2,"cursor_column":14,"value":"r","document_revision":492,"viewport_revision":31}
+{"lines":3,"event":"live_document_revision_changed","document_revision":492,"characters":53}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[21,0,0,0,0,0],"duplicate":false}
+{"sequence":14,"event":"live_status_received","revision":29,"message_type":6,"fields":{"received_sequence":5,"pending_revision":29,"superseded":false}}
+{"rollover":false,"event":"hid_report_received","modifier":0,"keys":[0,0,0,0,0,0],"duplicate":false}
+{"sequence":15,"event":"live_status_received","revision":29,"message_type":7,"fields":{"refresh_mode":0,"viewport_sequence":5,"latest_received_revision":29,"previous_displayed_revision":12}}
+{"characters":53,"event":"document_journaled","revision":492,"journal_records":3,"save_state":"RECOVERABLE"}
+{"event":"live_viewport_superseded","superseded_revision":31,"newest_revision":32}
+{"sequence":16,"event":"live_status_received","revision":29,"message_type":8,"fields":{"stale":false,"viewport_sequence":5,"duration_ms":917,"latest_received_revision":29}}
+{"sequence":17,"event":"live_status_received","revision":29,"message_type":9,"fields":{"displayed_revision":29,"latest_received_revision":29,"viewport_hash":3764184806}}
+{"document_revision":492,"text_hash":"5A4CF9E4","revision":32,"outstanding":1,"pacing_reason":"CAUGHT_UP","event":"live_viewport_sent","sequence":6}
+{"sequence":18,"event":"live_status_received","revision":32,"message_type":6,"fields":{"received_sequence":6,"pending_revision":32,"superseded":false}}
+{"sequence":19,"event":"live_status_received","revision":32,"message_type":7,"fields":{"refresh_mode":0,"viewport_sequence":6,"latest_received_revision":32,"previous_displayed_revision":29}}
+{"sequence":20,"event":"live_status_received","revision":32,"message_type":8,"fields":{"stale":false,"viewport_sequence":6,"duration_ms":930,"latest_received_revision":32}}
+{"sequence":21,"event":"live_status_received","revision":32,"message_type":9,"fields":{"displayed_revision":32,"latest_received_revision":32,"viewport_hash":1514994148}}
+{"pressed_ms":1940998,"event":"button_event_received","action":"MENU","ordinal":1,"queue_depth":1}
+{"characters":53,"event":"document_checkpointed","revision":492,"manual":true,"save_state":"SAVED"}
+{"document_revision":492,"characters":53,"document_id":"n0005","event":"shell_left_editor","save_action":"CHECKPOINTED","save_state":"SAVED"}
+{"visible_revision":4,"reason":"left the editor","to":"MAIN_MENU","event":"shell_transition","mode":"QUICK_NOTE","from":"EDITOR"}
+{"to":"MAIN_MENU","event":"shell_button_applied","action":"MENU","ordinal":1,"from":"EDITOR"}
+{"document_revision":492,"text_hash":"46B2DF00","revision":34,"outstanding":1,"pacing_reason":"CAUGHT_UP","event":"live_viewport_sent","sequence":7}
+{"sequence":23,"event":"live_status_received","revision":34,"message_type":6,"fields":{"received_sequence":7,"pending_revision":34,"superseded":false}}
+{"sequence":24,"event":"live_status_received","revision":34,"message_type":7,"fields":{"refresh_mode":0,"viewport_sequence":7,"latest_received_revision":34,"previous_displayed_revision":32}}
+{"sequence":25,"event":"live_status_received","revision":34,"message_type":8,"fields":{"stale":false,"viewport_sequence":7,"duration_ms":892,"latest_received_revision":34}}
+{"sequence":26,"event":"live_status_received","revision":34,"message_type":9,"fields":{"displayed_revision":34,"latest_received_revision":34,"viewport_hash":1186127616}}
+{"pressed_ms":1942517,"event":"button_event_received","action":"UP","ordinal":2,"queue_depth":1}
+{"event":"shell_selection_moved","label":"JOURNAL","selection":0}
+{"to":"MAIN_MENU","event":"shell_button_applied","action":"UP","ordinal":2,"from":"MAIN_MENU"}
+{"document_revision":492,"text_hash":"320935F1","revision":35,"outstanding":1,"pacing_reason":"CAUGHT_UP","event":"live_viewport_sent","sequence":8}
+{"sequence":28,"event":"live_status_received","revision":35,"message_type":6,"fields":{"received_sequence":8,"pending_revision":35,"superseded":false}}
+{"sequence":29,"event":"live_status_received","revision":35,"message_type":7,"fields":{"refresh_mode":0,"viewport_sequence":8,"latest_received_revision":35,"previous_displayed_revision":34}}
+{"sequence":30,"event":"live_status_received","revision":35,"message_type":8,"fields":{"stale":false,"viewport_sequence":8,"duration_ms":897,"latest_received_revision":35}}
+{"sequence":31,"event":"live_status_received","revision":35,"message_type":9,"fields":{"displayed_revision":35,"latest_received_revision":35,"viewport_hash":839464433}}
+{"pressed_ms":1945758,"event":"button_event_received","action":"MENU","ordinal":3,"queue_depth":1}
+{"to":"MAIN_MENU","event":"shell_button_applied","action":"MENU","ordinal":3,"from":"MAIN_MENU"}
+{"pressed_ms":1950573,"event":"button_event_received","action":"SELECT","ordinal":4,"queue_depth":1}
+{"entries":1,"event":"shell_mode_entered","mode":"JOURNAL","label":"JOURNAL"}
+{"request":"OPEN_JOURNAL","event":"shell_request","argument":null,"mode":"JOURNAL"}
+{"visible_revision":6,"reason":"menu selection","to":"EDITOR","event":"shell_transition","mode":"JOURNAL","from":"MAIN_MENU"}
+{"to":"EDITOR","event":"shell_button_applied","action":"SELECT","ordinal":4,"from":"MAIN_MENU"}
+{"characters":53,"event":"document_checkpointed","revision":492,"manual":true,"save_state":"SAVED"}
+{"source":"CHECKPOINT","document_id":"j0001","opened":15,"kind":"JOURNAL","event":"document_opened","created":false,"title":"JOURNAL 1","characters":0}
+{"title":"JOURNAL 1","state":"EDITOR","document_id":"j0001","event":"shell_document_opened","mode":"JOURNAL","kind":"JOURNAL"}
+{"cursor_row":0,"event":"live_document_opened","title":"JOURNAL 1","kind":"JOURNAL","created":false,"characters":0,"cursor_column":0,"document_revision":493,"document_id":"j0001","lines":1}
+{"characters":0,"event":"document_journaled","revision":493,"journal_records":1,"save_state":"RECOVERABLE"}
+{"event":"live_viewport_superseded","superseded_revision":38,"newest_revision":39}
+{"document_revision":493,"text_hash":"B38CD1C8","revision":39,"outstanding":1,"pacing_reason":"CAUGHT_UP","event":"live_viewport_sent","sequence":9}
+{"sequence":34,"event":"live_status_received","revision":39,"message_type":6,"fields":{"received_sequence":9,"pending_revision":39,"superseded":false}}
+{"sequence":35,"event":"live_status_received","revision":39,"message_type":7,"fields":{"refresh_mode":0,"viewport_sequence":9,"latest_received_revision":39,"previous_displayed_revision":35}}
+{"sequence":36,"event":"live_status_received","revision":39,"message_type":8,"fields":{"stale":false,"viewport_sequence":9,"duration_ms":841,"latest_received_revision":39}}
+{"sequence":37,"event":"live_status_received","revision":39,"message_type":9,"fields":{"displayed_revision":39,"latest_received_revision":39,"viewport_hash":3012350408}}

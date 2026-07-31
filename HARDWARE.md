@@ -219,10 +219,10 @@ quarter-centres of the panel's long axis, left to right in the pin order above.
 It changes no button behaviour and carries no state; it is drawn locally by the
 MagTag and costs no protocol. See `ARCHITECTURE.md`, "The button footer".
 
-Left-to-right on the panel must be left-to-right on the bezel, and that is a
-claim only the physical device can settle. `button_footer.FOOTER_ACTIONS` is the
-panel's order and is the single line to reverse if a check ever shows the labels
-the other way round.
+Left-to-right on the panel must be left-to-right on the bezel, and that was a
+claim only the physical device could settle. **Settled 2026-07-31: it is, with A
+on the left.** `button_footer.FOOTER_ACTIONS` is the panel's order and needed no
+change; it stays the single line to reverse if that ever stops being true.
 
 The MagTag reports only:
 
@@ -295,6 +295,10 @@ Do not connect one battery simultaneously to the independent charger circuits on
 - [x] Implement MagTag button events over return UART. Physically verified
       2026-07-30 — all four buttons claimed, 9 presses delivered and applied
       exactly once each, none reaching the document. Recorded in `ROADMAP.md`.
+- [x] Draw the panel in `terminalio.FONT` and label the bezel. Physically
+      verified 2026-07-31 — 1× scale, 6×12 cell, 48 columns by 6 content rows,
+      the four footer labels confirmed over A/B/C/D, and 898 ms mean partial
+      refresh on roughly double the text. See `docs/PANEL_UI_CHECK.md`.
 - [x] Verify one known USB HID keyboard on the Fruit Jam. Done with the **wired**
       EPOMAKER TH40, across V1.2 through V1.5 and re-confirmed as a control on
       2026-07-30: enumeration, interface selection, boot-report reading, and live

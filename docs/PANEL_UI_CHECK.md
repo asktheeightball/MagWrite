@@ -1,5 +1,12 @@
 # MagTag font and button footer — physical check
 
+> **RUN 2026-07-31 — ALL SEVEN ITEMS PASSED.** The final configuration is
+> `terminalio.FONT`, native scale 1, a 6×12 cell, **48 columns by 6 content
+> rows**. The operator confirmed every item on the panel and the standalone cold
+> boot recovered the document. One blocker was found and fixed first — see
+> "What the check found" at the end. Evidence:
+> [FRUITJAM_V17_UI_SERIAL.jsonl](FRUITJAM_V17_UI_SERIAL.jsonl).
+
 The smallest check that settles V1.7. Not a harness: no guard, no remount, no
 PASS/FAIL verdict written by a board. It runs the shipped configuration and
 reports what the panel looks like.
@@ -81,8 +88,52 @@ the device driven for a minute.
 
 ## Evidence
 
-Like the V1.6 standalone check, this one runs with no console on either board, so
-the panel is the only instrument and the operator's observation is the only
-record. Nothing here measures a timing, a refresh count, or a character total,
-and nothing claims one. Photographs of the panel are the one artefact worth
-keeping, because every question above is a question about an image.
+Every question above is a question about an image, so the operator's observation
+is the only answer to items 1 through 4 and 7. Unlike the V1.6 standalone check,
+though, the first pass was run with the upstream cable in the PC rather than the
+charger — the same one-cable rig with a console attached — so the *mechanical*
+half of items 5 and 6 has a record rather than only a recollection:
+[FRUITJAM_V17_UI_SERIAL.jsonl](FRUITJAM_V17_UI_SERIAL.jsonl). The second pass,
+the standalone cold boot, has no console by design and no record, exactly as V1.6
+had none.
+
+## Result — 2026-07-31 — PASSED
+
+All seven items passed, with the operator reporting no faults and the capture
+showing none.
+
+What the console recorded during the session, none of which contradicts anything
+observed:
+
+| | |
+| --- | --- |
+| Buttons | 4 pressed, 4 applied, ordinals 1–4, **zero** duplicates, drops, or unknown actions |
+| Actions exercised | `MENU` left the editor, `UP` moved the selection, `MENU` **at the main menu did nothing and did not end the session**, `SELECT` opened Journal |
+| Typing | 46 HID reports → 23 normalized events → 23 applied, none lost |
+| Document | `NOTE 5` recovered at 30 characters, grew to 53, 3 checkpoints and 4 journal appends |
+| Silent save | `shell_left_editor` → `CHECKPOINTED` / `SAVED`, straight to the menu |
+| Refreshes | 1 full at 3,470 ms, 7 partial averaging **898 ms** |
+| Reconciliation | 8 viewports sent, 20 superseded, all 8 displayed and hash-matched |
+| Faults | none of any kind |
+
+**The wider panel cost no refresh time.** 898 ms average against V1.6's 924 ms
+over 24 partial refreshes, on roughly double the text. The glyph-row cache was
+added on a host measurement that the naive blit was 4.3× the old table's work;
+this is the panel saying that concern is closed.
+
+### What the check found
+
+**One blocker, in the product path, and not in the UI.** The first attempt showed
+`STARTING` and then `WAITING` and never reached a document, because the Fruit Jam
+was not running at all: `dev_runtime.py` re-asserts the protocol constants as a
+literal and was still demanding the old 192-byte payload maximum, so it raised
+`protocol constants do not match the verified wire format` and dropped to the
+REPL within nine seconds. The MagTag was behaving correctly throughout — it was
+waiting for a board that was never going to speak.
+
+The whole host suite, `compileall`, the UART validator, and the compatibility
+sweep had all passed, and **none of them could have caught it**: the file imports
+`board` and cannot be imported on the host. That is the same defect class
+`host-tests/test_dev_runtime.py` was written for, so the fix ships with the
+static assertion that closes it. Fixed, deployed, and re-checked in the same
+session.

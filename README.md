@@ -64,7 +64,10 @@ The project has physically verified:
 - the minimum standalone writing workflow, with no development computer: startup,
   document recovery, button navigation, writing, silent save, recovery across a
   power cycle, a keyboard connected after startup, and no self-shutdown when
-  left idle.
+  left idle;
+- the MagTag UI in CircuitPython's built-in `terminalio.FONT` at 1×, its derived
+  48-column by 6-row layout, and the persistent footer naming the four bezel
+  buttons.
 
 ## Current milestone order
 
@@ -80,9 +83,10 @@ The project has physically verified:
    input; see [docs/BENCH_POWER.md](docs/BENCH_POWER.md).
 7. ~~Build the minimum standalone writing workflow.~~ Physically verified
    2026-07-30 — see [docs/STANDALONE_CHECK.md](docs/STANDALONE_CHECK.md).
-8. Draw the MagTag UI in CircuitPython's built-in font and label the four
-   buttons on the panel. **<- current**, awaiting physical verification.
-9. Integrate one rechargeable battery and one charging port.
+8. ~~Draw the MagTag UI in CircuitPython's built-in font and label the four
+   buttons on the panel.~~ Physically verified 2026-07-31 — see
+   [docs/PANEL_UI_CHECK.md](docs/PANEL_UI_CHECK.md).
+9. Integrate one rechargeable battery and one charging port. **<- current.**
 10. Complete enclosure and product hardening.
 
 ## Running it
