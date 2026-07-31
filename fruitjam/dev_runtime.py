@@ -170,7 +170,7 @@ else:
 
 if not config.UART_TX_PIN_ALIAS or not config.UART_RX_PIN_ALIAS:
     raise RuntimeError("both confirmed UART pin aliases are required")
-if VERSION != 1 or MAX_PAYLOAD_SIZE != 192:
+if VERSION != 1 or MAX_PAYLOAD_SIZE != 384:
     raise RuntimeError("protocol constants do not match the verified wire format")
 
 # Imported only after the gate, and only here: importing them is what makes this

@@ -241,6 +241,41 @@ class NoOneShotGuardTest(unittest.TestCase):
                         written.add(ast.dump(node))
         self.assertEqual(written, set())
 
+    def test_the_product_entry_point_pins_the_current_wire_format(self):
+        """The V1.7 blocker, and the only host check that would have caught it.
+
+        Every device entry point re-asserts the protocol constants as a literal,
+        which is the point: it catches a ``magwrite_transport`` copied from a
+        different version than the entry point beside it. Raising
+        ``MAX_PAYLOAD_SIZE`` from 192 to 384 for the built-in font's wider panel
+        left ``dev_runtime.py`` still demanding 192, so the appliance refused to
+        start on the bench with ``protocol constants do not match the verified
+        wire format`` — after a full host suite, ``compileall``, the UART
+        validator, and the compatibility sweep all passed. None of them could
+        reach it: the file imports ``board`` and cannot be imported on the host.
+        So it is asserted statically, exactly as every other device-entry
+        property in this file is.
+        """
+        from magwrite_transport.protocol import MAX_PAYLOAD_SIZE
+
+        source = read(*FRUITJAM_ENTRY)
+        found = re.findall(r"MAX_PAYLOAD_SIZE\s*!=\s*(\d+)", source)
+        self.assertEqual(found, [str(MAX_PAYLOAD_SIZE)])
+
+    def test_the_guarded_harnesses_stay_pinned_to_what_they_verified(self):
+        """And are therefore refused by a changed wire format, deliberately.
+
+        These two produced their evidence against a 192-byte payload maximum.
+        Updating the literal would claim they had been verified against 384,
+        which is false, so they keep asserting what they actually ran on and
+        fail closed if anybody starts them now. That is what the guard is for.
+        """
+        for parts in (("fruitjam", "hardware_editor_test.py"),
+                      ("fruitjam", "hardware_usb_keyboard_test.py")):
+            found = re.findall(
+                r"MAX_PAYLOAD_SIZE\s*!=\s*(\d+)", read(*parts))
+            self.assertEqual(found, ["192"], parts[1])
+
     def test_the_guarded_harnesses_still_own_their_guards_unchanged(self):
         """Retiring a phase must not disturb a completed milestone's record."""
         owners = {
